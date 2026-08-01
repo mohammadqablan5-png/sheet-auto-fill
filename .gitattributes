@@ -1,0 +1,8 @@
+# Shell scripts must keep Unix line endings or macOS refuses to run them
+# ("bad interpreter: /bin/bash^M").
+*.command text eol=lf
+*.sh      text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.py      text eol=lf
+*.bat     text eol=crlf

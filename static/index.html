@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SHEET auto FILL</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg:#f5f6f8; --card:#fff; --border:#dde1e7; --text:#1c2430; --muted:#6b7686;
+    --accent:#1a6de0; --ok:#188045; --warn:#b7791f; --err:#c0392b; --update:#7a3fb8;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.45 "Segoe UI", system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  header { background:var(--card); border-bottom:1px solid var(--border); padding:14px 22px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  header h1 { font-size:17px; margin:0 14px 0 0; }
+  .pill { font-size:12px; padding:3px 10px; border-radius:99px; border:1px solid var(--border); background:#fafbfc; color:var(--muted); }
+  .pill.ok { color:var(--ok); border-color:#bfe3cd; background:#effaf3; }
+  .pill.bad { color:var(--err); border-color:#efc4bd; background:#fdf1ef; }
+  main { padding:20px 22px 60px; max-width:1500px; margin:0 auto; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:18px; }
+  .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  label.small { font-size:12px; color:var(--muted); display:block; margin-bottom:4px; }
+  select, input[type=file], input[type=text], #defaultsBox input { font:inherit; padding:7px 10px; border:1px solid var(--border); border-radius:7px; background:#fff; }
+  #defaultsBox input { width:150px; }
+  button { font:inherit; font-weight:600; padding:9px 18px; border-radius:8px; border:1px solid transparent; cursor:pointer; }
+  button.primary { background:var(--accent); color:#fff; }
+  button.primary:disabled { background:#9db8dd; cursor:default; }
+  button.ghost { background:#fff; border-color:var(--border); color:var(--text); }
+  #drop { border:2px dashed var(--border); border-radius:10px; padding:26px; text-align:center; color:var(--muted); cursor:pointer; transition:.15s; }
+  #drop.hover { border-color:var(--accent); background:#f0f6ff; }
+  #fileReports div { font-size:13px; margin-top:6px; }
+  .ok-t { color:var(--ok); } .err-t { color:var(--err); } .warn-t { color:var(--warn); }
+  .tablewrap { overflow-x:auto; border:1px solid var(--border); border-radius:8px; }
+  table { border-collapse:collapse; width:100%; font-size:13px; }
+  th, td { border-bottom:1px solid var(--border); border-right:1px solid #eef0f3; padding:0; vertical-align:top; }
+  th { background:#f2f4f7; padding:8px 9px; text-align:left; white-space:nowrap; position:sticky; top:0; }
+  td input, td textarea { width:100%; border:0; padding:7px 9px; font:inherit; background:transparent; resize:vertical; min-height:32px; }
+  td input:focus, td textarea:focus { outline:2px solid var(--accent); background:#fff; }
+  td.miss input { background:#fdf1ef; }
+  td.status { padding:7px 9px; white-space:nowrap; font-weight:600; }
+  .st-new { color:var(--ok); } .st-upd { color:var(--update); } .st-err { color:var(--err); }
+  .warnlist { font-size:11px; color:var(--warn); padding:0 9px 6px; }
+  .del { color:var(--muted); background:none; border:none; padding:7px 8px; cursor:pointer; font-size:15px; }
+  .del:hover { color:var(--err); }
+  #pushResults div { font-size:13px; margin-top:6px; }
+  .setup { background:#fff8ec; border:1px solid #f0dcb0; border-radius:8px; padding:12px 14px; font-size:13px; margin-bottom:14px; }
+  code { background:#f0f2f5; padding:1px 5px; border-radius:4px; }
+  .count { color:var(--muted); font-size:13px; }
+  .step { display:flex; gap:14px; padding:14px 0; border-top:1px solid var(--border); font-size:13px; }
+  .step:first-of-type { border-top:0; padding-top:4px; }
+  .stepnum { width:26px; height:26px; flex:0 0 26px; border-radius:50%; background:var(--accent);
+             color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
+  .step.done .stepnum { background:var(--ok); }
+  .stepmsg { font-size:12px; margin-top:7px; }
+  #keyDrop { border:2px dashed var(--border); border-radius:8px; padding:14px; text-align:center;
+             color:var(--muted); cursor:pointer; margin-top:9px; transition:.15s; }
+  #keyDrop.hover { border-color:var(--accent); background:#f0f6ff; }
+</style>
+</head>
+<body>
+<header>
+  <h1>SHEET auto FILL</h1>
+  <span id="pillSheet" class="pill">Google Sheet: checking…</span>
+  <span id="pillAI" class="pill">PDF reading: checking…</span>
+  <button id="recheckBtn" class="ghost" style="padding:4px 12px;font-size:12px">Re-check setup</button>
+</header>
+
+<main>
+  <div id="setupNotes"></div>
+
+  <div class="card" id="connectCard">
+    <div class="row" style="justify-content:space-between">
+      <strong>Connect your Google Sheet</strong>
+      <button id="connectToggle" class="ghost">Hide</button>
+    </div>
+    <div id="connectBody">
+      <p style="color:var(--muted);font-size:13px;margin:10px 0 16px">
+        Three steps, done once. Everything here is free — Google never asks for a payment method.
+      </p>
+
+      <div class="step">
+        <div class="stepnum">1</div>
+        <div style="flex:1">
+          <b>Which sheet?</b> Open your spreadsheet in a browser and paste its address here.
+          <div class="row" style="margin-top:8px">
+            <input id="sheetUrl" type="text" style="flex:1;min-width:340px"
+                   placeholder="https://docs.google.com/spreadsheets/d/...">
+            <button id="saveSheetBtn" class="ghost">Save</button>
+          </div>
+          <div id="sheetMsg" class="stepmsg"></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="stepnum">2</div>
+        <div style="flex:1">
+          <b>Give the app permission.</b> Create a free Google service account, download its
+          JSON key, then drop that file here.
+          <div style="margin-top:6px">
+            <a href="https://console.cloud.google.com/iam-admin/serviceaccounts" target="_blank">Open Google Cloud → Service Accounts</a>
+            &nbsp;·&nbsp;
+            <a href="https://console.cloud.google.com/apis/library/sheets.googleapis.com" target="_blank">Enable the Sheets API</a>
+            &nbsp;·&nbsp;
+            <span style="color:var(--muted)">full click-by-click steps are in README.md</span>
+          </div>
+          <div id="keyDrop">Drop the downloaded <code>.json</code> key here, or click to choose it
+            <input id="keyInput" type="file" accept=".json,application/json" style="display:none">
+          </div>
+          <div id="keyMsg" class="stepmsg"></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="stepnum">3</div>
+        <div style="flex:1">
+          <b>Share the sheet with the app.</b> Copy the address below, then in Google Sheets
+          click <b>Share</b>, paste it, and set it to <b>Editor</b>.
+          <div id="shareBox" class="stepmsg" style="color:var(--muted)">Finish step 2 first.</div>
+          <div class="row" style="margin-top:8px">
+            <button id="testBtn" class="primary">Test the connection</button>
+            <span id="testMsg" style="font-size:13px"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <label class="small">Target tab in the spreadsheet</label>
+        <select id="tabSelect"><option value="latest">Latest tab</option></select>
+      </div>
+      <div style="flex:1"></div>
+    </div>
+    <div style="height:14px"></div>
+    <div id="drop">
+      <strong>Drop work-order PDFs, CSVs, or screenshots here</strong><br>
+      or click to choose files (.pdf, .csv, .png, .jpg)
+      <input id="fileInput" type="file" multiple accept=".pdf,.csv,.png,.jpg,.jpeg,.webp,.gif" style="display:none">
+    </div>
+    <div id="fileReports"></div>
+
+    <div style="height:16px"></div>
+    <details id="defaultsBox">
+      <summary style="cursor:pointer;font-size:13px;color:var(--muted)">
+        Defaults for these jobs (company, team leader, dispatcher…) — filled in where the file has no value
+      </summary>
+      <div class="row" style="margin-top:10px">
+        <div><label class="small">Company</label><input id="d_company" placeholder="e.g. keystone"></div>
+        <div><label class="small">Team leader</label><input id="d_team_leader" placeholder="e.g. Nick"></div>
+        <div><label class="small">Dispatcher</label><input id="d_dispatcher" placeholder="e.g. Adam"></div>
+        <div><label class="small">Job status</label><input id="d_job_status" placeholder="e.g. Secured"></div>
+      </div>
+    </details>
+
+    <div style="height:12px"></div>
+    <button id="extractBtn" class="primary" disabled>Extract jobs</button>
+    <span id="extractSpin" style="display:none;color:var(--muted)"></span>
+  </div>
+
+  <div class="card" id="previewCard" style="display:none">
+    <div class="row" style="justify-content:space-between;margin-bottom:12px">
+      <strong>Preview &amp; edit before sending <span class="count" id="rowCount"></span></strong>
+      <div class="row">
+        <select id="layoutSel" title="Column layout of the target tab">
+          <option value="nocap">Layout: no CAP column (Jul tab)</option>
+          <option value="cap">Layout: with CAP column (Jun tab)</option>
+        </select>
+        <button id="copyBtn" class="ghost">Copy rows for pasting</button>
+        <button id="csvBtn" class="ghost">Download CSV</button>
+        <button id="addRowBtn" class="ghost">+ Add empty row</button>
+        <button id="pushBtn" class="primary">Push to Google Sheet</button>
+        <span id="pushSpin" style="display:none;color:var(--muted)"> Writing…</span>
+      </div>
+    </div>
+    <div class="tablewrap"><table id="grid"><thead></thead><tbody></tbody></table></div>
+    <div id="pushResults"></div>
+  </div>
+</main>
+
+<script>
+let STATUS = null;
+let rows = [];          // array of {field: value}
+let existing = new Set();
+
+const $ = id => document.getElementById(id);
+
+async function loadStatus(recheck) {
+  STATUS = await (await fetch('/api/status' + (recheck ? '?recheck=1' : ''))).json();
+  const ps = $('pillSheet'), pa = $('pillAI');
+  if (STATUS.sheet_configured && !STATUS.sheet_error) {
+    ps.textContent = 'Google Sheet: connected'; ps.className = 'pill ok';
+  } else {
+    ps.textContent = 'Google Sheet: not connected'; ps.className = 'pill bad';
+  }
+  pa.textContent = STATUS.ocr_ok ? 'PDF reading: ready (offline, free)' : 'PDF reading: OCR not installed';
+  pa.className = 'pill ' + (STATUS.ocr_ok ? 'ok' : 'bad');
+
+  const notes = [];
+  if (!STATUS.sheet_configured) {
+    notes.push('Google Sheets is not connected yet — use <b>Connect your Google Sheet</b> below. ' +
+      'You can still extract, preview, and use <b>Copy rows for pasting</b> / ' +
+      '<b>Download CSV</b> to get the data into the sheet by hand.');
+  } else if (STATUS.sheet_error) {
+    notes.push('Google Sheets problem: ' + STATUS.sheet_error);
+  }
+  if (!STATUS.ocr_ok) {
+    notes.push('The offline PDF reader is not installed, so only CSV files can be read. ' +
+      'Install it once (free, no account) with:<br>' +
+      '<code>py -m pip install --user rapidocr-onnxruntime pypdfium2 pdfplumber</code><br>' +
+      'then click <b>Re-check setup</b>.');
+  }
+  $('setupNotes').innerHTML = notes.map(n => `<div class="setup">${n}</div>`).join('');
+  refreshConnectPanel();
+
+  const sel = $('tabSelect');
+  sel.innerHTML = '';
+  if (STATUS.tabs.length) {
+    STATUS.tabs.forEach((t, i) => {
+      const o = document.createElement('option');
+      o.value = t; o.textContent = t;
+      if (i === STATUS.tabs.length - 1) o.selected = true;   // default: newest tab
+      sel.appendChild(o);
+    });
+  } else {
+    sel.innerHTML = '<option value="latest">Latest tab</option>';
+  }
+}
+
+/* ---------- file picking ---------- */
+let picked = [];
+const drop = $('drop'), fi = $('fileInput');
+drop.onclick = () => fi.click();
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('hover'); };
+drop.ondragleave = () => drop.classList.remove('hover');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('hover'); addFiles(e.dataTransfer.files); };
+fi.onchange = () => addFiles(fi.files);
+
+function addFiles(list) {
+  for (const f of list) picked.push(f);
+  renderFileList();
+  $('extractBtn').disabled = picked.length === 0;
+}
+function renderFileList(reports) {
+  const el = $('fileReports');
+  if (reports) {
+    el.innerHTML = reports.map(r =>
+      `<div class="${r.ok ? 'ok-t' : 'err-t'}">${r.ok ? '✔' : '✖'} ${r.name} — ${r.message}</div>`).join('');
+  } else {
+    el.innerHTML = picked.map(f => `<div>📄 ${f.name}</div>`).join('');
+  }
+}
+
+/* ---------- extract ---------- */
+$('extractBtn').onclick = async () => {
+  const fd = new FormData();
+  picked.forEach(f => fd.append('files', f));
+  fd.append('tab', $('tabSelect').value);
+  ['company', 'team_leader', 'dispatcher', 'job_status'].forEach(f => {
+    const v = $('d_' + f).value.trim();
+    if (v) fd.append('default_' + f, v);
+  });
+
+  const scanning = picked.some(f => !/\.csv$/i.test(f.name));
+  const t0 = Date.now();
+  const spin = $('extractSpin');
+  spin.style.display = 'inline';
+  spin.textContent = scanning
+    ? ' Reading the pages… this takes about 15 seconds per page (all offline).'
+    : ' Working…';
+  const timer = scanning ? setInterval(() => {
+    spin.textContent = ` Reading the pages… ${Math.round((Date.now() - t0) / 1000)}s elapsed ` +
+      `(about 15 seconds per page, all offline).`;
+  }, 1000) : null;
+  $('extractBtn').disabled = true;
+  try {
+    const res = await (await fetch('/api/extract', { method: 'POST', body: fd })).json();
+    if (res.error) { alert(res.error); return; }
+    renderFileList(res.files);
+    existing = new Set(res.existing || []);
+    rows = rows.concat(res.rows);
+    picked = [];
+    renderGrid();
+  } catch (e) {
+    alert('Extraction failed: ' + e);
+  } finally {
+    if (timer) clearInterval(timer);
+    $('extractBtn').disabled = picked.length === 0;
+    spin.style.display = 'none';
+  }
+};
+
+/* ---------- preview grid ---------- */
+function renderGrid() {
+  const card = $('previewCard');
+  card.style.display = rows.length ? '' : 'none';
+  $('rowCount').textContent = rows.length ? `— ${rows.length} job(s)` : '';
+  const thead = $('grid').querySelector('thead');
+  const tbody = $('grid').querySelector('tbody');
+  thead.innerHTML = '<tr><th></th><th>Status</th>' +
+    STATUS.fields.map(f => `<th>${STATUS.labels[f]}</th>`).join('') + '</tr>';
+  tbody.innerHTML = '';
+
+  const seen = {};
+  rows.forEach(r => { const j = (r.job_id || '').trim(); if (j) seen[j] = (seen[j] || 0) + 1; });
+
+  rows.forEach((r, idx) => {
+    const tr = document.createElement('tr');
+
+    const tdDel = document.createElement('td');
+    tdDel.innerHTML = `<button class="del" title="Remove row">✖</button>`;
+    tdDel.querySelector('button').onclick = () => { rows.splice(idx, 1); renderGrid(); };
+    tr.appendChild(tdDel);
+
+    const jid = (r.job_id || '').trim();
+    const tdSt = document.createElement('td');
+    tdSt.className = 'status';
+    let st, cls;
+    if (!jid) { st = 'No ID'; cls = 'st-err'; }
+    else if (existing.has(jid)) { st = 'Update'; cls = 'st-upd'; }
+    else { st = 'New'; cls = 'st-new'; }
+    if (jid && seen[jid] > 1) { st += ' ⚠ dup'; }
+    tdSt.innerHTML = `<span class="${cls}">${st}</span>`;
+    if (r._warnings && r._warnings.length) {
+      tdSt.innerHTML += `<div class="warnlist">${r._warnings.join('<br>')}</div>`;
+    }
+    tr.appendChild(tdSt);
+
+    STATUS.fields.forEach(f => {
+      const td = document.createElement('td');
+      const long = (f === 'sow' || f === 'address' || f === 'updates');
+      const el = document.createElement(long ? 'textarea' : 'input');
+      el.value = r[f] || '';
+      if (long) { el.rows = 2; el.style.minWidth = f === 'sow' ? '340px' : '240px'; }
+      else { el.style.minWidth = (f === 'job_id') ? '160px' : '110px'; }
+      el.oninput = () => { r[f] = el.value; };
+      el.onchange = () => renderGrid();
+      if ((r._warnings || []).some(w => w.startsWith(STATUS.labels[f]))) td.className = 'miss';
+      td.appendChild(el);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+$('addRowBtn').onclick = () => {
+  const empty = {};
+  STATUS.fields.forEach(f => empty[f] = '');
+  empty._warnings = [];
+  rows.push(empty);
+  renderGrid();
+};
+
+/* ---------- export without Google (copy / CSV) ---------- */
+// Column order matching the spreadsheet tabs, so a paste lands in the right columns.
+const LAYOUTS = {
+  nocap: ['job_id','sow','nte','cost','address','city','deadline','company','jmg',
+          'team_leader','job_status','dispatcher','payout','handyman','handyman_phone',
+          'assignee','assignee_phone','updates'],
+  cap:   ['job_id','sow','nte','cap','cost','address','city','deadline','company','jmg',
+          'team_leader','job_status','dispatcher','payout','handyman','handyman_phone',
+          'assignee','assignee_phone','updates'],
+};
+const cell = v => (v == null ? '' : String(v).replace(/[\t\r\n]+/g, ' ').trim());
+
+function exportMatrix() {
+  const cols = LAYOUTS[$('layoutSel').value];
+  return rows.map(r => cols.map(f => cell(r[f])));
+}
+
+$('copyBtn').onclick = async () => {
+  const tsv = exportMatrix().map(r => r.join('\t')).join('\n');
+  try {
+    await navigator.clipboard.writeText(tsv);
+    $('pushResults').innerHTML =
+      `<div class="ok-t">✔ ${rows.length} row(s) copied. In Google Sheets: click the first empty ` +
+      `cell in column A under your last job, then press Ctrl+V.</div>`;
+  } catch {
+    $('pushResults').innerHTML =
+      `<div class="warn-t">Clipboard blocked by the browser — use “Download CSV” instead.</div>`;
+  }
+};
+
+$('csvBtn').onclick = () => {
+  const q = v => `"${v.replace(/"/g, '""')}"`;
+  const cols = LAYOUTS[$('layoutSel').value];
+  const csv = [cols.map(f => q(STATUS.labels[f] || f)).join(',')]
+    .concat(exportMatrix().map(r => r.map(q).join(','))).join('\r\n');
+  const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: 'text/csv' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `jobs_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+/* ---------- push ---------- */
+$('pushBtn').onclick = async () => {
+  if (!rows.length) return;
+  const tab = $('tabSelect').value;
+  const tabName = tab === 'latest' ? 'the latest tab' : `tab "${tab}"`;
+  if (!confirm(`Write ${rows.length} job(s) to ${tabName} of the Google Sheet?`)) return;
+  $('pushBtn').disabled = true; $('pushSpin').style.display = 'inline';
+  try {
+    const clean = rows.map(r => { const c = { ...r }; delete c._warnings; return c; });
+    const res = await (await fetch('/api/push', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tab, rows: clean })
+    })).json();
+    if (res.error) { $('pushResults').innerHTML = `<div class="err-t">✖ ${res.error}</div>`; return; }
+    $('pushResults').innerHTML = res.results.map(x => {
+      const cls = x.action === 'error' ? 'err-t' : (x.action === 'updated' ? 'warn-t' : 'ok-t');
+      const ico = x.action === 'error' ? '✖' : '✔';
+      return `<div class="${cls}">${ico} ${x.job_id || '(no id)'} — ${x.message}</div>`;
+    }).join('');
+    const okIds = new Set(res.results.filter(x => x.action !== 'error').map(x => x.job_id));
+    rows = rows.filter(r => !okIds.has((r.job_id || '').trim()));
+    okIds.forEach(id => existing.add(id));
+    renderGrid();
+    if (rows.length === 0) $('previewCard').style.display = '';   // keep results visible
+  } catch (e) {
+    $('pushResults').innerHTML = `<div class="err-t">✖ Push failed: ${e}</div>`;
+  } finally {
+    $('pushBtn').disabled = false; $('pushSpin').style.display = 'none';
+  }
+};
+
+/* ---------- connect wizard ---------- */
+function markStep(n, done) {
+  document.querySelectorAll('.step')[n - 1].classList.toggle('done', !!done);
+}
+
+function refreshConnectPanel() {
+  if (STATUS.sheet_id) $('sheetUrl').value =
+    `https://docs.google.com/spreadsheets/d/${STATUS.sheet_id}/edit`;
+  markStep(1, !!STATUS.sheet_id);
+  markStep(2, !!STATUS.sa_email);
+  const connected = STATUS.sheet_configured && !STATUS.sheet_error;
+  markStep(3, connected);
+
+  if (STATUS.sa_email) {
+    $('shareBox').innerHTML =
+      `<code id="saEmail">${STATUS.sa_email}</code> ` +
+      `<button class="ghost" style="padding:2px 10px;font-size:12px" onclick="copyEmail()">Copy</button>` +
+      (STATUS.sheet_id
+        ? ` &nbsp;<a href="https://docs.google.com/spreadsheets/d/${STATUS.sheet_id}/edit" target="_blank">Open the sheet to share it</a>`
+        : '');
+    $('shareBox').style.color = '';
+  }
+  if (connected) {
+    $('testMsg').innerHTML = `<span class="ok-t">✔ Connected — ${STATUS.tabs.length} tab(s) found.</span>`;
+    $('connectBody').style.display = 'none';
+    $('connectToggle').textContent = 'Show';
+  }
+}
+
+$('connectToggle').onclick = () => {
+  const b = $('connectBody');
+  const hidden = b.style.display === 'none';
+  b.style.display = hidden ? '' : 'none';
+  $('connectToggle').textContent = hidden ? 'Hide' : 'Show';
+};
+
+$('saveSheetBtn').onclick = async () => {
+  const msg = $('sheetMsg');
+  msg.innerHTML = 'Saving…';
+  const res = await (await fetch('/api/connect/sheet', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sheet: $('sheetUrl').value })
+  })).json();
+  if (res.error) { msg.innerHTML = `<span class="err-t">${res.error}</span>`; return; }
+  msg.innerHTML = `<span class="ok-t">✔ Saved.</span>`;
+  await loadStatus(true);
+};
+
+const keyDrop = $('keyDrop'), keyInput = $('keyInput');
+keyDrop.onclick = () => keyInput.click();
+keyDrop.ondragover = e => { e.preventDefault(); keyDrop.classList.add('hover'); };
+keyDrop.ondragleave = () => keyDrop.classList.remove('hover');
+keyDrop.ondrop = e => { e.preventDefault(); keyDrop.classList.remove('hover'); sendKey(e.dataTransfer.files[0]); };
+keyInput.onchange = () => sendKey(keyInput.files[0]);
+
+async function sendKey(file) {
+  if (!file) return;
+  const msg = $('keyMsg');
+  msg.innerHTML = 'Reading the key…';
+  const fd = new FormData();
+  fd.append('key', file);
+  const res = await (await fetch('/api/connect/key', { method: 'POST', body: fd })).json();
+  if (res.error) { msg.innerHTML = `<span class="err-t">${res.error}</span>`; return; }
+  msg.innerHTML = `<span class="ok-t">✔ Key saved. Now do step 3.</span>`;
+  await loadStatus(true);
+}
+
+$('testBtn').onclick = async () => {
+  $('testMsg').textContent = ' Checking…';
+  await loadStatus(true);
+  if (STATUS.sheet_configured && !STATUS.sheet_error) {
+    $('testMsg').innerHTML = `<span class="ok-t">✔ Connected — ${STATUS.tabs.length} tab(s) found. You're ready.</span>`;
+  } else {
+    $('testMsg').innerHTML = `<span class="err-t">${STATUS.sheet_error || 'The key file is missing — do step 2.'}</span>`;
+  }
+};
+
+function copyEmail() {
+  const el = document.getElementById('saEmail');
+  if (el) navigator.clipboard.writeText(el.textContent.trim())
+    .then(() => { el.style.background = '#d8f5e3'; })
+    .catch(() => {});
+}
+
+$('recheckBtn').onclick = async () => {
+  $('recheckBtn').textContent = 'Checking…';
+  await loadStatus(true);
+  if (rows.length) renderGrid();
+  $('recheckBtn').textContent = 'Re-check setup';
+};
+
+loadStatus();
+</script>
+</body>
+</html>

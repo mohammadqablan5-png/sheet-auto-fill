@@ -1,0 +1,29 @@
+# Private Google key — must never be published
+service_account.json
+**/service_account.json
+.env
+
+# Real work orders — contain customer names, phones and addresses.
+# Keep them locally for testing; never publish them.
+samples/*.pdf
+samples/*.png
+samples/*.jpg
+samples/*.jpeg
+
+# Editor / assistant local settings
+.claude/
+
+# Build output (large, rebuilt by CI)
+build/
+dist/
+App/
+*.spec.bak
+selftest.log
+
+# Python / OS noise
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+Thumbs.db

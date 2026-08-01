@@ -1,0 +1,14 @@
+# Which Google Sheet to fill.
+# Leave blank — the app fills this in when you paste your sheet's link into
+# "Connect your Google Sheet" (step 1).
+sheet_id: ""
+
+# Path to the Google service-account key file (see README.md for setup)
+service_account_file: "service_account.json"
+
+# Local web app port
+port: 8765
+
+# Page render resolution for scanned/screenshot PDFs.
+# 300 is the tested sweet spot; higher is slower and not more accurate.
+ocr_dpi: 300

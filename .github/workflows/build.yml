@@ -1,0 +1,94 @@
+name: Build apps
+
+# Builds the desktop app on real Windows and macOS machines.
+# Run it from the Actions tab, or push a tag like v1.0.0 to publish a Release.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40      # a hung smoke test must fail, not run forever
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            label: Windows
+            artifact: SHEET-auto-FILL-Windows
+          - os: macos-14          # Apple Silicon (M1/M2/M3/M4)
+            label: macOS Apple Silicon
+            artifact: SHEET-auto-FILL-macOS-AppleSilicon
+          - os: macos-13          # Intel Macs
+            label: macOS Intel
+            artifact: SHEET-auto-FILL-macOS-Intel
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"    # broadest wheel coverage for onnxruntime/opencv
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build
+        run: python -m PyInstaller build_app.spec --noconfirm
+
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          cd dist
+          # Ad-hoc sign so the app opens after the right-click → Open step.
+          codesign --force --deep --sign - "SHEET auto FILL.app" || true
+          zip -qry "../${{ matrix.artifact }}.zip" "SHEET auto FILL.app"
+          cd ..
+          echo "Built macOS bundle:"; ls -lh "${{ matrix.artifact }}.zip"
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "dist\SHEET auto FILL.exe" -DestinationPath "${{ matrix.artifact }}.zip"
+          Get-Item "${{ matrix.artifact }}.zip" | Select-Object Name,Length
+
+      - name: Smoke test (macOS)
+        if: runner.os == 'macOS'
+        run: '"dist/SHEET auto FILL.app/Contents/MacOS/SHEET auto FILL" --selftest'
+
+      - name: Smoke test (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath "dist\SHEET auto FILL.exe" `
+                             -ArgumentList "--selftest" -Wait -PassThru
+          if (Test-Path "dist\selftest.log") { Get-Content "dist\selftest.log" }
+          if ($p.ExitCode -ne 0) { throw "selftest failed (exit $($p.ExitCode))" }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}.zip
+          retention-days: 30
+
+  release:
+    name: Publish release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: artifacts }
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*.zip
+          generate_release_notes: true

@@ -1,0 +1,99 @@
+# Canonical fields, in the order they appear in the preview table.
+# label:      shown in the preview UI
+# sheet:      header names (lowercased) that identify this field's column in the Google Sheet
+# csv:        extra header names accepted when reading a CSV file
+# required:   preview warns when the value is missing
+# money/date/phone: normalization applied after extraction
+
+fields:
+  job_id:
+    label: "Job ID"
+    required: true
+    sheet: ["x", "1", "job", "job id", "job #", "job number", "wo", "wo #"]
+    csv: ["work order", "work order #", "wo number", "job no", "id"]
+  sow:
+    label: "SOW"
+    required: true
+    sheet: ["sow", "scope of work"]
+    csv: ["description", "problem", "issue", "work description", "scope"]
+  nte:
+    label: "NTE"
+    required: true
+    money: true
+    sheet: ["nte"]
+    csv: ["nte amount", "not to exceed", "nte $"]
+  cap:
+    label: "CAP"
+    money: true
+    sheet: ["cap"]
+    csv: []
+  cost:
+    label: "Cost"
+    money: true
+    sheet: ["cost"]
+    csv: ["tech cost", "technician cost", "agreed cost"]
+  address:
+    label: "Address"
+    required: true
+    sheet: ["address"]
+    csv: ["location", "site", "site address", "store address", "full address"]
+  city:
+    label: "City"
+    sheet: ["city"]
+    csv: ["city, st", "city/state"]
+  deadline:
+    label: "Deadline"
+    required: true
+    date: true
+    sheet: ["deadline"]
+    csv: ["due date", "due", "date due", "eta", "schedule date"]
+  company:
+    label: "Company"
+    sheet: ["company"]
+    csv: ["platform", "network", "provider", "vendor", "source"]
+  jmg:
+    label: "JMG"
+    sheet: ["jmg"]
+    csv: []
+  team_leader:
+    label: "Team leader"
+    sheet: ["team leader", "team lead"]
+    csv: []
+  job_status:
+    label: "Job status"
+    sheet: ["job status", "status"]
+    csv: []
+  dispatcher:
+    label: "Dispatcher"
+    sheet: ["dispatcher"]
+    csv: []
+  payout:
+    label: "Payout"
+    money: true
+    sheet: ["payout"]
+    csv: []
+  handyman:
+    label: "Handy man"
+    sheet: ["handy man", "handyman"]
+    csv: ["tech", "technician", "tech name"]
+  handyman_phone:
+    label: "HM phone"
+    phone: true
+    sheet: []          # matched specially: first "Phone N." column
+    csv: ["tech phone", "technician phone"]
+  assignee:
+    label: "Assignee"
+    sheet: ["assignee"]
+    csv: ["contact", "contact name", "requestor"]
+  assignee_phone:
+    label: "Asgn. phone"
+    phone: true
+    sheet: []          # matched specially: second "Phone N." column
+    csv: ["contact phone", "assignee phone"]
+  updates:
+    label: "Updates"
+    sheet: ["updates", "update", "notes"]
+    csv: ["comments", "note"]
+
+# Headers treated as the shared "Phone N." columns in the sheet
+phone_headers: ["phone n.", "phone n", "phone", "phone number"]
