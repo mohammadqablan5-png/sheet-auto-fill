@@ -109,7 +109,16 @@ expense and profit formulas depend on its column layout.
 
 Note the portal reuses the label "Regular Technician" for both a person (under *Assigned
 Technicians*) and a dollar amount (under *Rate*); the parser disambiguates on the value's
-shape rather than the label.
+shape rather than the label. Each of the three rates is read from its own label, so a
+missing helper rate cannot shift the trip amount up into its place — the self-test asserts
+the exact label/amount pairing, and that a person's name never becomes a rate.
+
+The **address** deliberately carries both lines the portal shows: the store name and number
+("Target (0366) - 131 W Reynolds Rd") and the postal line beneath it. The store line is
+matched by pattern rather than pure adjacency, and searched a few rows up with a loose
+horizontal tolerance, because OCR row heights vary and the map-pin glyph shifts the left
+edge — without that, the brand and store number were at risk of being dropped, which is
+exactly the part a dispatcher needs to identify the site.
 
 ## 3c. Dashboard
 

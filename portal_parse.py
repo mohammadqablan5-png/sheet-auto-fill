@@ -174,18 +174,44 @@ def _paragraph_below(boxes: list, label) -> str:
     return " ".join(parts).strip()
 
 
+# A store line looks like "Walgreen's (13632) - 311 N Main St" or "Target (0366) - …"
+STORE_LINE_RE = re.compile(r"^(.{2,60}?)\s*\(\s*[\w-]{2,12}\s*\)\s*(?:[-–—]\s*(.+))?$")
+
+
 def _address(boxes: list) -> tuple:
-    """Store/site address: the line carrying 'City, ST ZIP', plus the line above."""
+    """Store/site address plus 'City, ST'.
+
+    The portal prints the store name and number on one line ("Target (0366) -
+    131 W Reynolds Rd") and the postal address underneath. Both are wanted, so
+    the store line is searched for a few lines above the City/ST/ZIP line — with
+    a looser tolerance than plain adjacency, because OCR row heights vary and the
+    map pin icon can shift the left edge.
+    """
     for b in sorted(boxes, key=lambda b: b["y0"]):
         m = CITY_ST_ZIP_RE.search(b["text"])
         if not m:
             continue
         lh = max(b["h"], 8)
-        above = [a for a in boxes
-                 if a["y1"] <= b["y0"] and b["y0"] - a["y1"] < lh * 1.8
-                 and abs(a["x0"] - b["x0"]) <= lh * 3]
-        above.sort(key=lambda a: a["y0"])
-        head = above[-1]["text"] if above and not _is_label(above[-1]) else ""
+
+        candidates = [a for a in boxes
+                      if a is not b
+                      and a["y1"] <= b["y0"] + lh * 0.4
+                      and b["y0"] - a["y1"] < lh * 3.5
+                      and abs(a["x0"] - b["x0"]) <= lh * 6
+                      and not _is_label(a)]
+        candidates.sort(key=lambda a: a["y0"])
+
+        # prefer the closest line that actually names a store
+        head = ""
+        for a in reversed(candidates):
+            if STORE_LINE_RE.match(a["text"].strip()):
+                head = a["text"].strip()
+                break
+        if not head and candidates:
+            nearest = candidates[-1]
+            if b["y0"] - nearest["y1"] < lh * 1.8:
+                head = nearest["text"].strip()
+
         full = f"{head} {b['text']}".strip() if head else b["text"]
         city = f"{m.group(1).strip()}, {m.group(2)}"
         return re.sub(r"\s{2,}", " ", full), city

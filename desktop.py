@@ -94,6 +94,33 @@ def selftest() -> int:
     except Exception as e:
         problems.append(f"asset check failed: {type(e).__name__}: {e}")
 
+    # the Rate block must map each label to its own amount, and the store name
+    # must survive into the address
+    try:
+        import portal_parse
+
+        def _b(t, x, y):
+            return {"text": t, "x0": x, "x1": x + len(t) * 8, "y0": y, "y1": y + 18, "h": 18}
+
+        parsed = portal_parse.parse_page([
+            _b("Work Number", 480, 270), _b("JOB-TEST-1", 480, 292),
+            _b("Target (0366) - 131 W Reynolds Rd", 140, 372),
+            _b("131 W Reynolds RD, Lexington, KY 40503", 140, 395),
+            _b("Rate", 480, 500),
+            _b("Regular Technician", 480, 530), _b("$38.00 per hour", 480, 552),
+            _b("Helper Technician", 480, 590), _b("$19.00 per hour", 480, 612),
+            _b("Trip", 480, 650), _b("$22.00", 480, 672),
+        ])
+        if parsed.get("rates", "").splitlines() != [
+                "Regular Technician", "$38.00 per hour",
+                "Helper Technician", "$19.00 per hour",
+                "Trip", "$22.00"]:
+            problems.append(f"rate parsing wrong: {parsed.get('rates')!r}")
+        if "Target (0366)" not in parsed.get("address", ""):
+            problems.append("store name missing from the address")
+    except Exception as e:
+        problems.append(f"portal parsing failed: {type(e).__name__}: {e}")
+
     try:
         import posts
 
