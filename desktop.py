@@ -102,20 +102,27 @@ def selftest() -> int:
         def _b(t, x, y):
             return {"text": t, "x0": x, "x1": x + len(t) * 8, "y0": y, "y1": y + 18, "h": 18}
 
+        # Mirrors the real page: the Rate block is TWO columns, and "Primary
+        # Technician" appears earlier naming a person. Collapsing those together
+        # used to drop the regular rate entirely.
         parsed = portal_parse.parse_page([
             _b("Work Number", 480, 270), _b("JOB-TEST-1", 480, 292),
+            _b("Primary Technician", 480, 357), _b("Omar Ben", 480, 381),
             _b("Target (0366) - 131 W Reynolds Rd", 140, 372),
             _b("131 W Reynolds RD, Lexington, KY 40503", 140, 395),
-            _b("Rate", 480, 500),
-            _b("Regular Technician", 480, 530), _b("$38.00 per hour", 480, 552),
-            _b("Helper Technician", 480, 590), _b("$19.00 per hour", 480, 612),
-            _b("Trip", 480, 650), _b("$22.00", 480, 672),
+            _b("Rate", 480, 900),
+            _b("Regular Technician", 480, 930), _b("$35.00 per hour", 480, 952),
+            _b("Helper Technician", 1000, 930), _b("$18.00 per hour", 1000, 952),
+            _b("Trip", 480, 1000), _b("$22.00", 480, 1022),
+            _b("NTE", 1000, 1000), _b("$270.00", 1000, 1022),
         ])
         if parsed.get("rates", "").splitlines() != [
-                "Regular Technician", "$38.00 per hour",
-                "Helper Technician", "$19.00 per hour",
+                "Regular Technician", "$35.00 per hour",
+                "Helper Technician", "$18.00 per hour",
                 "Trip", "$22.00"]:
             problems.append(f"rate parsing wrong: {parsed.get('rates')!r}")
+        if not parsed.get("nte", "").startswith("270"):
+            problems.append(f"NTE picked up a rate instead: {parsed.get('nte')!r}")
         if "Target (0366)" not in parsed.get("address", ""):
             problems.append("store name missing from the address")
     except Exception as e:

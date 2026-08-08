@@ -107,11 +107,21 @@ no sheet synonyms, so the push path can never map it to a column. The spreadshee
 is therefore untouched by this feature — an important constraint, since the workbook's
 expense and profit formulas depend on its column layout.
 
-Note the portal reuses the label "Regular Technician" for both a person (under *Assigned
-Technicians*) and a dollar amount (under *Rate*); the parser disambiguates on the value's
-shape rather than the label. Each of the three rates is read from its own label, so a
-missing helper rate cannot shift the trip amount up into its place — the self-test asserts
-the exact label/amount pairing, and that a person's name never becomes a rate.
+Two things about the Rate block bit in practice, and both are now regression-tested:
+
+1. **It is laid out in two columns** — Regular Technician beside Helper Technician, Trip
+   beside NTE. Values are found by left-edge alignment under each label, so columns don't
+   bleed into one another.
+2. **"Regular Technician" appears twice on the page** — once under *Assigned Technicians*
+   naming a person, once under *Rate* naming a dollar amount. The first version of this
+   code shared one key with "Primary Technician" and kept only the first match, so the
+   person's name won and **the regular rate was silently dropped** — the output showed
+   Helper and Trip but no Regular. Every occurrence of a label is now retained, each rate
+   is read from its own key, and only values that parse as money are accepted as rates.
+
+Each rate therefore comes from its own label: a missing helper rate cannot shift the trip
+amount up into its place, and NTE (which sits in the same block) is never mistaken for a
+rate.
 
 The **address** deliberately carries both lines the portal shows: the store name and number
 ("Target (0366) - 131 W Reynolds Rd") and the postal line beneath it. The store line is

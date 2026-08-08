@@ -86,8 +86,10 @@ LABELS = {
     "phonenumber": "assignee_phone",
     "primarytechnician": "primary_tech",
     # "Regular Technician" appears twice in the portal: under Assigned Technicians
-    # (a person) and under Rate (a dollar amount). Resolved by the value's shape.
-    "regulartechnician": "primary_tech",
+    # (a person) and under Rate (a dollar amount). It gets its own key so it can
+    # never be shadowed by "Primary Technician", and the money check decides
+    # which of the two it was.
+    "regulartechnician": "regular_tech",
     "helpertechnician": "rate_helper",
     "trip": "rate_trip",
     "rate": "_ignore",
@@ -242,7 +244,10 @@ def parse_page(boxes: list) -> dict:
             if not found[meaning]:
                 found[meaning] = value
         else:
-            extra.setdefault(meaning, value)
+            # Keep every occurrence. "Regular Technician" appears twice on the
+            # page — once naming a person, once naming a rate — so collapsing to
+            # the first match silently loses whichever comes second.
+            extra.setdefault(meaning, []).append(value)
 
     # --- job id: always confirm with the hard pattern (breadcrumb or label)
     m = JOB_ID_RE.search(found.get("job_id", "")) or JOB_ID_RE.search(all_text)
@@ -285,21 +290,28 @@ def parse_page(boxes: list) -> dict:
         sow = (sow + "  Special instructions: " + extra["special"]).strip()
     found["sow"] = re.sub(r"\s{2,}", " ", sow).strip()
 
-    # --- pay rates (Rate section): "Regular Technician / $38.00 per hour", etc.
-    rate_regular = extra.get("primary_tech", "")
-    if MONEY_RE.search(rate_regular):
-        extra.pop("primary_tech", None)          # it was a rate, not a person
-    else:
-        rate_regular = ""
+    # --- pay rates (Rate section), which the portal lays out in two columns:
+    #       Regular Technician    Helper Technician
+    #       $35.00 per hour       $18.00 per hour
+    #       Trip                  NTE
+    #       $22.00                $270.00
+    # Each rate is taken from its own label, and only values that are actually
+    # money count — "Regular Technician: Omar Ben" is a person, not a rate.
+    def money_value(meaning: str) -> str:
+        for value in extra.get(meaning, []):
+            if MONEY_RE.search(value):
+                return value.strip()
+        return ""
+
     # Kept in the portal's own label-above-value shape so the work-order text
     # reads the same way the portal page does.
     lines = []
-    if rate_regular:
-        lines += ["Regular Technician", rate_regular]
-    if extra.get("rate_helper"):
-        lines += ["Helper Technician", extra["rate_helper"]]
-    if extra.get("rate_trip"):
-        lines += ["Trip", extra["rate_trip"]]
+    for label, meaning in (("Regular Technician", "regular_tech"),
+                           ("Helper Technician", "rate_helper"),
+                           ("Trip", "rate_trip")):
+        value = money_value(meaning)
+        if value:
+            lines += [label, value]
     if lines:
         found["rates"] = "\n".join(lines)
 
