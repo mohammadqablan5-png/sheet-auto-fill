@@ -75,6 +75,8 @@ def selftest() -> int:
 
         if len(fields.FIELD_ORDER) < 10:
             problems.append("mapping.yaml not bundled correctly")
+        if "rates" not in fields.FIELD_ORDER:
+            problems.append("field mapping is out of date (no 'rates' field)")
     except Exception as e:
         problems.append(f"fields import failed: {type(e).__name__}: {e}")
 

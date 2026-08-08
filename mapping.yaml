@@ -1,3 +1,8 @@
+# Bump this whenever fields are added or renamed. On startup the app replaces an
+# older copy sitting next to it with this one (keeping a .bak), so upgrades take
+# effect instead of being shadowed by a stale file.
+schema_version: 2
+
 # Canonical fields, in the order they appear in the preview table.
 # label:      shown in the preview UI
 # sheet:      header names (lowercased) that identify this field's column in the Google Sheet

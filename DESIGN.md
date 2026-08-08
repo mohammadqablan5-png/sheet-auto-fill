@@ -198,8 +198,14 @@ Two packaging details matter for correctness:
 - **User-owned files stay outside the bundle.** `resources.py` distinguishes the
   read-only bundle (`sys._MEIPASS`) from the folder holding the .exe. `config.yaml` and
   `mapping.yaml` are copied out on first run so they remain editable, and
-  `service_account.json` is only ever read from the .exe's folder — the Google key is
-  never compiled into the binary.
+  `service_account.json` / `connection.json` are only ever read from the .exe's folder —
+  no credential is compiled into the binary.
+- **Upgrades must not be shadowed by first-run copies.** Because an external file wins
+  over the bundled one, a `mapping.yaml` written by an older build silently suppressed a
+  new field in a later release — the field simply never appeared. `mapping.yaml` now
+  carries a `schema_version`, and `sync_external()` replaces an older external copy with
+  the bundled one at startup (keeping a `.bak`). The self-test asserts the newest field
+  is present, so this class of regression fails the build instead of shipping.
 
 ## 7. Security & compliance
 

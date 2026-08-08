@@ -38,6 +38,43 @@ def user_file(name: str) -> str:
     return os.path.join(app_dir(), name)
 
 
+def _schema_version(path: str) -> int:
+    """Reads 'schema_version: N' without needing a YAML parse."""
+    import re
+
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                m = re.match(r"\s*schema_version\s*:\s*(\d+)", line)
+                if m:
+                    return int(m.group(1))
+    except OSError:
+        pass
+    return 0
+
+
+def sync_external(name: str) -> str:
+    """Like ensure_external_copy, but refreshes a copy left over from an older build.
+
+    Without this, a file written beside the app on first run would shadow the
+    bundled one forever, so new fields shipped in an update would never appear.
+    """
+    target = user_file(name)
+    source = os.path.join(bundle_dir(), name)
+    if not frozen() or not os.path.exists(source):
+        return ensure_external_copy(name)
+
+    if os.path.exists(target) and _schema_version(source) > _schema_version(target):
+        try:
+            import shutil
+
+            shutil.copyfile(target, target + ".bak")   # keep any local edits
+            shutil.copyfile(source, target)
+        except OSError:
+            return source
+    return ensure_external_copy(name)
+
+
 def ensure_external_copy(name: str) -> str:
     """Copy a bundled default next to the .exe on first run so it can be edited."""
     target = user_file(name)
