@@ -100,6 +100,10 @@ def selftest() -> int:
         text = posts.render({"job_id": "JOB-1", "sow": "x", "address": "y"})
         if "JOB-1" not in text:
             problems.append("post template did not render")
+        if "Work Number" not in text:
+            problems.append("work-order layout is out of date (no 'Work Number' heading)")
+        if "Rate" in text:
+            problems.append("empty Rate section was not dropped")
     except Exception as e:
         problems.append(f"posts failed: {type(e).__name__}: {e}")
 

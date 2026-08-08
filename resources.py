@@ -53,26 +53,52 @@ def _schema_version(path: str) -> int:
     return 0
 
 
-def sync_external(name: str) -> str:
-    """Like ensure_external_copy, but refreshes a copy left over from an older build.
+ASSET_MARKER = ".asset_version"
 
-    Without this, a file written beside the app on first run would shadow the
-    bundled one forever, so new fields shipped in an update would never appear.
+
+def sync_asset_set(names, version_from: str = "mapping.yaml"):
+    """Refresh files shipped beside the app when the bundle is newer.
+
+    A file written next to the app on first run shadows the bundled one forever,
+    so anything added in an update would silently never appear. Versioning the
+    whole asset set (rather than each file) means plain-text assets with nowhere
+    to put a version number are covered too.
     """
-    target = user_file(name)
-    source = os.path.join(bundle_dir(), name)
-    if not frozen() or not os.path.exists(source):
-        return ensure_external_copy(name)
+    for name in names:
+        ensure_external_copy(name)            # first-run copy
+    if not frozen():
+        return
 
-    if os.path.exists(target) and _schema_version(source) > _schema_version(target):
+    bundled = _schema_version(os.path.join(bundle_dir(), version_from))
+    marker = user_file(ASSET_MARKER)
+    try:
+        with open(marker, encoding="utf-8") as fh:
+            applied = int((fh.read() or "0").strip() or 0)
+    except (OSError, ValueError):
+        applied = 0
+    if bundled <= applied:
+        return
+
+    import shutil
+
+    for name in names:
+        source = os.path.join(bundle_dir(), name)
+        target = user_file(name)
+        if not (os.path.exists(source) and os.path.exists(target)):
+            continue
         try:
-            import shutil
-
-            shutil.copyfile(target, target + ".bak")   # keep any local edits
+            with open(source, "rb") as a, open(target, "rb") as b:
+                if a.read() == b.read():
+                    continue
+            shutil.copyfile(target, target + ".bak")      # keep any local edits
             shutil.copyfile(source, target)
         except OSError:
-            return source
-    return ensure_external_copy(name)
+            pass
+    try:
+        with open(marker, "w", encoding="utf-8") as fh:
+            fh.write(str(bundled))
+    except OSError:
+        pass
 
 
 def ensure_external_copy(name: str) -> str:

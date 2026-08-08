@@ -22,6 +22,8 @@ dist/
 App/
 *.spec.bak
 selftest.log
+*.bak
+.asset_version
 
 # Python / OS noise
 __pycache__/

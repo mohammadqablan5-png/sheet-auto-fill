@@ -208,11 +208,15 @@ Two packaging details matter for correctness:
   `service_account.json` / `connection.json` are only ever read from the .exe's folder —
   no credential is compiled into the binary.
 - **Upgrades must not be shadowed by first-run copies.** Because an external file wins
-  over the bundled one, a `mapping.yaml` written by an older build silently suppressed a
-  new field in a later release — the field simply never appeared. `mapping.yaml` now
-  carries a `schema_version`, and `sync_external()` replaces an older external copy with
-  the bundled one at startup (keeping a `.bak`). The self-test asserts the newest field
-  is present, so this class of regression fails the build instead of shipping.
+  over the bundled one, files written beside the app by an older build silently suppressed
+  later changes — first a new field in `mapping.yaml` never appeared, then (after a
+  per-file fix) the rewritten `post_template.txt` was still ignored, because a plain text
+  file has no version field to compare. The fix versions the **asset set** rather than
+  each file: `sync_asset_set()` reads one `schema_version` (from `mapping.yaml`), compares
+  it against a `.asset_version` marker beside the app, and refreshes every listed asset
+  that differs, keeping a `.bak` of each. The self-test asserts both the newest field and
+  the current layout are present, so this whole class of regression fails the build
+  instead of shipping — it escaped twice before that check existed.
 
 ## 7. Security & compliance
 

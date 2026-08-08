@@ -11,12 +11,11 @@ import yaml
 from flask import Flask, jsonify, request, send_from_directory
 
 from resources import (bundle_dir, ensure_external_copy, resource,  # noqa: E402
-                       sync_external, user_file)
+                       sync_asset_set, user_file)
 
 # Refresh files shipped beside the app before anything reads them, so an update's
-# new fields aren't shadowed by a copy written by an older build.
-sync_external("mapping.yaml")
-sync_external("post_template.txt")
+# new fields and layouts aren't shadowed by copies written by an older build.
+sync_asset_set(["mapping.yaml", "post_template.txt"])
 
 with open(ensure_external_copy("config.yaml"), encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
