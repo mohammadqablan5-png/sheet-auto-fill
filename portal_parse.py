@@ -265,15 +265,17 @@ def parse_page(boxes: list) -> dict:
         extra.pop("primary_tech", None)          # it was a rate, not a person
     else:
         rate_regular = ""
-    parts = []
+    # Kept in the portal's own label-above-value shape so the work-order text
+    # reads the same way the portal page does.
+    lines = []
     if rate_regular:
-        parts.append(f"Tech {_money(rate_regular)}/hr")
+        lines += ["Regular Technician", rate_regular]
     if extra.get("rate_helper"):
-        parts.append(f"Helper {_money(extra['rate_helper'])}/hr")
+        lines += ["Helper Technician", extra["rate_helper"]]
     if extra.get("rate_trip"):
-        parts.append(f"Trip {_money(extra['rate_trip'])}")
-    if parts:
-        found["rates"] = " · ".join(parts)
+        lines += ["Trip", extra["rate_trip"]]
+    if lines:
+        found["rates"] = "\n".join(lines)
 
     # --- status
     low = all_text.lower()

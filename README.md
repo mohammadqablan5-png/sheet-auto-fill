@@ -123,28 +123,45 @@ identically on both platforms.
 6. Click **Push to Google Sheet** and confirm. Each row reports what happened
    (inserted at row N / updated row N / error).
 
-### Work-order posts for the crew
+### Work-order text for the crew
 
-Click **Post** on any row (or **Work-order posts** for the whole batch) to get a
-ready-to-paste message for Discord/WhatsApp:
+Click **Post** on any row (or **Work-order posts** for the whole batch) to get the work
+order laid out the way the portal shows it, ready to paste into Discord:
 
 ```
-**NEW WORK ORDER — JOB-260807-5640**
+Work Number
+JOB-260807-5640
 
-**Location:** Target (0366) - 131 W Reynolds RD, Lexington, KY 40503
-**Complete by:** Aug 11, 2026
-**NTE:** $680.00
-**Pay:** Tech $38/hr · Helper $19/hr · Trip $22
-**Contact:** Connor mccoy — (615) 380-1493
+Schedule Date
+Aug 11, 2026
 
-**Scope of work**
-Retrieve the banner from the ETL HR office …
+Target (0366) - 131 W Reynolds Rd
+131 W Reynolds RD, Lexington, KY 40503
+
+Scope
+Retrieve the banner from the etl hr office …
+
+Rate
+Regular Technician
+$38.00 per hour
+Helper Technician
+$19.00 per hour
+Trip
+$22.00
+
+NTE
+$680.00
 ```
 
-Lines with nothing to say are dropped automatically, so a job with no tech assigned
-won't show an empty "Tech:" line. To change the wording or order, open
-**Change the layout of these posts** in that dialog — placeholders such as `{job_id}`,
-`{nte}`, `{rates}`, `{sow}` are filled in per job. It's saved in `post_template.txt`.
+Sections with nothing in them vanish entirely — a job with no rates shows no "Rate"
+heading at all, rather than an empty one. To change the wording or order, open
+**Change the layout of these posts** in that dialog; placeholders such as `{job_id}`,
+`{nte}`, `{rates}`, `{sow}` are filled in per job, and it's saved in
+`post_template.txt`.
+
+> **The pay rates never touch the spreadsheet.** They're extracted only for this text,
+> and they aren't shown as a column in the preview table either — your sheet layout is
+> unchanged.
 
 ### If Google isn't connected (or you'd rather paste manually)
 
@@ -170,7 +187,7 @@ Verified against a real JOUS/DMG job page:
 | Assignee / phone | **DMG Contact** and its **Phone Number** |
 | Updates | any open task, e.g. *Technician Requested – NTE Increase* |
 | Company | detected when named in the page, otherwise from your defaults |
-| Rates | the **Rate** section — regular tech / helper / trip. Used in the work-order post; not written to the spreadsheet, which has no such column. |
+| *(Rates)* | the **Rate** section — regular tech / helper / trip. Used **only** in the work-order text: never written to the spreadsheet and not shown as a table column. |
 
 **Handy man**, **Team leader**, **Dispatcher**, **Payout**, **Cost** and **JMG** are your own
 internal columns — the portal doesn't contain them, so they're left blank for you to fill

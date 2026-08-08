@@ -1,14 +1,30 @@
-**NEW WORK ORDER — {job_id}**
+Work Number
+{job_id}
 
-**Location:** {address}
-**Complete by:** {deadline}
-**NTE:** {nte}
-**Pay:** {rates}
-**Status:** {job_status}
-**Contact:** {assignee} — {assignee_phone}
-**Tech:** {handyman} — {handyman_phone}
+Schedule Date
+{deadline}
 
-**Scope of work**
+{address}
+
+Scope
 {sow}
 
-_Notes: {updates}_
+Rate
+{rates}
+
+NTE
+{nte}
+
+Job Status
+{job_status}
+
+Contact
+{assignee}
+{assignee_phone}
+
+Tech
+{handyman}
+{handyman_phone}
+
+Notes
+{updates}

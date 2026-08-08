@@ -11,16 +11,22 @@ from resources import ensure_external_copy
 
 PLACEHOLDER_RE = re.compile(r"\{([a-z_]+)\}")
 
-DEFAULT_TEMPLATE = """**NEW WORK ORDER — {job_id}**
+DEFAULT_TEMPLATE = """Work Number
+{job_id}
 
-**Location:** {address}
-**Complete by:** {deadline}
-**NTE:** {nte}
-**Pay:** {rates}
-**Contact:** {assignee} — {assignee_phone}
+Schedule Date
+{deadline}
 
-**Scope of work**
+{address}
+
+Scope
 {sow}
+
+Rate
+{rates}
+
+NTE
+{nte}
 """
 
 
@@ -47,23 +53,37 @@ def _display(field: str, value: str) -> str:
 
 
 def render(row: dict, template: str = None) -> str:
-    """One job -> post text. Lines with no usable values are removed."""
+    """One job -> work-order text.
+
+    The template is read as blocks separated by blank lines. A whole block is
+    dropped when it has placeholders and none of them have a value — that way a
+    section heading like "Rate" disappears together with its missing values,
+    rather than being left stranded above nothing.
+    """
     template = template if template is not None else _template()
     values = {f: _display(f, row.get(f, "")) for f in FIELD_ORDER}
 
-    out_lines = []
-    for line in template.splitlines():
-        names = PLACEHOLDER_RE.findall(line)
+    out_blocks = []
+    for block in re.split(r"\n\s*\n", template):
+        lines = block.splitlines()
+        names = [n for line in lines for n in PLACEHOLDER_RE.findall(line)]
         if names and not any(values.get(n) for n in names):
-            continue                      # nothing to say on this line
-        filled = PLACEHOLDER_RE.sub(lambda m: values.get(m.group(1), ""), line)
-        # tidy separators left dangling by a missing half ("Bob — ")
-        filled = re.sub(r"\s*[—–-]\s*$", "", filled.rstrip())
-        filled = re.sub(r":\s*[—–-]\s*", ": ", filled)
-        out_lines.append(filled)
+            continue                                  # nothing to say here at all
 
-    text = "\n".join(out_lines)
-    return re.sub(r"\n{3,}", "\n\n", text).strip() + "\n"
+        kept = []
+        for line in lines:
+            on_line = PLACEHOLDER_RE.findall(line)
+            if on_line and not any(values.get(n) for n in on_line):
+                continue                              # this detail is missing
+            filled = PLACEHOLDER_RE.sub(lambda m: values.get(m.group(1), ""), line)
+            filled = re.sub(r"\s*[—–-]\s*$", "", filled.rstrip())
+            filled = re.sub(r":\s*[—–-]\s*", ": ", filled)
+            kept.append(filled)
+
+        if any(line.strip() for line in kept):
+            out_blocks.append("\n".join(kept).strip("\n"))
+
+    return "\n\n".join(out_blocks).strip() + "\n"
 
 
 def render_many(rows: list, template: str = None) -> str:

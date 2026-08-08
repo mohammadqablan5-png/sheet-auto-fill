@@ -26,7 +26,7 @@ from extractors import extract_file, ocr_available, ExtractionError  # noqa: E40
 from normalize import normalize_row  # noqa: E402
 from sheets_client import SheetClient, SheetError  # noqa: E402
 from webapp_client import WebAppClient, SheetError as WebAppError  # noqa: E402
-from fields import FIELD_ORDER, labels  # noqa: E402
+from fields import FIELD_ORDER, GRID_ORDER, labels  # noqa: E402
 
 app = Flask(__name__, static_folder=os.path.join(bundle_dir(), "static"))
 app.config["MAX_CONTENT_LENGTH"] = 64 * 1024 * 1024
@@ -60,7 +60,8 @@ def status():
         sheet.reset()          # pick up a service_account.json added just now
     active = backend()
     info = {
-        "fields": FIELD_ORDER,
+        "fields": GRID_ORDER,          # spreadsheet columns only
+        "all_fields": FIELD_ORDER,     # includes post-only fields like rates
         "labels": labels(),
         "ocr_ok": ocr_available(),
         "mode": "webapp" if webapp.configured() else "service_account",

@@ -1,7 +1,7 @@
 # Bump this whenever fields are added or renamed. On startup the app replaces an
 # older copy sitting next to it with this one (keeping a .bak), so upgrades take
 # effect instead of being shadowed by a stale file.
-schema_version: 2
+schema_version: 3
 
 # Canonical fields, in the order they appear in the preview table.
 # label:      shown in the preview UI
@@ -101,10 +101,12 @@ fields:
     csv: ["comments", "note"]
   rates:
     label: "Rates"
-    # Pay rates from the portal. Not a column in the spreadsheet — kept for the
-    # work-order post that gets shared with the crew.
+    # Pay rates from the portal. NEVER written to the spreadsheet (no sheet
+    # synonyms) and hidden from the preview table — it exists only for the
+    # work-order text that gets shared with the crew.
     sheet: []
     csv: ["rate", "rates", "pay rate"]
+    hidden: true
 
 # Headers treated as the shared "Phone N." columns in the sheet
 phone_headers: ["phone n.", "phone n", "phone", "phone number"]

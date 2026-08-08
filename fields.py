@@ -7,7 +7,11 @@ with open(resource("mapping.yaml"), encoding="utf-8") as f:
     _MAPPING = yaml.safe_load(f)
 
 FIELDS: dict = _MAPPING["fields"]            # field -> definition
-FIELD_ORDER: list = list(FIELDS.keys())      # preview / schema order
+FIELD_ORDER: list = list(FIELDS.keys())      # every field the extractor fills
+
+# Columns shown in the preview table. Hidden fields are extracted and available
+# to the work-order text, but never displayed as a spreadsheet column.
+GRID_ORDER: list = [f for f, d in FIELDS.items() if not d.get("hidden")]
 PHONE_HEADERS: list = [h.lower() for h in _MAPPING.get("phone_headers", [])]
 
 REQUIRED = [f for f, d in FIELDS.items() if d.get("required")]

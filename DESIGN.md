@@ -92,15 +92,22 @@ outcome afterwards. Successfully pushed rows leave the grid; failed ones stay fo
 ## 3b. Work-order posts
 
 Extraction feeds a second output besides the spreadsheet: a message the crew can read.
-`posts.py` renders each row through `post_template.txt`, and **drops any line whose
-placeholders are all empty** — so a job with no assigned tech doesn't emit "Tech: —".
-Money fields are formatted on the way out, and dangling separators left by a missing
-half ("Bob — ") are trimmed. The template is a plain text file kept beside the app and
-editable from the dialog, so wording changes need no code.
+`posts.py` renders each row through `post_template.txt`, which mirrors the portal's own
+label-above-value layout so the crew reads it in a familiar shape. The template is parsed
+as **blocks separated by blank lines**: a block whose placeholders are all empty is
+dropped whole, so a section heading such as "Rate" disappears together with its values
+instead of being stranded above nothing; within a surviving block, individual missing
+lines are dropped. Money fields are formatted on the way out. The template is a plain
+text file beside the app, editable from the dialog, so wording changes need no code.
 
-The portal's **Rate** block (regular tech / helper / trip) is extracted for this purpose
-and deliberately *not* written to the spreadsheet, which has no such column. Note the
-portal reuses the label "Regular Technician" for both a person (under *Assigned
+The portal's **Rate** block (regular tech / helper / trip) exists *only* for this text.
+It is `hidden: true` in `mapping.yaml`, which keeps it out of the preview table
+(`GRID_ORDER`) while remaining available to the renderer (`FIELD_ORDER`), and it carries
+no sheet synonyms, so the push path can never map it to a column. The spreadsheet's shape
+is therefore untouched by this feature — an important constraint, since the workbook's
+expense and profit formulas depend on its column layout.
+
+Note the portal reuses the label "Regular Technician" for both a person (under *Assigned
 Technicians*) and a dollar amount (under *Rate*); the parser disambiguates on the value's
 shape rather than the label.
 
