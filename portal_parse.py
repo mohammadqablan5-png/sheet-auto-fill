@@ -283,11 +283,17 @@ def parse_page(boxes: list) -> dict:
         found["city"] = city
 
     # --- scope, plus the special instructions appended
+    # extra values are lists (a label can appear more than once on a page).
+    def first(meaning: str) -> str:
+        values = extra.get(meaning) or []
+        return values[0] if values else ""
+
     sow = found.get("sow", "")
-    if not sow and extra.get("title"):
-        sow = extra["title"]
-    if extra.get("special"):
-        sow = (sow + "  Special instructions: " + extra["special"]).strip()
+    if not sow:
+        sow = first("title")
+    special = first("special")
+    if special:
+        sow = (sow + "  Special instructions: " + special).strip()
     found["sow"] = re.sub(r"\s{2,}", " ", sow).strip()
 
     # --- pay rates (Rate section), which the portal lays out in two columns:

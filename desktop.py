@@ -115,7 +115,15 @@ def selftest() -> int:
             _b("Helper Technician", 1000, 930), _b("$18.00 per hour", 1000, 952),
             _b("Trip", 480, 1000), _b("$22.00", 480, 1022),
             _b("NTE", 1000, 1000), _b("$270.00", 1000, 1022),
+            # Title + Special Instructions must coexist with the rates: these
+            # share the same collected-values structure and once broke it.
+            _b("Title", 1400, 270), _b("Fixture Repair", 1400, 292),
+            _b("Scope", 140, 1100), _b("Repair the thing properly.", 140, 1128),
+            _b("Special Instructions", 140, 1180),
+            _b("All parts must be photographed.", 140, 1208),
         ])
+        if "Special instructions" not in parsed.get("sow", ""):
+            problems.append("special instructions were not appended to the scope")
         if parsed.get("rates", "").splitlines() != [
                 "Regular Technician", "$35.00 per hour",
                 "Helper Technician", "$18.00 per hour",
