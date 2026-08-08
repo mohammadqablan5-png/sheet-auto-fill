@@ -38,6 +38,17 @@ function doPost(e) {
     const head = _header(values, req.mapping || {}, req.phone_headers || []);
     if (head.error) return _json({ error: head.error });
 
+    if (req.action === "layout") {
+      const byCol = {};
+      Object.keys(head.cols).forEach(function (f) { byCol[head.cols[f]] = f; });
+      const fields = [], headers = [];
+      for (let i = 0; i < head.width; i++) {
+        fields.push(byCol[i] || "");
+        headers.push(String(values[head.row - 1][i] || "").trim());
+      }
+      return _json({ ok: true, fields: fields, headers: headers, columns: head.width });
+    }
+
     const found = _jobRows(sheet);
     let lastJobRow = found.lastRow || head.row;
     const results = [];
@@ -84,7 +95,14 @@ function doPost(e) {
   }
 }
 
-/** Rows in column A that look like job IDs. */
+/**
+ * Rows in column A that look like work-order numbers. Most start with "JOB",
+ * but other dispatchers use their own prefix (e.g. "NC-260807-0281"), so this
+ * matches the shape — otherwise those rows are invisible and get duplicated
+ * instead of updated.
+ */
+const JOB_CELL_RE = /^[A-Za-z]{1,6}[-\s]?\d{4,}/;
+
 function _jobRows(sheet) {
   const col = sheet.getRange(1, 1, Math.max(sheet.getLastRow(), 1), 1).getValues();
   const map = {};
@@ -92,7 +110,7 @@ function _jobRows(sheet) {
   let lastRow = 0;
   for (let i = 0; i < col.length; i++) {
     const v = String(col[i][0] || "").trim();
-    if (v.toUpperCase().indexOf("JOB") === 0) {
+    if (JOB_CELL_RE.test(v)) {
       map[v] = i + 1;
       ids.push(v);
       lastRow = i + 1;

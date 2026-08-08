@@ -136,6 +136,29 @@ def selftest() -> int:
     except Exception as e:
         problems.append(f"portal parsing failed: {type(e).__name__}: {e}")
 
+    # work-order numbers: other dispatchers' prefixes count, visit numbers don't
+    try:
+        import jobid
+
+        if not jobid.looks_like("NC-260807-0281"):
+            problems.append("NC- work orders are not recognised")
+        if jobid.looks_like("VST-260729-7250"):
+            problems.append("visit numbers are being treated as work orders")
+        if jobid.find("Jobs / JOB-260729-23617 VST-260729-7250") != "JOB-260729-23617":
+            problems.append("job id picked the wrong identifier")
+    except Exception as e:
+        problems.append(f"job id checks failed: {type(e).__name__}: {e}")
+
+    # the fallback paste layout must match the workbook's current tabs
+    try:
+        import app as _app
+
+        standard = _app.LAYOUT_PRESETS["standard"]["fields"]
+        if len(standard) != 17 or "jmg" in standard or "cap" in standard:
+            problems.append("default paste layout no longer matches the sheet")
+    except Exception as e:
+        problems.append(f"layout preset check failed: {type(e).__name__}: {e}")
+
     try:
         import posts
 

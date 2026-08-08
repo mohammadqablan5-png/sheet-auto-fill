@@ -180,10 +180,14 @@ as `{job_id}`, `{nte}`, `{rates}`, `{sow}` are filled in per job, and it's saved
 
 ### If Google isn't connected (or you'd rather paste manually)
 
-Use **Copy rows for pasting**, choose the layout that matches the tab (*no CAP* for the
-July-onward tabs, *with CAP* for June), then in Google Sheets click the first empty cell
-in column A under your last job and press **Ctrl+V**. **Download CSV** saves the same data
-as a file.
+Use **Copy rows**, then in Google Sheets click the first empty cell in column A under your
+last job and press **Ctrl+V**. **Download CSV** saves the same data as a file.
+
+**The column order is read from the tab you're writing into**, so the paste lines up even
+though the tabs differ — the June tab has 19 columns (with CAP and JMG) while the later
+tabs have 17 (without). A note under the table tells you which layout is in use. When no
+sheet is connected the app can't read the headers, so it falls back to a preset you pick
+from the dropdown; pick the one matching your tab's column count.
 
 ---
 

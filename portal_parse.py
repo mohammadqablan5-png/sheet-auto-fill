@@ -13,7 +13,7 @@ from fields import FIELD_ORDER
 
 # ------------------------------------------------------------------ helpers
 
-JOB_ID_RE = re.compile(r"\b(JOB[-\s]?\d{5,6}[-\s]?\d{3,6})\b", re.I)
+import jobid
 MONEY_RE = re.compile(r"\$\s?([\d,]+(?:\.\d{2})?)")
 PHONE_RE = re.compile(r"(?:\+1\s*)?(\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4})")
 DATE_RE = re.compile(
@@ -249,9 +249,8 @@ def parse_page(boxes: list) -> dict:
             # the first match silently loses whichever comes second.
             extra.setdefault(meaning, []).append(value)
 
-    # --- job id: always confirm with the hard pattern (breadcrumb or label)
-    m = JOB_ID_RE.search(found.get("job_id", "")) or JOB_ID_RE.search(all_text)
-    found["job_id"] = re.sub(r"\s+", "-", m.group(1)).upper() if m else ""
+    # --- job id: confirm the labelled value, else search the page
+    found["job_id"] = jobid.find(found.get("job_id", "")) or jobid.find(all_text)
 
     # --- money
     if found.get("nte"):

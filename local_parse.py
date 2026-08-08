@@ -39,7 +39,8 @@ def pdf_text(data: bytes) -> str:
 # ------------------------------------------------------------------ patterns
 
 JOB_ID_RE = re.compile(
-    r"\b(JOB[-\s]?\d{5,}[-\s]?\d*|WO[-#\s]?\d{4,}|W/?O\s*#?\s*\d{4,})\b", re.I)
+    r"\b((?:JOB|[A-Za-z]{2,4})[-\s]?\d{5,6}[-\s]?\d{3,6}|WO[-#\s]?\d{4,}|W/?O\s*#?\s*\d{4,})\b",
+    re.I)
 MONEY_RE = re.compile(r"\$\s?([\d,]+(?:\.\d{2})?)")
 PHONE_RE = re.compile(r"(\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4})")
 ZIP_LINE_RE = re.compile(r"^(.*?[A-Za-z].*?),\s*([A-Z]{2})\.?\s+(\d{5})(?:-\d{4})?\s*$")
@@ -156,9 +157,9 @@ def _parse_one(segment: str) -> dict:
         job[field] = value
 
     # job id — labelled value may include noise, so prefer a hard pattern match
-    m = JOB_ID_RE.search(labelled.get("job_id", "")) or JOB_ID_RE.search(text)
-    if m:
-        job["job_id"] = re.sub(r"\s+", "-", m.group(1).strip()).upper()
+    import jobid
+
+    job["job_id"] = jobid.find(labelled.get("job_id", "")) or jobid.find(text)
 
     # money
     nte = _first_money_after(text, r"not\s*to\s*exceed|\bNTE\b")

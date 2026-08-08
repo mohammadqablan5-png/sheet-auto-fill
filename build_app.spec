@@ -18,7 +18,7 @@ binaries = []
 hiddenimports = [
     "gspread", "google.auth", "google.oauth2.service_account",
     "pdfplumber", "pypdf", "PIL", "numpy", "yaml",
-    "local_parse", "portal_parse", "ocr", "extractors",
+    "local_parse", "portal_parse", "ocr", "extractors", "jobid",
     "normalize", "fields", "sheets_client", "webapp_client", "posts", "resources",
     "requests",
 ]

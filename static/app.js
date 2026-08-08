@@ -79,7 +79,11 @@ async function loadStatus(recheck) {
 
   refreshConnectPanel();
   renderStats();
+  await loadLayout();
 }
+
+$('tabSelect').onchange = () => loadLayout();
+$('layoutSel').onchange = () => loadLayout();
 
 function setChip(id, ok, text) {
   const el = $(id);
@@ -435,17 +439,35 @@ $('copyPostBtn').onclick = async () => {
 
 /* ============================ export ============================ */
 
-const LAYOUTS = {
-  nocap: ['job_id','sow','nte','cost','address','city','deadline','company','jmg',
-          'team_leader','job_status','dispatcher','payout','handyman','handyman_phone',
-          'assignee','assignee_phone','updates'],
-  cap:   ['job_id','sow','nte','cap','cost','address','city','deadline','company','jmg',
-          'team_leader','job_status','dispatcher','payout','handyman','handyman_phone',
-          'assignee','assignee_phone','updates'],
-};
+// The column order is read from the target tab, because tabs differ (some carry
+// CAP/JMG, some don't) and a guessed order silently shifts everything after the
+// first missing column.
+let LAYOUT = { fields: [], headers: [], source: 'preset', presets: {} };
+
+async function loadLayout() {
+  const tab = $('tabSelect').value;
+  const preset = $('layoutSel').value;
+  LAYOUT = await (await fetch(
+    `/api/layout?tab=${encodeURIComponent(tab)}&preset=${encodeURIComponent(preset)}`)).json();
+
+  const sel = $('layoutSel');
+  if (LAYOUT.presets && !sel.dataset.filled) {
+    sel.innerHTML = Object.entries(LAYOUT.presets)
+      .map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
+    sel.dataset.filled = '1';
+    sel.value = preset in LAYOUT.presets ? preset : 'standard';
+  }
+  sel.style.display = LAYOUT.source === 'sheet' ? 'none' : '';
+
+  $('layoutNote').innerHTML = LAYOUT.source === 'sheet'
+    ? `<span class="ok-t">Columns read from “${esc($('tabSelect').value)}” — ` +
+      `${LAYOUT.columns} columns.</span>`
+    : `Not connected, so using a preset — pick the one matching your tab.`;
+}
+
 const cell = v => (v == null ? '' : String(v).replace(/[\t\r\n]+/g, ' ').trim());
 const exportMatrix = () =>
-  rows.map(r => LAYOUTS[$('layoutSel').value].map(f => cell(r[f])));
+  rows.map(r => LAYOUT.fields.map(f => (f ? cell(r[f]) : '')));
 
 $('copyBtn').onclick = async () => {
   const tsv = exportMatrix().map(r => r.join('\t')).join('\n');
@@ -459,9 +481,11 @@ $('copyBtn').onclick = async () => {
 };
 
 $('csvBtn').onclick = () => {
-  const q = v => `"${v.replace(/"/g, '""')}"`;
-  const cols = LAYOUTS[$('layoutSel').value];
-  const csv = [cols.map(f => q(STATUS.labels[f] || f)).join(',')]
+  const q = v => `"${String(v).replace(/"/g, '""')}"`;
+  const head = LAYOUT.headers.length
+    ? LAYOUT.headers
+    : LAYOUT.fields.map(f => STATUS.labels[f] || f);
+  const csv = [head.map(q).join(',')]
     .concat(exportMatrix().map(r => r.map(q).join(','))).join('\r\n');
   const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: 'text/csv' }));
   const a = document.createElement('a');

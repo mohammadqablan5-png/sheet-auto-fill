@@ -8,11 +8,22 @@ Expenses/Revenue block and its formulas stay below and intact.
 """
 import json
 import os
+import re
 
 import gspread
 from gspread.utils import rowcol_to_a1
 
 from fields import FIELD_ORDER, sheet_synonyms, PHONE_HEADERS
+
+# Column A holds the work-order number. Most are "JOB-260729-23617", but other
+# dispatchers use their own prefix (e.g. "NC-260807-0281"), so match the shape
+# rather than the word "JOB" — otherwise those rows are invisible and get
+# duplicated instead of updated.
+JOB_CELL_RE = re.compile(r"^[A-Za-z]{1,6}[-\s]?\d{4,}", re.I)
+
+
+def looks_like_job_id(value: str) -> bool:
+    return bool(JOB_CELL_RE.match((value or "").strip()))
 
 
 class SheetError(Exception):
@@ -124,6 +135,19 @@ class SheetClient:
                     break
         return header_idx, colmap, max(len(headers), 1)
 
+    def layout(self, tab: str) -> dict:
+        """The tab's real column order — what a pasted row has to line up with."""
+        ws = self._ws(tab)
+        values = ws.get_all_values()
+        header_idx, colmap, ncols = self._header(values)
+        by_col = {col: field for field, col in colmap.items()}
+        headers = values[header_idx - 1] if header_idx <= len(values) else []
+        return {
+            "fields": [by_col.get(i, "") for i in range(ncols)],
+            "headers": [str(h).strip() for h in headers[:ncols]],
+            "columns": ncols,
+        }
+
     def existing_jobs(self, tab: str) -> dict:
         """job_id -> row number (1-based) for the given tab."""
         ws = self._ws(tab)
@@ -131,7 +155,7 @@ class SheetClient:
         return {
             v.strip(): i + 1
             for i, v in enumerate(col_a)
-            if v.strip().upper().startswith("JOB")
+            if looks_like_job_id(v)
         }
 
     # ------------------------------------------------------------ writes
@@ -144,7 +168,7 @@ class SheetClient:
         existing = {}
         for i, row in enumerate(values):
             cell = (row[0] if row else "").strip()
-            if cell.upper().startswith("JOB"):
+            if looks_like_job_id(cell):
                 existing[cell] = i + 1
         last_job_row = max(existing.values(), default=header_idx)
 

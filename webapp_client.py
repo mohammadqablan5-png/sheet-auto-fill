@@ -92,6 +92,14 @@ class WebAppClient:
     def tabs(self) -> list:
         return self.info().get("tabs", [])
 
+    def layout(self, tab: str) -> dict:
+        data = self._request("POST", json={
+            "key": self.key, "action": "layout", "tab": tab,
+            "mapping": _mapping(), "phone_headers": PHONE_HEADERS,
+        })
+        return {"fields": data.get("fields", []), "headers": data.get("headers", []),
+                "columns": data.get("columns", 0)}
+
     def existing_jobs(self, tab: str) -> dict:
         data = self._request("POST", json={"key": self.key, "action": "existing", "tab": tab})
         return {jid: 0 for jid in data.get("job_ids", [])}

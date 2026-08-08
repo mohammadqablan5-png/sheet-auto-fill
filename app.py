@@ -256,6 +256,53 @@ def connect_script():
     return jsonify({"ok": True, "title": data.get("title"), "tabs": data.get("tabs", [])})
 
 
+# Fallbacks for when no sheet is connected, matching the workbook's own tabs.
+LAYOUT_PRESETS = {
+    "standard": {
+        "label": "17 columns — no CAP, no JMG",
+        "fields": ["job_id", "sow", "nte", "cost", "address", "city", "deadline",
+                   "company", "team_leader", "job_status", "dispatcher", "payout",
+                   "handyman", "handyman_phone", "assignee", "assignee_phone", "updates"],
+    },
+    "with_cap_jmg": {
+        "label": "19 columns — with CAP and JMG",
+        "fields": ["job_id", "sow", "nte", "cap", "cost", "address", "city", "deadline",
+                   "company", "jmg", "team_leader", "job_status", "dispatcher", "payout",
+                   "handyman", "handyman_phone", "assignee", "assignee_phone", "updates"],
+    },
+}
+
+
+@app.get("/api/layout")
+def layout():
+    """Column order for pasting — read from the target tab whenever possible.
+
+    Tabs differ (some carry CAP/JMG, some don't), so a guessed order silently
+    shifts every column after the first missing one.
+    """
+    tab = request.args.get("tab") or "latest"
+    active = backend()
+    if active.configured():
+        try:
+            data = active.layout(tab)
+            if data.get("fields"):
+                data["source"] = "sheet"
+                data["presets"] = {k: v["label"] for k, v in LAYOUT_PRESETS.items()}
+                return jsonify(data)
+        except (SheetError, WebAppError) as e:
+            app.logger.info("layout lookup failed: %s", e)
+
+    preset = LAYOUT_PRESETS.get(request.args.get("preset") or "standard",
+                                LAYOUT_PRESETS["standard"])
+    return jsonify({
+        "fields": preset["fields"],
+        "headers": [labels().get(f, f) for f in preset["fields"]],
+        "columns": len(preset["fields"]),
+        "source": "preset",
+        "presets": {k: v["label"] for k, v in LAYOUT_PRESETS.items()},
+    })
+
+
 @app.post("/api/post")
 def make_post():
     """Render the shareable work-order text for one or more jobs."""

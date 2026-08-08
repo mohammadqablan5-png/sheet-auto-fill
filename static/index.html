@@ -212,12 +212,12 @@
     <!-- output 1: sheet rows -->
     <div id="paneSheet">
       <div class="row" style="justify-content:space-between;margin-bottom:12px">
-        <p class="sub" style="margin:0">Edit any cell. Nothing reaches the sheet until you push.</p>
+        <div>
+          <p class="sub" style="margin:0">Edit any cell. Nothing reaches the sheet until you push.</p>
+          <p class="sub" id="layoutNote" style="margin:3px 0 0"></p>
+        </div>
         <div class="row">
-          <select id="layoutSel" title="Column layout of the target tab">
-            <option value="nocap">Layout: no CAP column</option>
-            <option value="cap">Layout: with CAP column</option>
-          </select>
+          <select id="layoutSel" title="Column layout to paste into"></select>
           <button id="copyBtn">Copy rows</button>
           <button id="csvBtn">Download CSV</button>
           <button id="addRowBtn">+ Row</button>
