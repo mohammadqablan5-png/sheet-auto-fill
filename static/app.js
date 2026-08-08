@@ -9,6 +9,31 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+/* ============================ theme ============================ */
+
+function applyTheme() {
+  const theme = localStorage.getItem('theme') || 'system';
+  const accent = localStorage.getItem('accent') || 'blue';
+  const dark = theme === 'dark' ||
+    (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-accent', accent);
+
+  document.querySelectorAll('#themeSeg button').forEach(b =>
+    b.classList.toggle('on', b.dataset.theme === theme));
+  document.querySelectorAll('#accentSw .sw').forEach(s =>
+    s.classList.toggle('on', s.dataset.accent === accent));
+}
+applyTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+
+document.querySelectorAll('#themeSeg button').forEach(b => b.onclick = () => {
+  localStorage.setItem('theme', b.dataset.theme); applyTheme();
+});
+document.querySelectorAll('#accentSw .sw').forEach(s => s.onclick = () => {
+  localStorage.setItem('accent', s.dataset.accent); applyTheme();
+});
+
 /* ============================ status ============================ */
 
 async function loadStatus(recheck) {
@@ -22,8 +47,8 @@ async function loadStatus(recheck) {
 
   const notes = [];
   if (!STATUS.sheet_configured) {
-    notes.push('Not connected to a sheet yet — use <b>Connect your Google Sheet</b> below. ' +
-      'Extracting, previewing, <b>Copy rows</b> and <b>Work-order posts</b> all work without it.');
+    notes.push('No sheet connected — open <b>⚙ Options → Set up the sheet connection</b>. ' +
+      'You can still extract, copy rows, and make work-order text without it.');
   } else if (STATUS.sheet_error) {
     notes.push('Sheet problem: ' + esc(STATUS.sheet_error));
   }
@@ -33,8 +58,13 @@ async function loadStatus(recheck) {
   }
   $('setupNotes').innerHTML = notes.map(n => `<div class="setup">${n}</div>`).join('');
 
-  const sel = $('tabSelect');
-  const keep = sel.value;
+  $('connSummary').innerHTML = connected
+    ? `Connected via ${STATUS.mode === 'webapp' ? 'the sheet script' : 'a service account'}` +
+      `${STATUS.sheet_title ? ' — <b>' + esc(STATUS.sheet_title) + '</b>' : ''}, ` +
+      `${STATUS.tabs.length} tab(s).`
+    : 'Not connected yet.';
+
+  const sel = $('tabSelect'), keep = sel.value;
   sel.innerHTML = '';
   if (STATUS.tabs.length) {
     STATUS.tabs.forEach((t, i) => {
@@ -73,13 +103,12 @@ function renderStats() {
     if (!isNaN(n)) nte += n;
   });
 
-  const money = nte.toLocaleString(undefined, { style: 'currency', currency: 'USD',
-                                                maximumFractionDigits: 0 });
   const tiles = [
     { num: rows.length, lbl: 'jobs ready', cls: '' },
     { num: isNew, lbl: 'to insert', cls: 'is-new' },
     { num: isUpd, lbl: 'to update', cls: 'is-upd' },
-    { num: money, lbl: 'total NTE', cls: '' },
+    { num: nte.toLocaleString(undefined, { style: 'currency', currency: 'USD',
+                                           maximumFractionDigits: 0 }), lbl: 'total NTE', cls: '' },
     { num: warned, lbl: 'need a look', cls: warned ? 'is-warn' : '' },
   ];
   box.innerHTML = tiles.map(t =>
@@ -87,7 +116,40 @@ function renderStats() {
     `<div class="lbl">${esc(t.lbl)}</div></div>`).join('');
 }
 
-/* ============================ connect panel ============================ */
+/* ============================ options / dialogs ============================ */
+
+$('optionsBtn').onclick = () => $('optDlg').showModal();
+$('openConnBtn').onclick = () => { $('optDlg').close(); $('connDlg').showModal(); };
+$('openTplBtn').onclick = async () => { $('optDlg').close(); await openTemplate(); };
+$('editTplBtn').onclick = () => openTemplate();
+
+async function openTemplate() {
+  const res = await (await fetch('/api/post', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rows: rows.length ? clean([rows[0]]) : [{ job_id: 'JOB-EXAMPLE' }] })
+  })).json();
+  $('postTpl').value = res.template || '';
+  $('tplMsg').textContent = '';
+  $('tplDlg').showModal();
+}
+
+$('saveTplBtn').onclick = async () => {
+  const res = await (await fetch('/api/post/template', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ template: $('postTpl').value })
+  })).json();
+  if (res.error) { $('tplMsg').innerHTML = `<span class="err-t">${esc(res.error)}</span>`; return; }
+  $('tplMsg').innerHTML = '<span class="ok-t">✔ Saved.</span>';
+  if (rows.length) await refreshPost();
+};
+
+$('resetTplBtn').onclick = async () => {
+  const res = await (await fetch('/api/post/template/default')).json();
+  $('postTpl').value = res.template || '';
+  $('tplMsg').textContent = 'Default restored — press Save layout to keep it.';
+};
+
+/* ============================ connect ============================ */
 
 function markStep(pane, n, done) {
   const steps = pane.querySelectorAll('.step');
@@ -113,20 +175,7 @@ function refreshConnectPanel() {
       (STATUS.sheet_id ? ` <a href="https://docs.google.com/spreadsheets/d/${STATUS.sheet_id}/edit"
          target="_blank">Open the sheet</a>` : '');
   }
-  if (connected) {
-    const where = STATUS.mode === 'webapp' ? 'script' : 'service account';
-    $('testMsg').innerHTML = `<span class="ok-t">✔ Connected via ${where}.</span>`;
-    $('connectBody').style.display = 'none';
-    $('connectToggle').textContent = 'Show';
-  }
 }
-
-$('connectToggle').onclick = () => {
-  const b = $('connectBody');
-  const hidden = b.style.display === 'none';
-  b.style.display = hidden ? '' : 'none';
-  $('connectToggle').textContent = hidden ? 'Hide' : 'Show';
-};
 
 $('tabEasy').onclick = () => switchPane(true);
 $('tabAdv').onclick = () => switchPane(false);
@@ -137,7 +186,6 @@ function switchPane(easy) {
   $('paneAdv').style.display = easy ? 'none' : '';
 }
 
-/* --- easy path --- */
 let scriptCode = '';
 async function getScript() {
   if (!scriptCode) scriptCode = (await (await fetch('/api/connect/script/code')).json()).code;
@@ -147,18 +195,16 @@ async function copyScript(msgEl) {
   const code = await getScript();
   try {
     await navigator.clipboard.writeText(code);
-    msgEl.innerHTML = '<span class="ok-t">✔ Copied — paste it into the Apps Script editor.</span>';
+    msgEl.innerHTML = '<span class="ok-t">✔ Copied — paste into the Apps Script editor.</span>';
   } catch {
-    $('scriptText').value = code;
-    $('scriptDlg').showModal();
+    $('scriptText').value = code; $('scriptDlg').showModal();
     msgEl.innerHTML = 'Select all in the box and copy.';
   }
 }
 $('copyScriptBtn').onclick = () => copyScript($('scriptMsg'));
 $('copyScriptBtn2').onclick = () => copyScript($('scriptMsg'));
 $('viewScriptBtn').onclick = async () => {
-  $('scriptText').value = await getScript();
-  $('scriptDlg').showModal();
+  $('scriptText').value = await getScript(); $('scriptDlg').showModal();
 };
 
 $('saveScriptBtn').onclick = async () => {
@@ -169,12 +215,10 @@ $('saveScriptBtn').onclick = async () => {
     body: JSON.stringify({ url: $('scriptUrl').value })
   })).json();
   if (res.error) { msg.innerHTML = `<span class="err-t">${esc(res.error)}</span>`; return; }
-  msg.innerHTML = `<span class="ok-t">✔ Connected to “${esc(res.title)}” — ` +
-                  `${res.tabs.length} tab(s).</span>`;
+  msg.innerHTML = `<span class="ok-t">✔ Connected to “${esc(res.title)}” — ${res.tabs.length} tab(s).</span>`;
   await loadStatus(true);
 };
 
-/* --- advanced path --- */
 $('saveSheetBtn').onclick = async () => {
   const msg = $('sheetMsg');
   msg.innerHTML = 'Saving…';
@@ -210,7 +254,7 @@ $('testBtn').onclick = async () => {
   $('testMsg').textContent = ' Checking…';
   await loadStatus(true);
   $('testMsg').innerHTML = (STATUS.sheet_configured && !STATUS.sheet_error)
-    ? `<span class="ok-t">✔ Connected — ${STATUS.tabs.length} tab(s) found.</span>`
+    ? `<span class="ok-t">✔ Connected — ${STATUS.tabs.length} tab(s).</span>`
     : `<span class="err-t">${esc(STATUS.sheet_error || 'No key yet — do step 2.')}</span>`;
 };
 
@@ -219,13 +263,6 @@ function copyEmail() {
   if (el) navigator.clipboard.writeText(el.textContent.trim())
     .then(() => { el.style.background = 'var(--good-soft)'; }).catch(() => {});
 }
-
-$('recheckBtn').onclick = async () => {
-  $('recheckBtn').textContent = '…';
-  await loadStatus(true);
-  if (rows.length) renderGrid();
-  $('recheckBtn').textContent = 'Re-check';
-};
 
 /* ============================ files ============================ */
 
@@ -252,8 +289,7 @@ $('extractBtn').onclick = async () => {
   });
 
   const scanning = picked.some(f => !/\.csv$/i.test(f.name));
-  const t0 = Date.now();
-  const spin = $('extractSpin');
+  const t0 = Date.now(), spin = $('extractSpin');
   spin.textContent = scanning ? ' Reading the pages… about 15s per page, all offline.' : ' Working…';
   const timer = scanning ? setInterval(() => {
     spin.textContent = ` Reading the pages… ${Math.round((Date.now() - t0) / 1000)}s ` +
@@ -271,6 +307,7 @@ $('extractBtn').onclick = async () => {
     rows = rows.concat(res.rows);
     picked = [];
     renderGrid();
+    await refreshPost();
   } catch (e) {
     alert('Extraction failed: ' + e);
   } finally {
@@ -280,10 +317,22 @@ $('extractBtn').onclick = async () => {
   }
 };
 
-/* ============================ grid ============================ */
+/* ============================ output tabs ============================ */
+
+$('oTabSheet').onclick = () => showOut('sheet');
+$('oTabPost').onclick = () => showOut('post');
+function showOut(which) {
+  const isSheet = which === 'sheet';
+  $('oTabSheet').classList.toggle('on', isSheet);
+  $('oTabPost').classList.toggle('on', !isSheet);
+  $('paneSheet').style.display = isSheet ? '' : 'none';
+  $('panePost').style.display = isSheet ? 'none' : '';
+}
+
+/* ============================ output 1: grid ============================ */
 
 function renderGrid() {
-  $('previewCard').style.display = rows.length ? '' : 'none';
+  $('outCard').style.display = rows.length ? '' : 'none';
   renderStats();
 
   const thead = $('grid').querySelector('thead');
@@ -301,7 +350,9 @@ function renderGrid() {
     const tdAct = document.createElement('td');
     tdAct.className = 'act';
     tdAct.innerHTML = `<button class="iconbtn" title="Remove">✕</button>`;
-    tdAct.querySelector('button').onclick = () => { rows.splice(idx, 1); renderGrid(); };
+    tdAct.querySelector('button').onclick = () => {
+      rows.splice(idx, 1); renderGrid(); refreshPost();
+    };
     tr.appendChild(tdAct);
 
     const jid = (r.job_id || '').trim();
@@ -312,12 +363,10 @@ function renderGrid() {
     else if (existing.has(jid)) { cls = 'upd'; txt = 'Update'; }
     else { cls = 'new'; txt = 'New'; }
     tdSt.innerHTML = `<span class="pill ${cls}">${txt}</span>` +
-      (jid && seen[jid] > 1 ? ' <span class="pill err">duplicate</span>' : '') +
-      `<div style="margin-top:5px"><button class="tiny" data-post="${idx}">Post</button></div>`;
+      (jid && seen[jid] > 1 ? ' <span class="pill err">duplicate</span>' : '');
     if (r._warnings && r._warnings.length) {
       tdSt.innerHTML += `<div class="warnlist">${esc(r._warnings.join(' · '))}</div>`;
     }
-    tdSt.querySelector('[data-post]').onclick = () => showPost([r]);
     tr.appendChild(tdSt);
 
     STATUS.fields.forEach(f => {
@@ -328,7 +377,7 @@ function renderGrid() {
       if (long) { el.rows = 2; el.style.minWidth = f === 'sow' ? '320px' : '230px'; }
       else { el.style.minWidth = f === 'job_id' ? '155px' : '105px'; }
       el.oninput = () => { r[f] = el.value; };
-      el.onchange = () => renderGrid();
+      el.onchange = () => { renderGrid(); refreshPost(); };
       if ((r._warnings || []).some(w => w.startsWith(STATUS.labels[f]))) td.className = 'miss';
       td.appendChild(el);
       tr.appendChild(td);
@@ -338,52 +387,50 @@ function renderGrid() {
 }
 
 $('addRowBtn').onclick = () => {
-  const empty = {}; STATUS.fields.forEach(f => empty[f] = '');
+  const empty = {}; (STATUS.all_fields || STATUS.fields).forEach(f => empty[f] = '');
   empty._warnings = [];
-  rows.push(empty); renderGrid();
+  rows.push(empty); renderGrid(); refreshPost();
 };
 
-/* ============================ work-order posts ============================ */
+/* ============================ output 2: work-order text ============================ */
 
 function clean(rs) {
   return rs.map(r => { const c = { ...r }; delete c._warnings; return c; });
 }
 
-async function showPost(subset) {
+async function refreshPost() {
+  if (!rows.length) return;
+  const sel = $('postWhich'), keep = sel.value;
+  sel.innerHTML = '<option value="all">All jobs</option>' + rows.map((r, i) =>
+    `<option value="${i}">${esc(r.job_id || '(no ID)')}</option>`).join('');
+  sel.value = (keep && [...sel.options].some(o => o.value === keep)) ? keep : (rows.length > 1 ? 'all' : '0');
+  await renderPostText();
+}
+
+$('postWhich').onchange = () => renderPostText();
+
+async function renderPostText() {
+  const which = $('postWhich').value;
+  const subset = which === 'all' ? rows : [rows[Number(which)]].filter(Boolean);
+  if (!subset.length) return;
   const res = await (await fetch('/api/post', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ rows: clean(subset) })
   })).json();
-  if (res.error) { alert(res.error); return; }
-  $('postTitle').textContent = subset.length === 1
-    ? `Work-order post — ${subset[0].job_id || 'job'}`
-    : `Work-order posts — ${subset.length} jobs`;
+  if (res.error) { $('postMsg').innerHTML = `<span class="err-t">${esc(res.error)}</span>`; return; }
   $('postText').value = res.text;
-  $('postTpl').value = res.template;
-  $('tplMsg').textContent = '';
-  $('postDlg').showModal();
+  $('postMsg').textContent = '';
 }
-
-$('postAllBtn').onclick = () => rows.length && showPost(rows);
 
 $('copyPostBtn').onclick = async () => {
   try {
     await navigator.clipboard.writeText($('postText').value);
     $('copyPostBtn').textContent = '✔ Copied';
-    setTimeout(() => { $('copyPostBtn').textContent = 'Copy to clipboard'; }, 1600);
+    setTimeout(() => { $('copyPostBtn').textContent = 'Copy for Discord'; }, 1600);
   } catch {
     $('postText').select();
-    $('tplMsg').textContent = 'Press Ctrl+C to copy.';
+    $('postMsg').textContent = 'Press Ctrl+C to copy.';
   }
-};
-
-$('saveTplBtn').onclick = async () => {
-  const res = await (await fetch('/api/post/template', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ template: $('postTpl').value })
-  })).json();
-  $('tplMsg').innerHTML = res.error ? `<span class="err-t">${esc(res.error)}</span>`
-                                    : '<span class="ok-t">✔ Saved.</span>';
 };
 
 /* ============================ export ============================ */
@@ -446,7 +493,8 @@ $('pushBtn').onclick = async () => {
     rows = rows.filter(r => !ok.has((r.job_id || '').trim()));
     ok.forEach(id => existing.add(id));
     renderGrid();
-    $('previewCard').style.display = '';
+    if (rows.length) refreshPost();
+    $('outCard').style.display = '';
   } catch (e) {
     $('pushResults').innerHTML = `<div class="err-t">✖ Push failed: ${esc(e)}</div>`;
   } finally {

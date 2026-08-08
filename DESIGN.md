@@ -113,11 +113,23 @@ shape rather than the label.
 
 ## 3c. Dashboard
 
+**One job on the main screen: uploading.** Everything configural — the sheet connection,
+appearance, the work-order layout — sits behind a single **⚙ Options** dialog, so the
+first screen is a drop zone, the per-batch defaults, and one button. Setup is a rare
+event; it shouldn't occupy the surface a user sees every day.
+
+Extraction then produces **two outputs, presented as tabs** rather than stacked panels,
+because they serve different destinations and are used one at a time: *Rows for the sheet*
+(the editable table plus push/copy/CSV) and *Work-order text* (the crew message, with a
+per-job or all-jobs picker).
+
 The summary strip is **stat tiles, not charts** — the data is five scalars, so a chart
 would add chrome without adding information. Status is carried by a labelled pill
-("New" / "Update" / "duplicate"), never by color alone, and the same information is in
-the row text, so the table remains readable in grayscale or with any color-vision
-deficiency. The palette is defined as light/dark token pairs and follows the OS setting.
+("New" / "Update" / "duplicate"), never by colour alone, and the same information is in
+the row text, so the table stays readable in greyscale or with any colour-vision
+deficiency. Theme (System/Light/Dark) and accent are token swaps on the root element,
+persisted in `localStorage`; the accent choice never touches the status colours, which
+stay reserved.
 
 ## 4. Google Sheets integration
 

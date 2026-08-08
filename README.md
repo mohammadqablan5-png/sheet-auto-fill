@@ -110,23 +110,38 @@ identically on both platforms.
 
 ## Daily use
 
-1. Pick the **target tab** (defaults to the newest month tab).
-2. **Drop your files** — portal PDFs, screenshots, or CSV exports. Several at once is fine.
-3. Optionally open **Defaults for these jobs** and set *Company*, *Team leader*,
-   *Dispatcher*, *Job status*. These are your internal columns that the portal PDF never
-   contains, so they get filled in automatically wherever the file has no value.
-4. Click **Extract jobs**. Scanned/screenshot PDFs take roughly **15 seconds per page** —
-   that's the offline OCR working; there's a live counter so you can see it progressing.
-5. **Review** the table. Red cells are missing required values; the Status column shows
-   whether each Job ID is *New* (will be inserted) or *Update* (edited in place), and
-   flags duplicates. Edit any cell directly. Nothing touches the sheet yet.
-6. Click **Push to Google Sheet** and confirm. Each row reports what happened
-   (inserted at row N / updated row N / error).
+The main screen is just **uploading**. Everything else lives behind **⚙ Options**.
+
+1. **Drop your files** on the main screen — portal PDFs, screenshots, or CSV exports.
+   Several at once is fine.
+2. Set the **target tab** and the defaults underneath: *Company*, *Team leader*,
+   *Dispatcher*, *Job status*. These are your internal columns that a portal PDF never
+   contains, so they're filled in wherever the file has no value.
+3. Click **Extract jobs**. Scanned/screenshot PDFs take roughly **15 seconds per page** —
+   that's the offline OCR working; a live counter shows progress.
+4. You then get **two outputs**, on tabs:
+
+   | Tab | What it's for |
+   |---|---|
+   | **Rows for the sheet** | the editable table — check it, then **Push to Google Sheet** (or **Copy rows** / **Download CSV**) |
+   | **Work-order text** | the message for your Discord channel — pick a job or *All jobs*, then **Copy for Discord** |
+
+   In the table, red cells are missing required values, and the Status column shows
+   whether each Job ID is *New* (inserted) or *Update* (edited in place), plus duplicate
+   warnings. Nothing touches the sheet until you push.
+
+### ⚙ Options
+
+| Section | What's in it |
+|---|---|
+| **Google Sheet** | the connection setup (see below) |
+| **Appearance** | theme — System / Light / Dark — and an accent colour |
+| **Work-order text layout** | edit the wording of the Discord message |
 
 ### Work-order text for the crew
 
-Click **Post** on any row (or **Work-order posts** for the whole batch) to get the work
-order laid out the way the portal shows it, ready to paste into Discord:
+The **Work-order text** tab gives you the job laid out the way the portal shows it, ready
+to paste into Discord:
 
 ```
 Work Number
@@ -154,10 +169,10 @@ $680.00
 ```
 
 Sections with nothing in them vanish entirely — a job with no rates shows no "Rate"
-heading at all, rather than an empty one. To change the wording or order, open
-**Change the layout of these posts** in that dialog; placeholders such as `{job_id}`,
-`{nte}`, `{rates}`, `{sow}` are filled in per job, and it's saved in
-`post_template.txt`.
+heading at all, rather than an empty one. To change the wording or order, use
+**⚙ Options → Work-order text layout** (or **Edit layout** on that tab); placeholders such
+as `{job_id}`, `{nte}`, `{rates}`, `{sow}` are filled in per job, and it's saved in
+`post_template.txt`. There's a **Reset to default** button if you want the original back.
 
 > **The pay rates never touch the spreadsheet.** They're extracted only for this text,
 > and they aren't shown as a column in the preview table either — your sheet layout is
@@ -199,7 +214,7 @@ the local tech you assign.
 
 ## Connecting Google Sheets (one time, free)
 
-Do this **inside the app**, in the **Connect your Google Sheet** panel. There are two
+Do this **inside the app**: **⚙ Options → Set up the sheet connection**. There are two
 ways; both are free and neither asks Google for a payment method.
 
 ### Easy — a small script inside your own sheet (recommended)

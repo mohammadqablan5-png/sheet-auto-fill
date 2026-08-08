@@ -268,6 +268,16 @@ def make_post():
                     "template": template or posts._template()})
 
 
+@app.get("/api/post/template/default")
+def default_template():
+    """The layout shipped with the app, for the Reset button."""
+    try:
+        with open(os.path.join(bundle_dir(), "post_template.txt"), encoding="utf-8") as fh:
+            return jsonify({"template": fh.read()})
+    except OSError:
+        return jsonify({"template": posts.DEFAULT_TEMPLATE})
+
+
 @app.post("/api/post/template")
 def save_template():
     """Persist an edited post layout next to the app."""

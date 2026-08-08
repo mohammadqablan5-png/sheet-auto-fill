@@ -5,96 +5,98 @@
 <title>SHEET auto FILL</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
+  /* ---------- themes ---------- */
   :root {
+    --accent:#2563c9; --accent-soft:#eaf1fd;
     --bg:#f4f6f9; --surface:#fff; --surface-2:#f8fafc; --border:#e2e6ec;
     --ink:#131a24; --ink-2:#4a5568; --muted:#7b8794;
-    --accent:#2563c9; --accent-soft:#eaf1fd;
     --good:#12794f; --good-soft:#e6f5ee;
     --warn:#8a5a00; --warn-soft:#fdf3e0;
-    --bad:#b3261e; --bad-soft:#fdeceb;
+    --bad:#b3261e;  --bad-soft:#fdeceb;
     --shadow:0 1px 2px rgba(19,26,36,.06), 0 2px 8px rgba(19,26,36,.04);
     --radius:12px;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg:#0f1520; --surface:#161e2b; --surface-2:#1b2534; --border:#2a3547;
-      --ink:#e8edf4; --ink-2:#b3bfcf; --muted:#8593a6;
-      --accent:#6ea3ff; --accent-soft:#1c2c46;
-      --good:#5fd3a0; --good-soft:#13302a;
-      --warn:#e5b168; --warn-soft:#33270f;
-      --bad:#ff8a80; --bad-soft:#3a1c1c;
-      --shadow:0 1px 2px rgba(0,0,0,.4);
-    }
+  html[data-accent="teal"]   { --accent:#0f766e; --accent-soft:#e2f4f2; }
+  html[data-accent="violet"] { --accent:#6d40c4; --accent-soft:#f0eafd; }
+  html[data-accent="amber"]  { --accent:#a8620a; --accent-soft:#fdf1e0; }
+  html[data-accent="slate"]  { --accent:#41556e; --accent-soft:#eceff3; }
+
+  html[data-theme="dark"] {
+    --bg:#0f1520; --surface:#161e2b; --surface-2:#1b2534; --border:#2a3547;
+    --ink:#e8edf4; --ink-2:#b3bfcf; --muted:#8593a6;
+    --accent:#6ea3ff; --accent-soft:#1c2c46;
+    --good:#5fd3a0; --good-soft:#13302a;
+    --warn:#e5b168; --warn-soft:#33270f;
+    --bad:#ff8a80;  --bad-soft:#3a1c1c;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
   }
+  html[data-theme="dark"][data-accent="teal"]   { --accent:#5ed3c6; --accent-soft:#14312e; }
+  html[data-theme="dark"][data-accent="violet"] { --accent:#b192f5; --accent-soft:#251c3d; }
+  html[data-theme="dark"][data-accent="amber"]  { --accent:#e8b171; --accent-soft:#332614; }
+  html[data-theme="dark"][data-accent="slate"]  { --accent:#9fb3cc; --accent-soft:#222c3a; }
+
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--ink);
          font:14px/1.5 "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
   a { color:var(--accent); }
 
-  /* ---------- top bar ---------- */
   header { background:var(--surface); border-bottom:1px solid var(--border);
-           padding:0 20px; display:flex; align-items:center; gap:12px; height:56px;
-           position:sticky; top:0; z-index:20; }
+           padding:0 20px; display:flex; align-items:center; gap:10px; height:56px;
+           position:sticky; top:0; z-index:30; }
   .brand { font-size:15px; font-weight:700; letter-spacing:-.2px; margin-right:6px; }
   .brand span { color:var(--muted); font-weight:500; }
   .chip { font-size:12px; padding:4px 11px; border-radius:99px; border:1px solid var(--border);
           background:var(--surface-2); color:var(--ink-2); display:inline-flex; align-items:center; gap:6px; }
   .chip .dot { width:7px; height:7px; border-radius:50%; background:var(--muted); }
-  .chip.ok { color:var(--good); border-color:transparent; background:var(--good-soft); }
+  .chip.ok  { color:var(--good); border-color:transparent; background:var(--good-soft); }
   .chip.ok .dot { background:var(--good); }
   .chip.bad { color:var(--bad); border-color:transparent; background:var(--bad-soft); }
   .chip.bad .dot { background:var(--bad); }
   .spacer { flex:1; }
 
-  main { padding:20px; max-width:1600px; margin:0 auto; }
+  main { padding:22px 20px 60px; max-width:1600px; margin:0 auto; }
 
-  /* ---------- cards ---------- */
   .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
           box-shadow:var(--shadow); padding:18px; margin-bottom:16px; }
-  .card h2 { font-size:14px; margin:0 0 2px; letter-spacing:-.1px; }
+  .card h2 { font-size:14.5px; margin:0 0 2px; letter-spacing:-.1px; }
   .card p.sub { margin:0 0 14px; color:var(--muted); font-size:12.5px; }
   .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
-  /* ---------- stat tiles ---------- */
-  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:16px; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr)); gap:12px; margin-bottom:16px; }
   .stat { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
-          padding:14px 16px; box-shadow:var(--shadow); }
-  .stat .num { font-size:24px; font-weight:700; letter-spacing:-.5px; line-height:1.15; }
-  .stat .lbl { font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-top:3px; }
+          padding:13px 16px; box-shadow:var(--shadow); }
+  .stat .num { font-size:23px; font-weight:700; letter-spacing:-.5px; line-height:1.15; }
+  .stat .lbl { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-top:3px; }
   .stat.is-new .num { color:var(--good); }
   .stat.is-upd .num { color:var(--accent); }
   .stat.is-warn .num { color:var(--warn); }
 
-  /* ---------- controls ---------- */
-  label.small { font-size:11.5px; color:var(--muted); display:block; margin-bottom:5px;
+  label.small { font-size:11px; color:var(--muted); display:block; margin-bottom:5px;
                 text-transform:uppercase; letter-spacing:.4px; }
   select, input[type=text], input:not([type]), textarea {
     font:inherit; padding:8px 11px; border:1px solid var(--border); border-radius:8px;
     background:var(--surface); color:var(--ink); }
   select:focus, input:focus, textarea:focus { outline:2px solid var(--accent); outline-offset:-1px; }
   textarea { width:100%; resize:vertical; font-family:ui-monospace, Consolas, monospace; font-size:12.5px; }
-  button { font:inherit; font-weight:600; padding:9px 16px; border-radius:8px;
-           border:1px solid transparent; cursor:pointer; background:var(--surface-2);
-           color:var(--ink); border-color:var(--border); }
+  button { font:inherit; font-weight:600; padding:9px 16px; border-radius:8px; cursor:pointer;
+           background:var(--surface-2); color:var(--ink); border:1px solid var(--border); }
   button:hover { border-color:var(--accent); }
   button.primary { background:var(--accent); color:#fff; border-color:transparent; }
   button.primary:hover { filter:brightness(1.08); }
   button.primary:disabled { opacity:.5; cursor:default; filter:none; }
-  button.tiny { padding:3px 9px; font-size:11.5px; font-weight:600; }
+  button.tiny { padding:4px 10px; font-size:11.5px; }
 
-  /* ---------- drop zone ---------- */
-  #drop { border:2px dashed var(--border); border-radius:var(--radius); padding:26px;
+  #drop { border:2px dashed var(--border); border-radius:var(--radius); padding:34px 20px;
           text-align:center; color:var(--muted); cursor:pointer; transition:.15s; background:var(--surface-2); }
   #drop:hover, #drop.hover { border-color:var(--accent); background:var(--accent-soft); color:var(--ink-2); }
-  #drop b { color:var(--ink); font-size:14.5px; }
+  #drop b { color:var(--ink); font-size:15px; display:block; margin-bottom:4px; }
   #fileReports div { font-size:12.5px; margin-top:6px; }
 
-  /* ---------- table ---------- */
-  .tablewrap { overflow:auto; border:1px solid var(--border); border-radius:10px; max-height:62vh; }
+  .tablewrap { overflow:auto; border:1px solid var(--border); border-radius:10px; max-height:58vh; }
   table { border-collapse:separate; border-spacing:0; width:100%; font-size:13px; }
   th { background:var(--surface-2); padding:9px 10px; text-align:left; white-space:nowrap;
        position:sticky; top:0; z-index:2; border-bottom:1px solid var(--border);
-       font-size:11.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); }
+       font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); }
   td { border-bottom:1px solid var(--border); padding:0; vertical-align:top; }
   tr:last-child td { border-bottom:0; }
   td input, td textarea { width:100%; border:0; padding:8px 10px; font:inherit;
@@ -108,16 +110,24 @@
   .pill.new { background:var(--good-soft); color:var(--good); }
   .pill.upd { background:var(--accent-soft); color:var(--accent); }
   .pill.err { background:var(--bad-soft); color:var(--bad); }
-  .warnlist { font-size:11px; color:var(--warn); padding:2px 8px 7px; max-width:210px; }
+  .warnlist { font-size:11px; color:var(--warn); padding:2px 8px 7px; max-width:200px; }
   .iconbtn { background:none; border:0; color:var(--muted); cursor:pointer; padding:3px 5px; font-size:14px; }
   .iconbtn:hover { color:var(--bad); }
 
-  /* ---------- misc ---------- */
-  .setup { background:var(--warn-soft); border:1px solid transparent; border-radius:10px;
-           padding:11px 14px; font-size:12.5px; margin-bottom:12px; color:var(--ink-2); }
+  .setup { background:var(--warn-soft); border-radius:10px; padding:11px 14px;
+           font-size:12.5px; margin-bottom:12px; color:var(--ink-2); }
   code { background:var(--surface-2); border:1px solid var(--border); padding:1px 6px;
          border-radius:5px; font-size:12px; font-family:ui-monospace, Consolas, monospace; }
   .ok-t { color:var(--good); } .err-t { color:var(--bad); } .warn-t { color:var(--warn); }
+  .hint { color:var(--muted); font-size:12px; }
+
+  /* output tabs */
+  .otabs { display:flex; gap:4px; border-bottom:1px solid var(--border); margin-bottom:14px; }
+  .otabs button { background:none; border:0; border-bottom:2px solid transparent; border-radius:0;
+                  padding:9px 15px; color:var(--muted); font-weight:600; }
+  .otabs button.on { color:var(--accent); border-bottom-color:var(--accent); }
+
+  /* setup steps */
   .step { display:flex; gap:13px; padding:15px 0; border-top:1px solid var(--border); font-size:13px; }
   .step:first-of-type { border-top:0; padding-top:2px; }
   .stepnum { width:25px; height:25px; flex:0 0 25px; border-radius:50%; background:var(--accent);
@@ -128,19 +138,25 @@
   #keyDrop { border:2px dashed var(--border); border-radius:8px; padding:13px; text-align:center;
              color:var(--muted); cursor:pointer; margin-top:9px; background:var(--surface-2); }
   #keyDrop.hover { border-color:var(--accent); background:var(--accent-soft); }
-  .tabs { display:flex; gap:4px; margin-bottom:14px; border-bottom:1px solid var(--border); }
-  .tabs button { background:none; border:0; border-bottom:2px solid transparent; border-radius:0;
-                 padding:8px 14px; color:var(--muted); font-weight:600; }
-  .tabs button.on { color:var(--accent); border-bottom-color:var(--accent); }
+
   dialog { border:1px solid var(--border); border-radius:var(--radius); background:var(--surface);
-           color:var(--ink); box-shadow:0 12px 40px rgba(0,0,0,.25); padding:0; max-width:760px; width:92vw; }
+           color:var(--ink); box-shadow:0 14px 44px rgba(0,0,0,.28); padding:0;
+           max-width:860px; width:94vw; }
   dialog::backdrop { background:rgba(8,12,20,.55); }
   .dlg-head { padding:15px 18px; border-bottom:1px solid var(--border); display:flex;
               align-items:center; justify-content:space-between; }
-  .dlg-body { padding:16px 18px; }
+  .dlg-body { padding:16px 18px; max-height:70vh; overflow:auto; }
   .dlg-foot { padding:12px 18px; border-top:1px solid var(--border); display:flex;
               gap:8px; justify-content:flex-end; background:var(--surface-2); }
-  .hint { color:var(--muted); font-size:12px; }
+  .seg { display:inline-flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .seg button { border:0; border-radius:0; background:var(--surface); padding:7px 13px; font-size:12.5px; }
+  .seg button.on { background:var(--accent); color:#fff; }
+  .swatches { display:flex; gap:8px; }
+  .sw { width:30px; height:30px; border-radius:50%; border:2px solid var(--border); cursor:pointer; }
+  .sw.on { border-color:var(--ink); }
+  .setsec { padding:16px 0; border-top:1px solid var(--border); }
+  .setsec:first-child { border-top:0; padding-top:0; }
+  .setsec h3 { font-size:13px; margin:0 0 3px; }
 </style>
 </head>
 <body>
@@ -150,181 +166,214 @@
   <span id="chipSheet" class="chip"><i class="dot"></i>Sheet: checking…</span>
   <span id="chipOcr" class="chip"><i class="dot"></i>Reader: checking…</span>
   <div class="spacer"></div>
-  <button id="recheckBtn" class="tiny">Re-check</button>
+  <button id="optionsBtn">⚙ Options</button>
 </header>
 
 <main>
   <div id="setupNotes"></div>
 
-  <div class="stats" id="stats"></div>
-
-  <!-- ============ connect ============ -->
-  <div class="card" id="connectCard">
-    <div class="row" style="justify-content:space-between">
-      <div>
-        <h2>Connect your Google Sheet</h2>
-        <p class="sub" style="margin-bottom:0">Done once. Free — Google never asks for payment details.</p>
-      </div>
-      <button id="connectToggle" class="tiny">Hide</button>
-    </div>
-    <div id="connectBody" style="margin-top:14px">
-      <div class="tabs">
-        <button id="tabEasy" class="on">Easy — script in your sheet</button>
-        <button id="tabAdv">Advanced — service account</button>
-      </div>
-
-      <!-- easy -->
-      <div id="paneEasy">
-        <div class="step">
-          <div class="stepnum">1</div>
-          <div style="flex:1">
-            <b>Open your sheet's script editor.</b>
-            In Google Sheets: <b>Extensions → Apps Script</b>. Delete whatever is in the editor.
-          </div>
-        </div>
-        <div class="step">
-          <div class="stepnum">2</div>
-          <div style="flex:1">
-            <b>Paste this in and save</b> (the disk icon). It only touches this one spreadsheet.
-            <div class="row" style="margin-top:8px">
-              <button id="copyScriptBtn" class="primary">Copy the script</button>
-              <button id="viewScriptBtn" class="tiny">View it</button>
-              <span id="scriptMsg" class="hint"></span>
-            </div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="stepnum">3</div>
-          <div style="flex:1">
-            <b>Deploy it and paste the link back here.</b>
-            In the script editor: <b>Deploy → New deployment</b> → gear icon → <b>Web app</b> →
-            set <b>Execute as: Me</b> and <b>Who has access: Anyone</b> → <b>Deploy</b> →
-            authorise it (Google shows an "unverified" warning for your own script —
-            <i>Advanced → Go to … (unsafe)</i>) → copy the <b>Web app URL</b>.
-            <div class="row" style="margin-top:8px">
-              <input id="scriptUrl" type="text" style="flex:1;min-width:320px"
-                     placeholder="https://script.google.com/macros/s/..../exec">
-              <button id="saveScriptBtn" class="primary">Connect</button>
-            </div>
-            <div id="scriptUrlMsg" class="stepmsg"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- advanced -->
-      <div id="paneAdv" style="display:none">
-        <div class="step">
-          <div class="stepnum">1</div>
-          <div style="flex:1">
-            <b>Which sheet?</b> Paste your spreadsheet's address.
-            <div class="row" style="margin-top:8px">
-              <input id="sheetUrl" type="text" style="flex:1;min-width:320px"
-                     placeholder="https://docs.google.com/spreadsheets/d/...">
-              <button id="saveSheetBtn">Save</button>
-            </div>
-            <div id="sheetMsg" class="stepmsg"></div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="stepnum">2</div>
-          <div style="flex:1">
-            <b>Service-account key.</b>
-            <a href="https://console.cloud.google.com/iam-admin/serviceaccounts" target="_blank">Service Accounts</a> ·
-            <a href="https://console.cloud.google.com/apis/library/sheets.googleapis.com" target="_blank">Enable Sheets API</a>
-            · full steps in README.md
-            <div id="keyDrop">Drop the downloaded <code>.json</code> key here, or click to choose
-              <input id="keyInput" type="file" accept=".json,application/json" style="display:none">
-            </div>
-            <div id="keyMsg" class="stepmsg"></div>
-          </div>
-        </div>
-        <div class="step">
-          <div class="stepnum">3</div>
-          <div style="flex:1">
-            <b>Share the sheet</b> with the address below as <b>Editor</b>.
-            <div id="shareBox" class="stepmsg hint">Finish step 2 first.</div>
-            <div class="row" style="margin-top:8px">
-              <button id="testBtn" class="primary">Test the connection</button>
-              <span id="testMsg" style="font-size:12.5px"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ extract ============ -->
+  <!-- ================= MAIN: upload ================= -->
   <div class="card">
     <h2>Add work orders</h2>
     <p class="sub">Portal PDFs, screenshots, or CSV exports — several at once is fine.</p>
 
-    <div class="row" style="margin-bottom:13px">
-      <div><label class="small">Write into tab</label>
-        <select id="tabSelect"><option value="latest">Latest tab</option></select></div>
-      <div><label class="small">Company</label><input id="d_company" placeholder="keystone"></div>
-      <div><label class="small">Team leader</label><input id="d_team_leader" placeholder="Nick"></div>
-      <div><label class="small">Dispatcher</label><input id="d_dispatcher" placeholder="Adam"></div>
-      <div><label class="small">Job status</label><input id="d_job_status" placeholder="Secured"></div>
-    </div>
-
     <div id="drop">
-      <b>Drop files here</b><br>
+      <b>Drop files here</b>
       or click to choose — .pdf, .csv, .png, .jpg
       <input id="fileInput" type="file" multiple
              accept=".pdf,.csv,.png,.jpg,.jpeg,.webp,.gif" style="display:none">
     </div>
     <div id="fileReports"></div>
-    <div class="row" style="margin-top:13px">
+
+    <div class="row" style="margin-top:14px">
+      <div><label class="small">Write into tab</label>
+        <select id="tabSelect"><option value="latest">Latest tab</option></select></div>
+      <div><label class="small">Company</label><input id="d_company" placeholder="keystone" style="width:130px"></div>
+      <div><label class="small">Team leader</label><input id="d_team_leader" placeholder="Nick" style="width:120px"></div>
+      <div><label class="small">Dispatcher</label><input id="d_dispatcher" placeholder="Adam" style="width:120px"></div>
+      <div><label class="small">Job status</label><input id="d_job_status" placeholder="Secured" style="width:120px"></div>
+    </div>
+
+    <div class="row" style="margin-top:14px">
       <button id="extractBtn" class="primary" disabled>Extract jobs</button>
       <span id="extractSpin" class="hint"></span>
     </div>
   </div>
 
-  <!-- ============ preview ============ -->
-  <div class="card" id="previewCard" style="display:none">
-    <div class="row" style="justify-content:space-between;margin-bottom:12px">
-      <div><h2 style="margin:0">Review before sending</h2>
-        <p class="sub" style="margin:2px 0 0">Edit any cell. Nothing reaches the sheet until you push.</p></div>
-      <div class="row">
-        <select id="layoutSel" title="Column layout of the target tab">
-          <option value="nocap">Layout: no CAP column</option>
-          <option value="cap">Layout: with CAP column</option>
-        </select>
-        <button id="copyBtn">Copy rows</button>
-        <button id="csvBtn">Download CSV</button>
-        <button id="postAllBtn">Work-order posts</button>
-        <button id="addRowBtn">+ Row</button>
-        <button id="pushBtn" class="primary">Push to Google Sheet</button>
-        <span id="pushSpin" class="hint"></span>
-      </div>
+  <!-- ================= OUTPUTS ================= -->
+  <div id="stats" class="stats"></div>
+
+  <div class="card" id="outCard" style="display:none">
+    <div class="otabs">
+      <button id="oTabSheet" class="on">Rows for the sheet</button>
+      <button id="oTabPost">Work-order text</button>
     </div>
-    <div class="tablewrap"><table id="grid"><thead></thead><tbody></tbody></table></div>
-    <div id="pushResults"></div>
+
+    <!-- output 1: sheet rows -->
+    <div id="paneSheet">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <p class="sub" style="margin:0">Edit any cell. Nothing reaches the sheet until you push.</p>
+        <div class="row">
+          <select id="layoutSel" title="Column layout of the target tab">
+            <option value="nocap">Layout: no CAP column</option>
+            <option value="cap">Layout: with CAP column</option>
+          </select>
+          <button id="copyBtn">Copy rows</button>
+          <button id="csvBtn">Download CSV</button>
+          <button id="addRowBtn">+ Row</button>
+          <button id="pushBtn" class="primary">Push to Google Sheet</button>
+          <span id="pushSpin" class="hint"></span>
+        </div>
+      </div>
+      <div class="tablewrap"><table id="grid"><thead></thead><tbody></tbody></table></div>
+      <div id="pushResults"></div>
+    </div>
+
+    <!-- output 2: work-order text -->
+    <div id="panePost" style="display:none">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <div class="row">
+          <label class="small" style="margin:0 6px 0 0">Job</label>
+          <select id="postWhich"></select>
+        </div>
+        <div class="row">
+          <button id="editTplBtn">Edit layout</button>
+          <button id="copyPostBtn" class="primary">Copy for Discord</button>
+        </div>
+      </div>
+      <textarea id="postText" rows="20"></textarea>
+      <div id="postMsg" class="hint" style="margin-top:7px"></div>
+    </div>
   </div>
 </main>
 
-<!-- ============ dialogs ============ -->
-<dialog id="postDlg">
+<!-- ================= OPTIONS ================= -->
+<dialog id="optDlg">
   <div class="dlg-head">
-    <b id="postTitle">Work-order post</b>
-    <button class="tiny" onclick="document.getElementById('postDlg').close()">Close</button>
+    <b>Options</b>
+    <button class="tiny" onclick="document.getElementById('optDlg').close()">Close</button>
   </div>
   <div class="dlg-body">
-    <p class="hint" style="margin:0 0 9px">Ready to paste into Discord. Edit here if you like — it won't change the sheet.</p>
-    <textarea id="postText" rows="16"></textarea>
-    <details style="margin-top:11px">
-      <summary class="hint" style="cursor:pointer">Change the layout of these posts</summary>
-      <p class="hint" style="margin:9px 0 6px">Placeholders like <code>{job_id}</code> get replaced.
-        A line whose values are all empty is removed automatically.</p>
-      <textarea id="postTpl" rows="9"></textarea>
-      <div class="row" style="margin-top:8px">
-        <button id="saveTplBtn" class="tiny">Save layout</button>
-        <span id="tplMsg" class="hint"></span>
+
+    <div class="setsec">
+      <h3>Google Sheet</h3>
+      <p class="hint" id="connSummary" style="margin:0 0 10px"></p>
+      <button id="openConnBtn" class="primary">Set up the sheet connection</button>
+    </div>
+
+    <div class="setsec">
+      <h3>Appearance</h3>
+      <p class="hint" style="margin:0 0 10px">Theme and accent colour.</p>
+      <div class="row" style="gap:18px">
+        <div class="seg" id="themeSeg">
+          <button data-theme="system">System</button>
+          <button data-theme="light">Light</button>
+          <button data-theme="dark">Dark</button>
+        </div>
+        <div class="swatches" id="accentSw">
+          <div class="sw" data-accent="blue"   style="background:#2563c9" title="Blue"></div>
+          <div class="sw" data-accent="teal"   style="background:#0f766e" title="Teal"></div>
+          <div class="sw" data-accent="violet" style="background:#6d40c4" title="Violet"></div>
+          <div class="sw" data-accent="amber"  style="background:#a8620a" title="Amber"></div>
+          <div class="sw" data-accent="slate"  style="background:#41556e" title="Slate"></div>
+        </div>
       </div>
-    </details>
+    </div>
+
+    <div class="setsec">
+      <h3>Work-order text layout</h3>
+      <p class="hint" style="margin:0 0 10px">What the Discord message looks like.</p>
+      <button id="openTplBtn">Edit the layout</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- ================= CONNECT ================= -->
+<dialog id="connDlg">
+  <div class="dlg-head">
+    <b>Connect your Google Sheet</b>
+    <button class="tiny" onclick="document.getElementById('connDlg').close()">Close</button>
+  </div>
+  <div class="dlg-body">
+    <p class="hint" style="margin:0 0 12px">Done once. Free — Google never asks for payment details.</p>
+    <div class="otabs">
+      <button id="tabEasy" class="on">Easy — script in your sheet</button>
+      <button id="tabAdv">Advanced — service account</button>
+    </div>
+
+    <div id="paneEasy">
+      <div class="step"><div class="stepnum">1</div><div style="flex:1">
+        <b>Open your sheet's script editor.</b>
+        In Google Sheets: <b>Extensions → Apps Script</b>. Delete whatever is in the editor.
+      </div></div>
+      <div class="step"><div class="stepnum">2</div><div style="flex:1">
+        <b>Paste this in and save</b> (the disk icon). It only touches this one spreadsheet.
+        <div class="row" style="margin-top:8px">
+          <button id="copyScriptBtn" class="primary">Copy the script</button>
+          <button id="viewScriptBtn" class="tiny">View it</button>
+          <span id="scriptMsg" class="hint"></span>
+        </div>
+      </div></div>
+      <div class="step"><div class="stepnum">3</div><div style="flex:1">
+        <b>Deploy it and paste the link back here.</b>
+        <b>Deploy → New deployment</b> → gear → <b>Web app</b> →
+        <b>Execute as: Me</b>, <b>Who has access: Anyone</b> → <b>Deploy</b> → authorise
+        (Google warns "unverified" about your own script — <i>Advanced → Go to … (unsafe)</i>)
+        → copy the <b>Web app URL</b>.
+        <div class="row" style="margin-top:8px">
+          <input id="scriptUrl" type="text" style="flex:1;min-width:300px"
+                 placeholder="https://script.google.com/macros/s/..../exec">
+          <button id="saveScriptBtn" class="primary">Connect</button>
+        </div>
+        <div id="scriptUrlMsg" class="stepmsg"></div>
+      </div></div>
+    </div>
+
+    <div id="paneAdv" style="display:none">
+      <div class="step"><div class="stepnum">1</div><div style="flex:1">
+        <b>Which sheet?</b> Paste your spreadsheet's address.
+        <div class="row" style="margin-top:8px">
+          <input id="sheetUrl" type="text" style="flex:1;min-width:300px"
+                 placeholder="https://docs.google.com/spreadsheets/d/...">
+          <button id="saveSheetBtn">Save</button>
+        </div>
+        <div id="sheetMsg" class="stepmsg"></div>
+      </div></div>
+      <div class="step"><div class="stepnum">2</div><div style="flex:1">
+        <b>Service-account key.</b>
+        <a href="https://console.cloud.google.com/iam-admin/serviceaccounts" target="_blank">Service Accounts</a> ·
+        <a href="https://console.cloud.google.com/apis/library/sheets.googleapis.com" target="_blank">Enable Sheets API</a>
+        <div id="keyDrop">Drop the downloaded <code>.json</code> key here, or click to choose
+          <input id="keyInput" type="file" accept=".json,application/json" style="display:none">
+        </div>
+        <div id="keyMsg" class="stepmsg"></div>
+      </div></div>
+      <div class="step"><div class="stepnum">3</div><div style="flex:1">
+        <b>Share the sheet</b> with the address below as <b>Editor</b>.
+        <div id="shareBox" class="stepmsg hint">Finish step 2 first.</div>
+        <div class="row" style="margin-top:8px">
+          <button id="testBtn" class="primary">Test the connection</button>
+          <span id="testMsg" style="font-size:12.5px"></span>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="tplDlg">
+  <div class="dlg-head">
+    <b>Work-order text layout</b>
+    <button class="tiny" onclick="document.getElementById('tplDlg').close()">Close</button>
+  </div>
+  <div class="dlg-body">
+    <p class="hint" style="margin:0 0 9px">Placeholders like <code>{job_id}</code> are filled per job.
+      A section whose values are all empty is removed automatically.</p>
+    <textarea id="postTpl" rows="18"></textarea>
+    <div id="tplMsg" class="hint" style="margin-top:7px"></div>
   </div>
   <div class="dlg-foot">
-    <button id="copyPostBtn" class="primary">Copy to clipboard</button>
+    <button id="resetTplBtn" class="tiny">Reset to default</button>
+    <button id="saveTplBtn" class="primary">Save layout</button>
   </div>
 </dialog>
 
@@ -333,12 +382,8 @@
     <b>Sheet connector script</b>
     <button class="tiny" onclick="document.getElementById('scriptDlg').close()">Close</button>
   </div>
-  <div class="dlg-body">
-    <textarea id="scriptText" rows="18" readonly></textarea>
-  </div>
-  <div class="dlg-foot">
-    <button id="copyScriptBtn2" class="primary">Copy the script</button>
-  </div>
+  <div class="dlg-body"><textarea id="scriptText" rows="18" readonly></textarea></div>
+  <div class="dlg-foot"><button id="copyScriptBtn2" class="primary">Copy the script</button></div>
 </dialog>
 
 <script src="/static/app.js"></script>
