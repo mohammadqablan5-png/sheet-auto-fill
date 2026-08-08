@@ -44,6 +44,17 @@ def _norm(s: str) -> str:
     return re.sub(r"[^a-z]", "", s)
 
 
+def _money(s: str) -> str:
+    """'$38.00 per hour' -> '$38'   ·   '$22.50' -> '$22.50'"""
+    m = MONEY_RE.search(s or "")
+    if not m:
+        return (s or "").strip()
+    amount = m.group(1).replace(",", "")
+    if amount.endswith(".00"):
+        amount = amount[:-3]
+    return "$" + amount
+
+
 def _fix_digits(s: str) -> str:
     """Repair letter/digit confusion inside numbers, e.g. '31l Main' -> '311 Main'."""
     s = re.sub(r"(?<=\d)[lI|](?=\d)", "1", s)
@@ -74,7 +85,12 @@ LABELS = {
     "sitecontact": "assignee",
     "phonenumber": "assignee_phone",
     "primarytechnician": "primary_tech",
+    # "Regular Technician" appears twice in the portal: under Assigned Technicians
+    # (a person) and under Rate (a dollar amount). Resolved by the value's shape.
     "regulartechnician": "primary_tech",
+    "helpertechnician": "rate_helper",
+    "trip": "rate_trip",
+    "rate": "_ignore",
     "serviceline": "service_line",
     "servicetype": "service_type",
     "lastupdatedon": "_ignore",
@@ -242,6 +258,22 @@ def parse_page(boxes: list) -> dict:
     if extra.get("special"):
         sow = (sow + "  Special instructions: " + extra["special"]).strip()
     found["sow"] = re.sub(r"\s{2,}", " ", sow).strip()
+
+    # --- pay rates (Rate section): "Regular Technician / $38.00 per hour", etc.
+    rate_regular = extra.get("primary_tech", "")
+    if MONEY_RE.search(rate_regular):
+        extra.pop("primary_tech", None)          # it was a rate, not a person
+    else:
+        rate_regular = ""
+    parts = []
+    if rate_regular:
+        parts.append(f"Tech {_money(rate_regular)}/hr")
+    if extra.get("rate_helper"):
+        parts.append(f"Helper {_money(extra['rate_helper'])}/hr")
+    if extra.get("rate_trip"):
+        parts.append(f"Trip {_money(extra['rate_trip'])}")
+    if parts:
+        found["rates"] = " · ".join(parts)
 
     # --- status
     low = all_text.lower()

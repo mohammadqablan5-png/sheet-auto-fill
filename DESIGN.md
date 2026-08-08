@@ -89,12 +89,47 @@ Extraction never writes directly. All rows land in an editable grid where the us
 Only "Push" (with a confirmation dialog) touches the sheet, and each row reports its
 outcome afterwards. Successfully pushed rows leave the grid; failed ones stay for retry.
 
+## 3b. Work-order posts
+
+Extraction feeds a second output besides the spreadsheet: a message the crew can read.
+`posts.py` renders each row through `post_template.txt`, and **drops any line whose
+placeholders are all empty** — so a job with no assigned tech doesn't emit "Tech: —".
+Money fields are formatted on the way out, and dangling separators left by a missing
+half ("Bob — ") are trimmed. The template is a plain text file kept beside the app and
+editable from the dialog, so wording changes need no code.
+
+The portal's **Rate** block (regular tech / helper / trip) is extracted for this purpose
+and deliberately *not* written to the spreadsheet, which has no such column. Note the
+portal reuses the label "Regular Technician" for both a person (under *Assigned
+Technicians*) and a dollar amount (under *Rate*); the parser disambiguates on the value's
+shape rather than the label.
+
+## 3c. Dashboard
+
+The summary strip is **stat tiles, not charts** — the data is five scalars, so a chart
+would add chrome without adding information. Status is carried by a labelled pill
+("New" / "Update" / "duplicate"), never by color alone, and the same information is in
+the row text, so the table remains readable in grayscale or with any color-vision
+deficiency. The palette is defined as light/dark token pairs and follows the OS setting.
+
 ## 4. Google Sheets integration
 
 - **Auth**: a Google Cloud **service account** with a local JSON key; the sheet is shared
   with the service-account email as Editor. No OAuth browser flows, no password handling,
   and access can be revoked by unsharing or deleting the key.
-- **In-app connection wizard**: three steps inside the window rather than manual file
+- **Two connection paths, same interface.** `WebAppClient` (webapp_client.py) and
+  `SheetClient` (sheets_client.py) expose the same `configured / tabs / existing_jobs /
+  push_rows` surface, so `app.backend()` simply returns whichever is configured and the
+  rest of the app is unaware of the difference.
+  - *Easy path* — the user deploys `appsscript_template.js` inside their own spreadsheet
+    as a Web App. No Google Cloud project, no service account, no key file, no sharing
+    step. The script runs as the sheet's owner, so no credential ever reaches this
+    machine; the app authenticates with a random key it generates and bakes into the
+    copied script. The upsert logic (header row discovery, phone-column disambiguation,
+    insert-after-last-job) is mirrored in the script, and the field→synonym map is sent
+    with each request so `mapping.yaml` stays the single source of truth.
+  - *Advanced path* — the original service account, unchanged.
+- **In-app connection wizard**: steps inside the window rather than manual file
   surgery. `POST /api/connect/sheet` accepts a pasted spreadsheet URL *or* a bare ID,
   extracts the ID, and rewrites only that key in `config.yaml` (regex line replacement, so
   comments and other settings survive). `POST /api/connect/key` accepts the downloaded

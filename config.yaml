@@ -3,7 +3,12 @@
 # "Connect your Google Sheet" (step 1).
 sheet_id: ""
 
-# Path to the Google service-account key file (see README.md for setup)
+# --- Easy connection (recommended): a script deployed inside your own sheet.
+# The link and its private key are stored separately in connection.json, which is
+# kept out of version control. The app writes that file when you connect.
+
+# --- Advanced connection: a Google Cloud service-account key file.
+# Only used when no script connection is set up.
 service_account_file: "service_account.json"
 
 # Local web app port

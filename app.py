@@ -5,28 +5,43 @@ Run:  py app.py   then open http://localhost:8765
 import json
 import os
 import re
+import secrets
 
 import yaml
 from flask import Flask, jsonify, request, send_from_directory
 
-from resources import bundle_dir, ensure_external_copy, user_file
+from resources import bundle_dir, ensure_external_copy, resource, user_file
 
 with open(ensure_external_copy("config.yaml"), encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
 ensure_external_copy("mapping.yaml")
 
+import posts  # noqa: E402
 from extractors import extract_file, ocr_available, ExtractionError  # noqa: E402
 from normalize import normalize_row  # noqa: E402
 from sheets_client import SheetClient, SheetError  # noqa: E402
+from webapp_client import WebAppClient, SheetError as WebAppError  # noqa: E402
 from fields import FIELD_ORDER, labels  # noqa: E402
 
 app = Flask(__name__, static_folder=os.path.join(bundle_dir(), "static"))
 app.config["MAX_CONTENT_LENGTH"] = 64 * 1024 * 1024
 
 sheet = SheetClient(
-    sheet_id=CONFIG["sheet_id"],
+    sheet_id=CONFIG.get("sheet_id", ""),
     service_account_file=user_file(CONFIG.get("service_account_file", "service_account.json")),
 )
+_conn = {}
+try:
+    with open(user_file("connection.json"), encoding="utf-8") as _fh:
+        _conn = json.load(_fh) or {}
+except Exception:
+    _conn = {}
+webapp = WebAppClient(_conn.get("webapp_url", ""), _conn.get("webapp_key", ""))
+
+
+def backend():
+    """The Web App connection wins when set; otherwise the service account."""
+    return webapp if webapp.configured() else sheet
 
 
 @app.get("/")
@@ -38,25 +53,55 @@ def index():
 def status():
     if request.args.get("recheck"):
         sheet.reset()          # pick up a service_account.json added just now
+    active = backend()
     info = {
         "fields": FIELD_ORDER,
         "labels": labels(),
         "ocr_ok": ocr_available(),
-        "sheet_configured": sheet.configured(),
+        "mode": "webapp" if webapp.configured() else "service_account",
+        "sheet_configured": active.configured(),
         "sa_email": sheet.sa_email(),
-        "sheet_id": CONFIG["sheet_id"],
+        "sheet_id": CONFIG.get("sheet_id", ""),
+        "webapp_url": webapp.url,
+        "sheet_title": None,
         "tabs": [],
         "sheet_error": None,
     }
-    if sheet.configured():
+    if active.configured():
         try:
-            info["tabs"] = sheet.tabs()
-        except SheetError as e:
+            if webapp.configured():
+                data = webapp.info()
+                info["tabs"] = data.get("tabs", [])
+                info["sheet_title"] = data.get("title")
+            else:
+                info["tabs"] = sheet.tabs()
+        except (SheetError, WebAppError) as e:
             info["sheet_error"] = str(e)
     return jsonify(info)
 
 
 SHEET_ID_RE = re.compile(r"/spreadsheets/d/([A-Za-z0-9_-]{20,})")
+
+
+CONNECTION_FILE = "connection.json"
+
+
+def _load_connection() -> dict:
+    """Secrets live outside config.yaml so the config can be shared safely."""
+    try:
+        with open(user_file(CONNECTION_FILE), encoding="utf-8") as fh:
+            data = json.load(fh)
+        return data if isinstance(data, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _save_connection(**changes):
+    data = _load_connection()
+    data.update(changes)
+    with open(user_file(CONNECTION_FILE), "w", encoding="utf-8") as fh:
+        json.dump(data, fh, indent=2)
+    return data
 
 
 def _save_config_value(key: str, value: str):
@@ -156,13 +201,80 @@ def extract():
                                  "message": f"Unexpected error: {e}"})
 
     existing = {}
-    if sheet.configured():
+    active = backend()
+    if active.configured():
         try:
-            existing = sheet.existing_jobs(tab)
-        except SheetError:
+            existing = active.existing_jobs(tab)
+        except (SheetError, WebAppError):
             pass  # preview still works; push will surface the error
 
     return jsonify({"rows": rows, "files": file_reports, "existing": list(existing.keys())})
+
+
+@app.get("/api/connect/script/code")
+def script_code():
+    """The Apps Script to paste into the user's spreadsheet, keyed to this app."""
+    key = webapp.key or secrets.token_urlsafe(24)
+    if key != webapp.key:
+        _save_connection(webapp_key=key)
+        webapp.key = key
+    with open(resource("appsscript_template.js"), encoding="utf-8") as fh:
+        code = fh.read()
+    return jsonify({"code": code.replace("__APP_KEY__", key)})
+
+
+@app.post("/api/connect/script")
+def connect_script():
+    """Save the deployed Web App link and prove it works."""
+    url = (request.get_json(force=True).get("url") or "").strip()
+    if not url:
+        _save_connection(webapp_url="")
+        webapp.url = ""
+        return jsonify({"ok": True, "cleared": True})
+
+    if "script.google.com" not in url:
+        return jsonify({"error": "That isn't an Apps Script link. After deploying, copy the "
+                                 "URL that ends in /exec."}), 400
+    if not url.rstrip("/").endswith("/exec"):
+        return jsonify({"error": "That link looks like the editor, not the deployment. "
+                                 "Use Deploy → Manage deployments and copy the URL "
+                                 "ending in /exec."}), 400
+
+    probe = WebAppClient(url, webapp.key)
+    try:
+        data = probe.info()
+    except WebAppError as e:
+        return jsonify({"error": str(e)}), 400
+
+    _save_connection(webapp_url=url)
+    webapp.url = url
+    return jsonify({"ok": True, "title": data.get("title"), "tabs": data.get("tabs", [])})
+
+
+@app.post("/api/post")
+def make_post():
+    """Render the shareable work-order text for one or more jobs."""
+    payload = request.get_json(force=True)
+    rows = payload.get("rows") or []
+    if not rows:
+        return jsonify({"error": "Nothing to write up."}), 400
+    template = payload.get("template") or None
+    return jsonify({"text": posts.render_many(rows, template),
+                    "template": template or posts._template()})
+
+
+@app.post("/api/post/template")
+def save_template():
+    """Persist an edited post layout next to the app."""
+    text = request.get_json(force=True).get("template")
+    if not isinstance(text, str) or not text.strip():
+        return jsonify({"error": "The template can't be empty."}), 400
+    try:
+        with open(ensure_external_copy("post_template.txt"), "w", encoding="utf-8") as fh:
+            fh.write(text)
+    except OSError as e:
+        return jsonify({"error": f"Could not save the template: {e}"}), 500
+    return jsonify({"ok": True})
 
 
 @app.post("/api/push")
@@ -173,8 +285,8 @@ def push():
     if not rows:
         return jsonify({"error": "Nothing to push."}), 400
     try:
-        results = sheet.push_rows(tab, rows)
-    except SheetError as e:
+        results = backend().push_rows(tab, rows)
+    except (SheetError, WebAppError) as e:
         return jsonify({"error": str(e)}), 400
     return jsonify({"results": results})
 

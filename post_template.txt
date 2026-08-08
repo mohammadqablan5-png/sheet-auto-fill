@@ -1,0 +1,14 @@
+**NEW WORK ORDER — {job_id}**
+
+**Location:** {address}
+**Complete by:** {deadline}
+**NTE:** {nte}
+**Pay:** {rates}
+**Status:** {job_status}
+**Contact:** {assignee} — {assignee_phone}
+**Tech:** {handyman} — {handyman_phone}
+
+**Scope of work**
+{sow}
+
+_Notes: {updates}_

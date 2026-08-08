@@ -78,6 +78,29 @@ def selftest() -> int:
     except Exception as e:
         problems.append(f"fields import failed: {type(e).__name__}: {e}")
 
+    # every asset the app reads at runtime must be inside the bundle
+    try:
+        import os
+
+        from resources import resource
+
+        for asset in ("post_template.txt", "appsscript_template.js",
+                      os.path.join("static", "index.html"),
+                      os.path.join("static", "app.js")):
+            if not os.path.exists(resource(asset)):
+                problems.append(f"missing from bundle: {asset}")
+    except Exception as e:
+        problems.append(f"asset check failed: {type(e).__name__}: {e}")
+
+    try:
+        import posts
+
+        text = posts.render({"job_id": "JOB-1", "sow": "x", "address": "y"})
+        if "JOB-1" not in text:
+            problems.append("post template did not render")
+    except Exception as e:
+        problems.append(f"posts failed: {type(e).__name__}: {e}")
+
     lines = ([f"SELFTEST FAIL: {p}" for p in problems] or
              ["SELFTEST OK: app, OCR engine and field mapping all load"])
     report = "\n".join(lines)

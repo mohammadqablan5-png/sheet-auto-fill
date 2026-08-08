@@ -1,7 +1,10 @@
-# Private Google key — must never be published
+# Private credentials — must never be published
 service_account.json
 **/service_account.json
+connection.json
+**/connection.json
 .env
+mac.zip
 
 # Real work orders — contain customer names, phones and addresses.
 # Keep them locally for testing; never publish them.

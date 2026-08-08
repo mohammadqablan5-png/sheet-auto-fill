@@ -123,6 +123,29 @@ identically on both platforms.
 6. Click **Push to Google Sheet** and confirm. Each row reports what happened
    (inserted at row N / updated row N / error).
 
+### Work-order posts for the crew
+
+Click **Post** on any row (or **Work-order posts** for the whole batch) to get a
+ready-to-paste message for Discord/WhatsApp:
+
+```
+**NEW WORK ORDER — JOB-260807-5640**
+
+**Location:** Target (0366) - 131 W Reynolds RD, Lexington, KY 40503
+**Complete by:** Aug 11, 2026
+**NTE:** $680.00
+**Pay:** Tech $38/hr · Helper $19/hr · Trip $22
+**Contact:** Connor mccoy — (615) 380-1493
+
+**Scope of work**
+Retrieve the banner from the ETL HR office …
+```
+
+Lines with nothing to say are dropped automatically, so a job with no tech assigned
+won't show an empty "Tech:" line. To change the wording or order, open
+**Change the layout of these posts** in that dialog — placeholders such as `{job_id}`,
+`{nte}`, `{rates}`, `{sow}` are filled in per job. It's saved in `post_template.txt`.
+
 ### If Google isn't connected (or you'd rather paste manually)
 
 Use **Copy rows for pasting**, choose the layout that matches the tab (*no CAP* for the
@@ -147,6 +170,7 @@ Verified against a real JOUS/DMG job page:
 | Assignee / phone | **DMG Contact** and its **Phone Number** |
 | Updates | any open task, e.g. *Technician Requested – NTE Increase* |
 | Company | detected when named in the page, otherwise from your defaults |
+| Rates | the **Rate** section — regular tech / helper / trip. Used in the work-order post; not written to the spreadsheet, which has no such column. |
 
 **Handy man**, **Team leader**, **Dispatcher**, **Payout**, **Cost** and **JMG** are your own
 internal columns — the portal doesn't contain them, so they're left blank for you to fill
@@ -156,11 +180,33 @@ the local tech you assign.
 
 ---
 
-## Connecting Google Sheets (one time, free, ~5 minutes)
+## Connecting Google Sheets (one time, free)
 
-Do this **inside the app** — the panel **Connect your Google Sheet** walks you through it
-and there are no files to rename or move by hand. It costs nothing and Google does **not**
-ask for a payment method.
+Do this **inside the app**, in the **Connect your Google Sheet** panel. There are two
+ways; both are free and neither asks Google for a payment method.
+
+### Easy — a small script inside your own sheet (recommended)
+
+No Google Cloud, no key files, no sharing step. About 2 minutes:
+
+1. In your spreadsheet: **Extensions → Apps Script**. Delete anything in the editor.
+2. In the app, click **Copy the script**, paste it into the editor, and save (disk icon).
+3. In the editor: **Deploy → New deployment** → gear → **Web app** →
+   **Execute as: Me**, **Who has access: Anyone** → **Deploy**.
+   Google asks you to authorise your own script and shows an "unverified" warning —
+   choose **Advanced → Go to … (unsafe)**. That warning is Google telling you the script
+   hasn't been reviewed by them; it's the one you just pasted, and it only touches this
+   spreadsheet.
+4. Copy the **Web app URL** (it ends in `/exec`), paste it into step 3 in the app, and
+   click **Connect**.
+
+The app shows the sheet's name and tab count when it works. The script only accepts
+requests carrying a private key that the app generated — it's stored in your
+`config.yaml` and baked into the copied script.
+
+### Advanced — Google Cloud service account
+
+Use this if you'd rather not deploy a script, or you're connecting many sheets.
 
 **Step 1 in the app — which sheet.** Open your spreadsheet in a browser, copy the address
 bar, paste it into step 1, click **Save**. (A bare sheet ID works too.)

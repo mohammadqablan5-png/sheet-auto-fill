@@ -12,13 +12,15 @@ from PyInstaller.utils.hooks import collect_all, collect_submodules
 APP_NAME = "SHEET auto FILL"
 IS_MAC = sys.platform == "darwin"
 
-datas = [("static", "static"), ("config.yaml", "."), ("mapping.yaml", ".")]
+datas = [("static", "static"), ("config.yaml", "."), ("mapping.yaml", "."),
+         ("post_template.txt", "."), ("appsscript_template.js", ".")]
 binaries = []
 hiddenimports = [
     "gspread", "google.auth", "google.oauth2.service_account",
     "pdfplumber", "pypdf", "PIL", "numpy", "yaml",
     "local_parse", "portal_parse", "ocr", "extractors",
-    "normalize", "fields", "sheets_client", "resources",
+    "normalize", "fields", "sheets_client", "webapp_client", "posts", "resources",
+    "requests",
 ]
 hiddenimports += collect_submodules("webview")
 

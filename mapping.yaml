@@ -94,6 +94,12 @@ fields:
     label: "Updates"
     sheet: ["updates", "update", "notes"]
     csv: ["comments", "note"]
+  rates:
+    label: "Rates"
+    # Pay rates from the portal. Not a column in the spreadsheet — kept for the
+    # work-order post that gets shared with the crew.
+    sheet: []
+    csv: ["rate", "rates", "pay rate"]
 
 # Headers treated as the shared "Phone N." columns in the sheet
 phone_headers: ["phone n.", "phone n", "phone", "phone number"]
