@@ -1,7 +1,7 @@
 # Bump this whenever fields are added or renamed. On startup the app replaces an
 # older copy sitting next to it with this one (keeping a .bak), so upgrades take
 # effect instead of being shadowed by a stale file.
-schema_version: 3
+schema_version: 4
 
 # Canonical fields, in the order they appear in the preview table.
 # label:      shown in the preview UI
@@ -27,11 +27,6 @@ fields:
     money: true
     sheet: ["nte"]
     csv: ["nte amount", "not to exceed", "nte $"]
-  cap:
-    label: "CAP"
-    money: true
-    sheet: ["cap"]
-    csv: []
   cost:
     label: "Cost"
     money: true
@@ -56,10 +51,6 @@ fields:
     label: "Company"
     sheet: ["company"]
     csv: ["platform", "network", "provider", "vendor", "source"]
-  jmg:
-    label: "JMG"
-    sheet: ["jmg"]
-    csv: []
   team_leader:
     label: "Team leader"
     sheet: ["team leader", "team lead"]

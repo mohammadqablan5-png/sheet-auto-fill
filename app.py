@@ -181,7 +181,7 @@ def extract():
 
     # values the portal never contains — applied to any field left blank
     defaults = {}
-    for field in ("company", "team_leader", "dispatcher", "job_status", "jmg"):
+    for field in ("company", "team_leader", "dispatcher", "job_status"):
         v = (request.form.get("default_" + field) or "").strip()
         if v:
             defaults[field] = v
@@ -256,18 +256,12 @@ def connect_script():
     return jsonify({"ok": True, "title": data.get("title"), "tabs": data.get("tabs", [])})
 
 
-# Fallbacks for when no sheet is connected, matching the workbook's own tabs.
+# Used only when no sheet is connected and the real headers can't be read.
 LAYOUT_PRESETS = {
     "standard": {
-        "label": "17 columns — no CAP, no JMG",
+        "label": "17 columns",
         "fields": ["job_id", "sow", "nte", "cost", "address", "city", "deadline",
                    "company", "team_leader", "job_status", "dispatcher", "payout",
-                   "handyman", "handyman_phone", "assignee", "assignee_phone", "updates"],
-    },
-    "with_cap_jmg": {
-        "label": "19 columns — with CAP and JMG",
-        "fields": ["job_id", "sow", "nte", "cap", "cost", "address", "city", "deadline",
-                   "company", "jmg", "team_leader", "job_status", "dispatcher", "payout",
                    "handyman", "handyman_phone", "assignee", "assignee_phone", "updates"],
     },
 }
@@ -277,8 +271,8 @@ LAYOUT_PRESETS = {
 def layout():
     """Column order for pasting — read from the target tab whenever possible.
 
-    Tabs differ (some carry CAP/JMG, some don't), so a guessed order silently
-    shifts every column after the first missing one.
+    Tabs can differ in their columns, and a guessed order silently shifts every
+    column after the first mismatch, so the real header row is authoritative.
     """
     tab = request.args.get("tab") or "latest"
     active = backend()

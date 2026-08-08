@@ -62,14 +62,19 @@ user-supplied batch defaults.
 
 ## 2. Data mapping
 
-**The workbook's tabs are not uniform, and that drives the design.** In the current
-workbook the June tab has 19 columns (including CAP and JMG) while the July and August
-tabs have 17 (neither). Anything that assumes one fixed order silently corrupts data: with
-a hardcoded order, `company` lands in column 8 on one tab and column 7 on another, so every
-value from that point rightwards is written one cell off. The push path always read the
-target tab's real header row; the **copy/CSV path now does too** (`/api/layout`, mirrored
-in the Apps Script), with hand-pickable presets only as a fallback for when no sheet is
-connected and the headers can't be read.
+**The workbook's tabs are not uniform, and that drives the design.** The June tab carries
+19 columns while the July and August tabs carry 17. Anything that assumes one fixed order
+silently corrupts data: with a hardcoded order, `company` lands in column 8 on one tab and
+column 7 on another, so every value from that point rightwards is written one cell off. The
+push path always read the target tab's real header row; the **copy/CSV path now does too**
+(`/api/layout`, mirrored in the Apps Script), with a single fallback layout used only when
+no sheet is connected and the headers can't be read.
+
+**CAP and JMG are not modelled at all.** They were dropped from `mapping.yaml` at the
+user's request, so they are never extracted, displayed, or written. The June tab still has
+those two physical columns; because the writer maps by header name, they are simply left
+untouched and the surrounding values stay under their own headings — verified for both the
+19- and 17-column layouts. The self-test fails if either field reappears.
 
 Work-order numbers are likewise not all "JOB-…". The sheet contains `NC-260807-0281`, which
 an earlier `startswith("JOB")` test skipped entirely — meaning that row could not be found

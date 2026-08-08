@@ -154,8 +154,14 @@ def selftest() -> int:
         import app as _app
 
         standard = _app.LAYOUT_PRESETS["standard"]["fields"]
-        if len(standard) != 17 or "jmg" in standard or "cap" in standard:
+        if len(standard) != 17:
             problems.append("default paste layout no longer matches the sheet")
+
+        import fields as _fields
+
+        for gone in ("cap", "jmg"):
+            if gone in _fields.FIELD_ORDER:
+                problems.append(f"'{gone}' is still a field — it was removed from the sheet")
     except Exception as e:
         problems.append(f"layout preset check failed: {type(e).__name__}: {e}")
 

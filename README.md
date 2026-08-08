@@ -184,10 +184,12 @@ Use **Copy rows**, then in Google Sheets click the first empty cell in column A 
 last job and press **Ctrl+V**. **Download CSV** saves the same data as a file.
 
 **The column order is read from the tab you're writing into**, so the paste lines up even
-though the tabs differ — the June tab has 19 columns (with CAP and JMG) while the later
-tabs have 17 (without). A note under the table tells you which layout is in use. When no
-sheet is connected the app can't read the headers, so it falls back to a preset you pick
-from the dropdown; pick the one matching your tab's column count.
+if tabs differ. A note under the table tells you which tab's layout is in use. When no
+sheet is connected the headers can't be read, so the standard 17-column layout is used.
+
+**CAP and JMG are not part of the tool.** They're never extracted, never shown, and never
+written. The June tab still physically has those two columns; rows pushed or pasted there
+simply leave them empty, and everything else stays under its correct heading.
 
 ---
 

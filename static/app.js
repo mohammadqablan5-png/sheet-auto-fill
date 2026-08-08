@@ -83,7 +83,6 @@ async function loadStatus(recheck) {
 }
 
 $('tabSelect').onchange = () => loadLayout();
-$('layoutSel').onchange = () => loadLayout();
 
 function setChip(id, ok, text) {
   const el = $(id);
@@ -439,30 +438,18 @@ $('copyPostBtn').onclick = async () => {
 
 /* ============================ export ============================ */
 
-// The column order is read from the target tab, because tabs differ (some carry
-// CAP/JMG, some don't) and a guessed order silently shifts everything after the
-// first missing column.
+// The column order is read from the target tab, because tabs can differ and a
+// guessed order silently shifts everything after the first mismatched column.
 let LAYOUT = { fields: [], headers: [], source: 'preset', presets: {} };
 
 async function loadLayout() {
   const tab = $('tabSelect').value;
-  const preset = $('layoutSel').value;
-  LAYOUT = await (await fetch(
-    `/api/layout?tab=${encodeURIComponent(tab)}&preset=${encodeURIComponent(preset)}`)).json();
-
-  const sel = $('layoutSel');
-  if (LAYOUT.presets && !sel.dataset.filled) {
-    sel.innerHTML = Object.entries(LAYOUT.presets)
-      .map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('');
-    sel.dataset.filled = '1';
-    sel.value = preset in LAYOUT.presets ? preset : 'standard';
-  }
-  sel.style.display = LAYOUT.source === 'sheet' ? 'none' : '';
+  LAYOUT = await (await fetch(`/api/layout?tab=${encodeURIComponent(tab)}`)).json();
 
   $('layoutNote').innerHTML = LAYOUT.source === 'sheet'
     ? `<span class="ok-t">Columns read from “${esc($('tabSelect').value)}” — ` +
       `${LAYOUT.columns} columns.</span>`
-    : `Not connected, so using a preset — pick the one matching your tab.`;
+    : `Not connected — using the standard ${LAYOUT.columns}-column layout.`;
 }
 
 const cell = v => (v == null ? '' : String(v).replace(/[\t\r\n]+/g, ' ').trim());

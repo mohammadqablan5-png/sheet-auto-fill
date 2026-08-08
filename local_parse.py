@@ -171,9 +171,6 @@ def _parse_one(segment: str) -> dict:
         if amounts:
             nte = f"{max(amounts):.2f}"
     job["nte"] = nte
-    cap = _first_money_after(text, r"\bcap\b|capped\s*at")
-    if cap:
-        job["cap"] = cap
 
     # address / city
     addr, city = _address_block(lines)

@@ -43,7 +43,7 @@ def _display(field: str, value: str) -> str:
     value = (value or "").strip()
     if not value:
         return ""
-    if field in ("nte", "cap", "cost", "payout") and not value.startswith("$"):
+    if field in ("nte", "cost", "payout") and not value.startswith("$"):
         try:
             amount = float(value)
             return f"${amount:,.2f}"

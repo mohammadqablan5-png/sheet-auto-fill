@@ -1,8 +1,8 @@
 """Google Sheets read/write via a service account (gspread).
 
 The target worksheet's real header row is read at push time, so the tool
-adapts to each monthly tab's exact column layout (e.g. tabs with or without
-a CAP column). Rows are upserted by Job ID: existing jobs are updated in
+adapts to each monthly tab's exact column layout rather than assuming one.
+Rows are upserted by Job ID: existing jobs are updated in
 place, new jobs are inserted directly under the last job row so the
 Expenses/Revenue block and its formulas stay below and intact.
 """
