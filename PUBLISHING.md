@@ -1,90 +1,131 @@
-# Putting this on GitHub and building the Mac app
+# Building the real Mac `.app` via GitHub
 
-The Mac app **cannot be built on a Windows PC** — Apple binaries have to be produced on
-macOS. The free way to get one without owning a Mac build setup is GitHub Actions: you
-push the code once, and GitHub compiles it on their own Windows and Mac machines.
+A macOS `.app` can only be compiled **on** macOS — no tool cross-compiles one from
+Windows. GitHub gives you Mac machines for free, so you push the code once and it builds
+Windows, Mac (Apple Silicon) and Mac (Intel) for you.
 
-Cost: **free** for public repositories.
+Cost: **free** for public repositories. Time: about 15 minutes, mostly waiting.
+
+Everything on this machine is already prepared — the code is committed, the build recipe
+is written, and I checked that every package the Mac build needs has a ready-made
+macOS build for both Apple Silicon and Intel. The only thing left is the part that needs
+your GitHub account.
 
 ---
 
-## 1. Create the repository
+## Step 1 — Make a GitHub account (skip if you have one)
 
-1. Sign in at <https://github.com> (create a free account if needed).
-2. Click **+ → New repository**.
-3. Name it `sheet-auto-fill`, leave it **Public** (free Actions minutes), and **don't**
-   add a README — this folder already has one. Click **Create repository**.
+Go to <https://github.com/signup>. Free. Any username.
 
-## 2. Push this folder
+## Step 2 — Create an empty repository
 
-Install [Git for Windows](https://git-scm.com/download/win) if you don't have it, then in
-PowerShell from `D:\SHEET auto FILL`:
+1. Go to <https://github.com/new>.
+2. **Repository name:** `sheet-auto-fill`
+3. Leave it **Public** (free Actions minutes for public repos).
+4. **Do not** tick "Add a README", ".gitignore" or "license" — this folder already has them.
+5. Click **Create repository**.
+
+Leave that page open; it shows the address you need next.
+
+## Step 3 — Send the code up
+
+Open **PowerShell** and run these, replacing `YOUR-USERNAME`:
 
 ```bash
-git init
-git add .
-git commit -m "SHEET auto FILL"
-git branch -M main
+cd "D:\SHEET auto FILL"
 git remote add origin https://github.com/YOUR-USERNAME/sheet-auto-fill.git
 git push -u origin main
 ```
 
-Git will ask you to sign in to GitHub the first time.
+The first push opens a browser window to sign in to GitHub. Approve it.
 
-> **Check before pushing:** `git status` must not list `service_account.json`. It is in
-> `.gitignore`, so it should never appear — that file is your private key and must stay
-> off GitHub. The `App/` and `dist/` folders are ignored too (they're large build output).
+> **Before pushing, a sanity check:** run `git status` — it must not list
+> `service_account.json`, `connection.json`, or anything in `samples/*.pdf`. Those are
+> your Google key and real customer work orders; they are excluded on purpose and should
+> never appear. If any of them shows up, stop and tell me.
 
-## 3. Build the apps
+## Step 4 — Build the apps
 
-On GitHub: **Actions** tab → **Build apps** → **Run workflow** → **Run workflow**.
+1. On your repository page click the **Actions** tab.
+2. In the left sidebar click **Build apps**.
+3. Click **Run workflow** (right-hand side) → **Run workflow**.
 
-It builds three things in parallel on GitHub's machines (~10–15 minutes):
+Four jobs run in parallel. Each one installs the packages, builds the app, and runs the
+app's own self-test inside the finished bundle — so a broken build fails loudly instead of
+being handed to you.
 
-| Job | Produces |
+Wait for the green ticks (~15 min).
+
+## Step 5 — Download
+
+Open the finished run and scroll to **Artifacts** at the bottom:
+
+| Artifact | What it is |
 |---|---|
-| Windows | `SHEET-auto-FILL-Windows.zip` |
-| macOS Apple Silicon | `SHEET-auto-FILL-macOS-AppleSilicon.zip` |
-| macOS Intel | `SHEET-auto-FILL-macOS-Intel.zip` |
+| `SHEET-auto-FILL-macOS-AppleSilicon.zip` | **the real .app** for M1/M2/M3/M4 Macs |
+| `SHEET-auto-FILL-macOS-Intel.zip` | the real .app for older Intel Macs |
+| `SHEET-auto-FILL-Windows.zip` | the Windows .exe |
+| `SHEET-auto-FILL-macOS-Installer.zip` | the self-installing file (the simpler route) |
 
-Each build runs a **self-test** that loads the app, the OCR engine and the field mapping
-inside the packaged bundle — so a broken build fails loudly instead of shipping.
+Not sure which Mac you have?  → **About This Mac**. If the chip line says "Apple M…",
+take the Apple Silicon one.
 
-When it finishes, open the run and download the file you need from **Artifacts** at the
-bottom.
+## Step 6 — Install it on the Mac
 
-## 4. (Optional) Publish a proper Release
+1. Unzip the file you downloaded.
+2. Drag **SHEET auto FILL.app** into your **Applications** folder.
+3. **First launch only:** right-click the app → **Open** → **Open** again.
+   macOS shows a warning because the app isn't signed with a paid Apple certificate.
+   Doing it this way once tells macOS you trust it; after that a normal double-click works.
 
-Tagging creates a permanent download page others can use:
+Your settings and Google key live in `~/Library/Application Support/SHEET auto FILL/`.
+
+---
+
+## Optional — publish a proper Release page
+
+Tagging produces a permanent download page instead of build artifacts that expire:
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-The same workflow runs and attaches all three zips to a GitHub **Release**.
-
----
-
-## About Mac security warnings
-
-The Mac app is **ad-hoc signed** (free) but not **notarized**, because notarization
-requires a paid Apple Developer account (about $99/year). The practical effect is one
-extra step the very first time you open it: **right-click → Open → Open**. After that it
-launches normally. Nothing about the app is unsafe — it's the same code as the Windows
-version, and it runs entirely on your machine.
-
-If you'd rather avoid the warning completely, use Option B in the README (run from
-source); files you clone with Git aren't quarantined by macOS at all.
+The same workflow runs and attaches all four zips to a GitHub **Release**.
 
 ## Updating later
 
-Change the code, then:
+After any code change:
 
 ```bash
+cd "D:\SHEET auto FILL"
 git add .
 git commit -m "what changed"
 git push
 ```
 
-Re-run the workflow to get fresh apps for both platforms.
+Then run the workflow again for fresh apps on both platforms.
+
+---
+
+## About the security warning
+
+The Mac app is **ad-hoc signed** (free) but not **notarized**, which needs a paid Apple
+Developer account (~$99/year). The only practical effect is the one-time right-click →
+Open. Nothing about the app is unsafe: it's the same code as the Windows version and runs
+entirely on your machine.
+
+If you'd rather never see that warning, the self-installing file route avoids it, because
+files it creates on the Mac are not quarantined.
+
+## If a build fails
+
+Click the failed job to see its log. The most likely causes, and what they look like:
+
+| In the log | Meaning |
+|---|---|
+| `No matching distribution found` | A package has no macOS build for that Python version. Tell me which package — the fix is a version pin. |
+| `SELFTEST FAIL: …` | The app built but something is missing inside the bundle. The message names it. |
+| `codesign` error | The ad-hoc signing step failed on the runner; usually transient — re-run the job. |
+
+Send me the failing lines and I'll fix them.
