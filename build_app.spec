@@ -49,6 +49,25 @@ for dist in ("pdfplumber", "pdfminer.six", "pypdf", "cryptography"):
     except Exception:
         pass
 
+# pdfminer.six is compiled with mypyc, so importing it pulls in a shared library
+# with a generated, hash-like name ("81d243bd2c585b0f4821__mypyc"). Module
+# analysis never sees that name, and without it `import pdfplumber` fails inside
+# the bundle — which silently degraded every text-layer PDF. Ship any such
+# module found beside the packages, matched by pattern so it survives upgrades.
+try:
+    import glob
+    import importlib.util
+    import os
+
+    _origin = importlib.util.find_spec("pdfminer").origin
+    _site = os.path.dirname(os.path.dirname(_origin))
+    for _pattern in ("*__mypyc*.pyd", "*__mypyc*.so"):
+        for _lib in glob.glob(os.path.join(_site, _pattern)):
+            binaries.append((_lib, "."))
+            hiddenimports.append(os.path.basename(_lib).split(".")[0])
+except Exception:
+    pass
+
 a = Analysis(
     ["desktop.py"],
     pathex=["."],
