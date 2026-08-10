@@ -52,15 +52,29 @@ jobs:
       - name: Smoke test the built app (macOS)
         if: runner.os == 'macOS'
         run: |
-          "dist/SHEET auto FILL.app/Contents/MacOS/SHEET auto FILL" --selftest
-          echo "--- selftest log ---"
-          cat "$HOME/Library/Application Support/SHEET auto FILL/selftest.log" || true
-          echo "--- user files must NOT be inside the .app ---"
-          if find "dist/SHEET auto FILL.app" -name "connection.json" -o -name "config.yaml" \
-               | grep -q .; then
-            echo "FAIL: user files were written inside the bundle"; exit 1
-          fi
-          echo "OK"
+          set -e
+          APP="dist/SHEET auto FILL.app"
+          SUPPORT="$HOME/Library/Application Support/SHEET auto FILL"
+
+          echo "::group::self-test"
+          "$APP/Contents/MacOS/SHEET auto FILL" --selftest
+          cat "$SUPPORT/selftest.log"
+          echo "::endgroup::"
+
+          echo "::group::user files land outside the bundle"
+          # The app must write its runtime files to Application Support…
+          test -f "$SUPPORT/selftest.log" \
+            || { echo "FAIL: nothing written to Application Support"; exit 1; }
+          # …and never inside the .app, which is replaced on every update.
+          # config.yaml and mapping.yaml ARE shipped inside as read-only
+          # defaults — only files created at runtime are a problem here.
+          for f in connection.json service_account.json .asset_version selftest.log; do
+            if find "$APP" -name "$f" | grep -q .; then
+              echo "FAIL: $f was written inside the bundle"; exit 1
+            fi
+          done
+          echo "user files are correctly outside the bundle"
+          echo "::endgroup::"
 
       - name: Package (macOS)
         if: runner.os == 'macOS'
