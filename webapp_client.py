@@ -104,9 +104,15 @@ class WebAppClient:
                     "That grant is for your own script. Then press Connect again.")
 
         if "script function not found" in low or "requested entity was not found" in low:
-            return ("Google found the deployment but not the code. Make sure you pasted "
-                    "the script into the editor and saved it (the disk icon) before "
-                    "deploying, then deploy again.")
+            return ("Google found the deployment, but it is serving a snapshot of the "
+                    "script from before the code was pasted in.\n"
+                    "A deployment is frozen to a version, so pasting the code afterwards "
+                    "changes nothing until a new version is published:\n"
+                    "1. In the editor press Ctrl+S to save (you should see "
+                    "“function doGet”).\n"
+                    "2. Deploy → Manage deployments → pencil icon.\n"
+                    "3. Set Version to “New version” — this is the step usually missed.\n"
+                    "4. Deploy, then press Connect again (the URL stays the same).")
 
         if "sorry, unable to open the file" in low or "moved temporarily" in low:
             return ("That link does not point at a deployed web app. Use Deploy → Manage "
