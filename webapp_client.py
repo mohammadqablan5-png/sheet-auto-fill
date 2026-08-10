@@ -7,6 +7,8 @@ credentials ever reach this machine.
 
 Exposes the same interface as SheetClient so app.py can use either one.
 """
+import re
+
 import requests
 
 from fields import FIELD_ORDER, PHONE_HEADERS, sheet_synonyms
@@ -73,13 +75,52 @@ class WebAppClient:
         try:
             return self._check(r.json())
         except ValueError:
-            body = (r.text or "").strip()
-            if "Google Apps Script" in body or "<html" in body.lower():
-                raise self._fail(
-                    "That link opened a Google sign-in page instead of the script. "
-                    'Re-deploy with "Execute as: Me" and "Who has access: Anyone", '
-                    "then paste the new link.")
-            raise self._fail("The sheet script sent back something unreadable.")
+            raise self._fail(self._explain_html(r))
+
+    @staticmethod
+    def _explain_html(r) -> str:
+        """Say what Google actually replied, instead of guessing.
+
+        A web app that isn't reachable returns an HTML page, and the page
+        differs by cause — an unfinished authorisation, a test URL, a wrong
+        link. Reporting them as one generic error sent people back to a
+        deployment dialog that was already configured correctly.
+        """
+        body = (r.text or "")
+        low = body.lower()
+        final = (r.url or "").lower()
+
+        if "accounts.google.com" in final or "signin" in final:
+            return ("Google asked for a sign-in, which means this deployment is not "
+                    "public yet.\n"
+                    "In the Apps Script editor: Deploy → Manage deployments → the pencil "
+                    "icon → set Who has access to “Anyone” → Deploy. Then copy the URL "
+                    "again — it must end in /exec.")
+
+        if "authorization is required" in low or "authorisation is required" in low:
+            return ("The script has not been authorised yet.\n"
+                    "In the Apps Script editor press Run once. Google will warn that the "
+                    "app is unverified — choose Advanced → “Go to … (unsafe)” → Allow. "
+                    "That grant is for your own script. Then press Connect again.")
+
+        if "script function not found" in low or "requested entity was not found" in low:
+            return ("Google found the deployment but not the code. Make sure you pasted "
+                    "the script into the editor and saved it (the disk icon) before "
+                    "deploying, then deploy again.")
+
+        if "sorry, unable to open the file" in low or "moved temporarily" in low:
+            return ("That link does not point at a deployed web app. Use Deploy → Manage "
+                    "deployments and copy the Web app URL, which ends in /exec.")
+
+        if "google drive" in low and "sign in" in low:
+            return ("Google is asking you to sign in to view this. Re-deploy with "
+                    "Who has access = “Anyone”.")
+
+        snippet = re.sub(r"<[^>]+>", " ", body)
+        snippet = re.sub(r"\s{2,}", " ", snippet).strip()[:180]
+        return ("Google returned a web page instead of data"
+                + (f": “{snippet}”" if snippet else ".")
+                + "\nSend me this message and I'll pin down the cause.")
 
     # ------------------------------------------------------------ interface
 

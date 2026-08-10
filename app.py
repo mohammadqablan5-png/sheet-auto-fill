@@ -240,10 +240,16 @@ def connect_script():
     if "script.google.com" not in url:
         return jsonify({"error": "That isn't an Apps Script link. After deploying, copy the "
                                  "URL that ends in /exec."}), 400
+    if url.rstrip("/").endswith("/dev"):
+        return jsonify({"error": "That is the test link (it ends in /dev), which only "
+                                 "works while you are signed in. Use Deploy → Manage "
+                                 "deployments and copy the Web app URL ending in "
+                                 "/exec."}), 400
     if not url.rstrip("/").endswith("/exec"):
-        return jsonify({"error": "That link looks like the editor, not the deployment. "
-                                 "Use Deploy → Manage deployments and copy the URL "
-                                 "ending in /exec."}), 400
+        return jsonify({"error": "That link is incomplete — a deployed web app URL ends "
+                                 "in /exec. Use the Copy button next to the URL in the "
+                                 "deployment dialog rather than selecting the text, "
+                                 "which truncates it."}), 400
 
     probe = WebAppClient(url, webapp.key)
     try:
