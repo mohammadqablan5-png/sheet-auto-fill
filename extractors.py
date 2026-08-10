@@ -48,6 +48,13 @@ def extract_document(data: bytes, ext: str, progress=None) -> list:
                     return jobs
             jobs = local_parse.parse_jobs(text)
             if jobs:
+                if local_parse.LAST_BOX_ERROR:
+                    # Flat text loses the column layout, so say so rather than
+                    # quietly handing back a half-filled row.
+                    jobs[0].setdefault("_note", "")
+                    jobs[0]["_note"] = ("Read without column positions — "
+                                        + local_parse.LAST_BOX_ERROR
+                                        + ". Some fields may be missing.")
                 return jobs
 
         if not ocr_available():

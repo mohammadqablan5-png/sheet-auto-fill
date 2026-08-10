@@ -165,6 +165,14 @@ def selftest() -> int:
     except Exception as e:
         problems.append(f"layout preset check failed: {type(e).__name__}: {e}")
 
+    # A library that silently fails to import inside the bundle degrades
+    # extraction instead of erroring, so check the PDF stack explicitly.
+    for mod in ("pdfplumber", "pdfminer.high_level", "pypdf", "statistics"):
+        try:
+            __import__(mod)
+        except Exception as e:
+            problems.append(f"{mod} unusable in this build: {type(e).__name__}: {e}")
+
     # Generated PDFs place glyphs one at a time; reading them as flat lines
     # interleaves neighbouring columns, so the rebuild must keep them apart.
     try:

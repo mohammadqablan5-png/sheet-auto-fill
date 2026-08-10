@@ -215,6 +215,20 @@ stay reserved.
   - `USER_ENTERED` value input so numbers and dates take the sheet's native types.
 - **Real-time enough**: writes are synchronous; results (row numbers) are reported per row.
 
+### Silent fallbacks hide packaging faults
+
+The text-layer reader is reached through a guarded import, and the original
+`except Exception: return []` meant a library missing from the frozen bundle produced
+*worse extraction* rather than an error — the packaged app quietly fell back to flat text
+and returned half-filled rows while running from source was perfect. That is the hardest
+kind of bug to notice, because nothing fails.
+
+Two changes prevent a repeat: the reason is now recorded (`LAST_BOX_ERROR`) and surfaced
+on the row when the fallback is used, and the self-test imports the whole PDF stack
+explicitly so a build missing any of it fails instead of shipping. **Verify features
+against the packaged app, not only from source** — the two have different import
+environments.
+
 ## 5. Error handling
 
 - Per-file isolation: one unreadable file reports its error; the rest of the batch

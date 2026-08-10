@@ -7,7 +7,7 @@
 # libraries, so those packages are collected whole rather than by import analysis.
 import sys
 
-from PyInstaller.utils.hooks import collect_all, collect_submodules
+from PyInstaller.utils.hooks import collect_all, collect_submodules, copy_metadata
 
 APP_NAME = "SHEET auto FILL"
 IS_MAC = sys.platform == "darwin"
@@ -17,7 +17,14 @@ datas = [("static", "static"), ("config.yaml", "."), ("mapping.yaml", "."),
 binaries = []
 hiddenimports = [
     "gspread", "google.auth", "google.oauth2.service_account",
-    "pdfplumber", "pypdf", "PIL", "numpy", "yaml",
+    # The PDF stack is reached through guarded imports, so name every piece
+    # explicitly — a missing one degrades extraction instead of erroring.
+    "pdfplumber", "pdfplumber.page", "pdfplumber.utils",
+    "pdfminer", "pdfminer.high_level", "pdfminer.layout", "pdfminer.pdfpage",
+    "pdfminer.pdfinterp", "pdfminer.converter", "pdfminer.cmapdb",
+    "pypdf", "pypdf.generic", "statistics",
+    "charset_normalizer", "cryptography",
+    "PIL", "numpy", "yaml",
     "local_parse", "portal_parse", "ocr", "extractors", "jobid",
     "normalize", "fields", "sheets_client", "webapp_client", "posts", "resources",
     "requests",
@@ -25,12 +32,20 @@ hiddenimports = [
 hiddenimports += collect_submodules("webview")
 
 for package in ("rapidocr_onnxruntime", "onnxruntime", "pypdfium2", "cv2",
-                "pdfminer", "pdfplumber", "gspread", "google", "webview"):
+                "pdfminer", "pdfplumber", "pypdf", "charset_normalizer",
+                "gspread", "google", "webview"):
     try:
         pkg_datas, pkg_binaries, pkg_hidden = collect_all(package)
         datas += pkg_datas
         binaries += pkg_binaries
         hiddenimports += pkg_hidden
+    except Exception:
+        pass
+
+# Some of these read their own version at import time via importlib.metadata.
+for dist in ("pdfplumber", "pdfminer.six", "pypdf", "cryptography"):
+    try:
+        datas += copy_metadata(dist)
     except Exception:
         pass
 

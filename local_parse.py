@@ -76,18 +76,27 @@ def _chars_to_boxes(chars: list) -> list:
     return [b for b in boxes if b["text"]]
 
 
+# Why the positional read was skipped, if it was. Silent fallback once hid a
+# packaging fault that quietly degraded every text-layer PDF.
+LAST_BOX_ERROR = ""
+
+
 def pdf_word_boxes(data: bytes) -> list:
     """Pages of positioned text phrases — the text-layer twin of ocr.pdf_boxes()."""
+    global LAST_BOX_ERROR
+    LAST_BOX_ERROR = ""
     try:
         import pdfplumber
-    except Exception:
+    except Exception as e:
+        LAST_BOX_ERROR = f"pdfplumber unavailable ({type(e).__name__}: {e})"
         return []
     pages = []
     try:
         with pdfplumber.open(io.BytesIO(data)) as pdf:
             for page in pdf.pages:
                 pages.append(_chars_to_boxes(page.chars))
-    except Exception:
+    except Exception as e:
+        LAST_BOX_ERROR = f"could not read the text layer ({type(e).__name__}: {e})"
         return []
     return pages
 
