@@ -133,6 +133,18 @@ def selftest() -> int:
             problems.append(f"NTE picked up a rate instead: {parsed.get('nte')!r}")
         if "Target (0366)" not in parsed.get("address", ""):
             problems.append("store name missing from the address")
+
+        # An address split across several text runs is the most common reason a
+        # PDF came back with an empty Address cell.
+        split = portal_parse.parse_page([
+            _b("Work Number", 480, 270), _b("JOB-TEST-2", 480, 292),
+            _b("Walgreen's (04216) - 5201 S 3rd St", 145, 372),
+            _b("5201 S 3rd ST,", 146, 395), _b("Louisville, KY 40214", 260, 395),
+        ])
+        if "Louisville, KY" not in split.get("city", ""):
+            problems.append(f"split address not read: {split.get('address')!r}")
+        if "04216" not in split.get("address", ""):
+            problems.append("store number lost on a split address")
     except Exception as e:
         problems.append(f"portal parsing failed: {type(e).__name__}: {e}")
 

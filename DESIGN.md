@@ -160,6 +160,16 @@ horizontal tolerance, because OCR row heights vary and the map-pin glyph shifts 
 edge — without that, the brand and store number were at risk of being dropped, which is
 exactly the part a dispatcher needs to identify the site.
 
+**Reading the address had to become layered**, because it was the single most common
+extraction failure — an empty Address cell with everything else correct. The original code
+required *one text box* to contain "City, ST ZIP", which fails the moment a portal breaks
+the address across runs ("5201 S 3rd ST," + "Louisville, KY 40214"). Boxes are now
+reassembled into visual lines first, merging neighbours only while the horizontal gap stays
+small so an adjacent column is never dragged in, and three strategies are tried in order of
+confidence: a line carrying a postcode, then a line carrying just "City, ST", then whatever
+an explicit Address/Site label points at. Seven layouts are covered by tests, and two of
+them run in the packaged build's self-test.
+
 ## 3c. Dashboard
 
 **One job on the main screen: uploading.** Everything configural — the sheet connection,

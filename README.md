@@ -355,6 +355,7 @@ That's it. **Push to Google Sheet** now works, and the panel collapses itself.
 | Mac: settings keep resetting | Drag the app into **Applications** and run it from there. Launched straight out of the download, macOS may run it from a temporary read-only copy. |
 | Mac: "app can't be opened on this Mac" / very slow | You have the wrong build. Apple Silicon (M1–M4) needs the *AppleSilicon* zip;  → *About This Mac* tells you which chip you have. |
 | Mac: firewall prompt on first run | Expected — the app opens a local port for its own window. It never listens on the network. |
+| One field comes out empty (red cell) on a particular PDF | Fill it in by hand and push — the rest of the row is still good. Then send me that PDF: layouts vary between dispatchers, and each new one takes a small parser addition. |
 | "access is denied" when pushing | Share the spreadsheet with the service-account email as **Editor**, and confirm the Google Sheets API is enabled. |
 | "PDF reading: OCR not installed" | Run `py -m pip install --user -r requirements.txt`, then click **Re-check setup**. |
 | "No work-order details could be read" | The page image is too low-resolution. Use a full-size screenshot of the portal page rather than a photo of a screen. |

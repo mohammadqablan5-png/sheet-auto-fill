@@ -220,44 +220,120 @@ def _paragraph_below(boxes: list, label) -> str:
 # A store line looks like "Walgreen's (13632) - 311 N Main St" or "Target (0366) - …"
 STORE_LINE_RE = re.compile(r"^(.{2,60}?)\s*\(\s*[\w-]{2,12}\s*\)\s*(?:[-–—]\s*(.+))?$")
 
+# "Louisville, KY 40214" / "Winston-Salem, N.C. 27101-1234"
+CITY_ST_ZIP_LOOSE = re.compile(
+    r"([A-Za-z][A-Za-z .'\-]{1,40}),\s*([A-Za-z]{2})\.?\s*(\d{5})(?:-\d{4})?\b")
+# same without a postcode, for pages that omit it
+CITY_ST_ONLY = re.compile(r"([A-Za-z][A-Za-z .'\-]{1,40}),\s*([A-Z]{2})\b")
+
+ADDRESS_LABELS = {"address", "siteaddress", "storeaddress", "serviceaddress",
+                  "jobaddress", "iocation", "site", "store", "property"}
+
+
+def _rows(boxes: list) -> list:
+    """Rebuild visual lines, joining only pieces that sit side by side.
+
+    An address is frequently split across several text runs ("8193 Mall RD," +
+    "Florence, KY 41042"), so matching one box at a time misses it. Joining a
+    whole row would instead drag in the neighbouring column, so runs are merged
+    only while the horizontal gap stays small.
+    """
+    if not boxes:
+        return []
+    items = sorted(boxes, key=lambda b: (b["y0"], b["x0"]))
+    heights = sorted(max(b["h"], 4) for b in items)
+    tol = max(4.0, heights[len(heights) // 2] * 0.6)
+
+    lines, current = [], [items[0]]
+    for b in items[1:]:
+        if abs(b["y0"] - current[0]["y0"]) <= tol:
+            current.append(b)
+        else:
+            lines.append(current)
+            current = [b]
+    lines.append(current)
+
+    clusters = []
+    for line in lines:
+        line.sort(key=lambda b: b["x0"])
+        group = [line[0]]
+        for b in line[1:]:
+            gap = b["x0"] - group[-1]["x1"]
+            if gap <= max(12.0, max(group[-1]["h"], 4) * 2.5):
+                group.append(b)
+            else:
+                clusters.append(group)
+                group = [b]
+        clusters.append(group)
+
+    out = []
+    for g in clusters:
+        out.append({
+            "text": re.sub(r"\s{2,}", " ", " ".join(x["text"] for x in g)).strip(),
+            "x0": min(x["x0"] for x in g), "x1": max(x["x1"] for x in g),
+            "y0": min(x["y0"] for x in g), "y1": max(x["y1"] for x in g),
+            "h": max(max(x["h"] for x in g), 4),
+        })
+    return [c for c in out if c["text"]]
+
+
+def _store_line_above(lines: list, target) -> str:
+    """The 'Brand (1234) - Street' line printed above the postal line."""
+    lh = max(target["h"], 8)
+    above = [a for a in lines
+             if a is not target
+             and a["y1"] <= target["y0"] + lh * 0.4
+             and target["y0"] - a["y1"] < lh * 3.5
+             and abs(a["x0"] - target["x0"]) <= lh * 6
+             and not _is_label(a)
+             and _norm(a["text"]) not in ADDRESS_LABELS]   # the heading isn't the store
+    above.sort(key=lambda a: a["y0"])
+    for a in reversed(above):
+        if STORE_LINE_RE.match(a["text"]):
+            return a["text"]
+    if above and target["y0"] - above[-1]["y1"] < lh * 1.8:
+        return above[-1]["text"]
+    return ""
+
 
 def _address(boxes: list) -> tuple:
-    """Store/site address plus 'City, ST'.
+    """Store/site address plus 'City, ST', tried several ways.
 
-    The portal prints the store name and number on one line ("Target (0366) -
-    131 W Reynolds Rd") and the postal address underneath. Both are wanted, so
-    the store line is searched for a few lines above the City/ST/ZIP line — with
-    a looser tolerance than plain adjacency, because OCR row heights vary and the
-    map pin icon can shift the left edge.
+    Portals differ in how they break the address up, so this works down from the
+    most specific evidence to the least rather than relying on one pattern:
+    a postcode line, then a city/state line, then an explicitly labelled field.
     """
-    for b in sorted(boxes, key=lambda b: b["y0"]):
-        m = CITY_ST_ZIP_RE.search(b["text"])
+    lines = _rows(boxes)
+
+    # 1. a line containing "City, ST 12345" — the strongest signal
+    for line in lines:
+        m = CITY_ST_ZIP_LOOSE.search(line["text"])
         if not m:
             continue
-        lh = max(b["h"], 8)
+        head = _store_line_above(lines, line)
+        full = f"{head} {line['text']}".strip() if head else line["text"]
+        return re.sub(r"\s{2,}", " ", full), f"{m.group(1).strip()}, {m.group(2).upper()}"
 
-        candidates = [a for a in boxes
-                      if a is not b
-                      and a["y1"] <= b["y0"] + lh * 0.4
-                      and b["y0"] - a["y1"] < lh * 3.5
-                      and abs(a["x0"] - b["x0"]) <= lh * 6
-                      and not _is_label(a)]
-        candidates.sort(key=lambda a: a["y0"])
+    # 2. no postcode anywhere — accept "City, ST" on a line that looks postal
+    for line in lines:
+        if _is_label(line):
+            continue
+        m = CITY_ST_ONLY.search(line["text"])
+        if not m or len(line["text"]) > 90:
+            continue
+        head = _store_line_above(lines, line)
+        full = f"{head} {line['text']}".strip() if head else line["text"]
+        return re.sub(r"\s{2,}", " ", full), f"{m.group(1).strip()}, {m.group(2).upper()}"
 
-        # prefer the closest line that actually names a store
-        head = ""
-        for a in reversed(candidates):
-            if STORE_LINE_RE.match(a["text"].strip()):
-                head = a["text"].strip()
-                break
-        if not head and candidates:
-            nearest = candidates[-1]
-            if b["y0"] - nearest["y1"] < lh * 1.8:
-                head = nearest["text"].strip()
+    # 3. fall back to whatever an "Address"/"Site" label points at
+    for line in lines:
+        if _norm(line["text"]) in ADDRESS_LABELS:
+            value = _paragraph_below(lines, line) or _value_below(lines, line)
+            if value:
+                m = CITY_ST_ZIP_LOOSE.search(value) or CITY_ST_ONLY.search(value)
+                city = f"{m.group(1).strip()}, {m.group(2).upper()}" if m else ""
+                return re.sub(r"\s{2,}", " ", value).strip(), city
 
-        full = f"{head} {b['text']}".strip() if head else b["text"]
-        city = f"{m.group(1).strip()}, {m.group(2)}"
-        return re.sub(r"\s{2,}", " ", full), city
     return "", ""
 
 
