@@ -1,12 +1,21 @@
-"""File locations that work both from source and from the packaged .exe.
+"""File locations that work from source and from the packaged app on any OS.
 
-When frozen by PyInstaller, read-only assets (static/, the default YAML files)
-live inside the bundle, while anything the user edits or supplies —
-config.yaml, mapping.yaml, service_account.json — is read from the folder
-containing the .exe so it stays visible and editable.
+Read-only assets (static/, the default YAML files) live inside the bundle.
+Anything the user edits or supplies — config.yaml, mapping.yaml,
+connection.json, service_account.json — lives in a writable folder outside it.
+
+Where that folder is differs by platform, and getting it wrong on macOS is not
+cosmetic: inside a .app, ``sys.executable`` points at
+``…/SHEET auto FILL.app/Contents/MacOS/``, so writing there would put the user's
+Google key *inside the application bundle* — discarded on every update, refused
+outright when the app sits in /Applications, and enough to invalidate the code
+signature. macOS therefore uses Application Support, which is the documented
+home for exactly this.
 """
 import os
 import sys
+
+APP_NAME = "SHEET auto FILL"
 
 
 def frozen() -> bool:
@@ -18,11 +27,34 @@ def bundle_dir() -> str:
     return getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
 
 
+def _mac_support_dir() -> str:
+    return os.path.join(os.path.expanduser("~"), "Library",
+                        "Application Support", APP_NAME)
+
+
+def _linux_config_dir() -> str:
+    base = os.environ.get("XDG_CONFIG_HOME") or os.path.join(
+        os.path.expanduser("~"), ".config")
+    return os.path.join(base, "sheet-auto-fill")
+
+
 def app_dir() -> str:
-    """The folder the user sees: next to the .exe, or the project folder."""
-    if frozen():
+    """The writable folder holding the user's own files."""
+    if not frozen():
+        return os.path.dirname(os.path.abspath(__file__))
+
+    if sys.platform == "darwin":
+        target = _mac_support_dir()
+    elif sys.platform.startswith("linux"):
+        target = _linux_config_dir()
+    else:
+        target = os.path.dirname(sys.executable)      # beside the .exe
+
+    try:
+        os.makedirs(target, exist_ok=True)
+    except OSError:
         return os.path.dirname(sys.executable)
-    return os.path.dirname(os.path.abspath(__file__))
+    return target
 
 
 def resource(name: str) -> str:

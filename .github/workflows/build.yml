@@ -39,18 +39,41 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
+      - name: Check for platform-specific mistakes
+        run: python tools/check_portability.py
+
+      - name: Check it runs from source
+        run: python desktop.py --selftest
+
       - name: Build
         run: python -m PyInstaller build_app.spec --noconfirm
+
+      - name: Smoke test the built app (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          "dist/SHEET auto FILL.app/Contents/MacOS/SHEET auto FILL" --selftest
+          echo "--- selftest log ---"
+          cat "$HOME/Library/Application Support/SHEET auto FILL/selftest.log" || true
+          echo "--- user files must NOT be inside the .app ---"
+          if find "dist/SHEET auto FILL.app" -name "connection.json" -o -name "config.yaml" \
+               | grep -q .; then
+            echo "FAIL: user files were written inside the bundle"; exit 1
+          fi
+          echo "OK"
 
       - name: Package (macOS)
         if: runner.os == 'macOS'
         run: |
           cd dist
           # Ad-hoc sign so the app opens after the right-click → Open step.
-          codesign --force --deep --sign - "SHEET auto FILL.app" || true
-          zip -qry "../${{ matrix.artifact }}.zip" "SHEET auto FILL.app"
+          codesign --force --deep --sign - "SHEET auto FILL.app"
+          codesign --verify --deep --strict "SHEET auto FILL.app" && echo "signature OK"
+          # ditto is Apple's tool for archiving a bundle: it keeps symlinks,
+          # permissions and the signature intact, which plain zip can lose.
+          ditto -c -k --sequesterRsrc --keepParent \
+                "SHEET auto FILL.app" "../${{ matrix.artifact }}.zip"
           cd ..
-          echo "Built macOS bundle:"; ls -lh "${{ matrix.artifact }}.zip"
+          ls -lh "${{ matrix.artifact }}.zip"
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
@@ -58,10 +81,6 @@ jobs:
         run: |
           Compress-Archive -Path "dist\SHEET auto FILL.exe" -DestinationPath "${{ matrix.artifact }}.zip"
           Get-Item "${{ matrix.artifact }}.zip" | Select-Object Name,Length
-
-      - name: Smoke test (macOS)
-        if: runner.os == 'macOS'
-        run: '"dist/SHEET auto FILL.app/Contents/MacOS/SHEET auto FILL" --selftest'
 
       - name: Smoke test (Windows)
         if: runner.os == 'Windows'

@@ -77,6 +77,20 @@ Two ways. **Option B is the smoother one** — it produces no security warnings 
    Apple certificate; opening it this way once tells macOS you trust it, and it opens
    normally forever after. *Double-clicking the first time will just refuse — use
    right-click → Open.*
+5. If macOS asks whether the app may **accept incoming network connections**, either
+   answer is fine — it only ever listens on your own machine (127.0.0.1), never the
+   network.
+
+**Where your settings live on a Mac.** Unlike Windows, the files are *not* kept next to
+the app — putting them inside a `.app` would lose them on every update. They're in:
+
+```
+~/Library/Application Support/SHEET auto FILL/
+```
+
+That folder holds `config.yaml`, `mapping.yaml`, `connection.json` and, if you use the
+service-account route, `service_account.json`. To open it: Finder → **Go → Go to Folder…**
+and paste that path.
 
 <details>
 <summary>If macOS says the app "is damaged and can't be opened"</summary>
@@ -304,6 +318,9 @@ That's it. **Push to Google Sheet** now works, and the panel collapses itself.
 | Mac: "cannot be opened because the developer cannot be verified" | Right-click the app → **Open** → **Open**. Only needed once. |
 | Mac: "is damaged and can't be opened" | Run `xattr -dr com.apple.quarantine "/Applications/SHEET auto FILL.app"` in Terminal. |
 | Mac: `.command` file won't run | `chmod +x mac/*.command` in Terminal, then double-click again. |
+| Mac: settings keep resetting | Drag the app into **Applications** and run it from there. Launched straight out of the download, macOS may run it from a temporary read-only copy. |
+| Mac: "app can't be opened on this Mac" / very slow | You have the wrong build. Apple Silicon (M1–M4) needs the *AppleSilicon* zip;  → *About This Mac* tells you which chip you have. |
+| Mac: firewall prompt on first run | Expected — the app opens a local port for its own window. It never listens on the network. |
 | "access is denied" when pushing | Share the spreadsheet with the service-account email as **Editor**, and confirm the Google Sheets API is enabled. |
 | "PDF reading: OCR not installed" | Run `py -m pip install --user -r requirements.txt`, then click **Re-check setup**. |
 | "No work-order details could be read" | The page image is too low-resolution. Use a full-size screenshot of the portal page rather than a photo of a screen. |

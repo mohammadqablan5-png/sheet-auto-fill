@@ -277,11 +277,20 @@ Two packaging details matter for correctness:
 - **ONNX models and native DLLs** (rapidocr-onnxruntime, onnxruntime, pypdfium2, cv2)
   are pulled in with `collect_all` rather than left to module analysis, which only
   follows imports and would miss the model files.
-- **User-owned files stay outside the bundle.** `resources.py` distinguishes the
-  read-only bundle (`sys._MEIPASS`) from the folder holding the .exe. `config.yaml` and
-  `mapping.yaml` are copied out on first run so they remain editable, and
-  `service_account.json` / `connection.json` are only ever read from the .exe's folder —
-  no credential is compiled into the binary.
+- **User-owned files stay outside the bundle, in a place each OS considers writable.**
+  `resources.py` separates the read-only bundle (`sys._MEIPASS`) from the user's own
+  files. On Windows those sit beside the .exe, which is what users expect there. **On
+  macOS they must not**: inside a `.app`, `sys.executable` resolves to
+  `…/SHEET auto FILL.app/Contents/MacOS/`, so the same rule would write the user's Google
+  key *into the application bundle* — discarded on every update, refused outright when the
+  app lives in `/Applications`, and enough to break the code signature. macOS therefore
+  uses `~/Library/Application Support/SHEET auto FILL/`, and Linux `~/.config/`. The macOS
+  CI job asserts no user file is ever created inside the bundle.
+- **A portability check runs before every build** (`tools/check_portability.py`): it fails
+  the build on `sys.executable` used for user data, Windows-only calls without a platform
+  guard, drive-letter paths, `open()` without an explicit encoding, and CRLF in the macOS
+  `.command` scripts — the last of which makes them unrunnable with a bare
+  `bad interpreter` error.
 - **Upgrades must not be shadowed by first-run copies.** Because an external file wins
   over the bundled one, files written beside the app by an older build silently suppressed
   later changes — first a new field in `mapping.yaml` never appeared, then (after a

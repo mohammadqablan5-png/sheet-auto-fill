@@ -27,6 +27,16 @@ if [ -z "$PY" ]; then
 fi
 
 echo "Using $($PY --version)"
+
+# The OCR engine ships prebuilt wheels only for released Python versions; a very
+# new one has none and pip would try (and fail) to compile from source.
+PYMINOR=$("$PY" -c 'import sys; print(sys.version_info[1])')
+if [ "$PYMINOR" -ge 13 ]; then
+    echo
+    echo "NOTE: Python 3.$PYMINOR is newer than some packages provide builds for."
+    echo "      If the install fails below, install Python 3.12 from"
+    echo "      https://www.python.org/downloads/macos/ and run this again."
+fi
 echo
 
 if [ ! -d ".venv" ]; then
