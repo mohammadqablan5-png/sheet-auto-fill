@@ -145,6 +145,31 @@ def selftest() -> int:
             problems.append(f"split address not read: {split.get('address')!r}")
         if "04216" not in split.get("address", ""):
             problems.append("store number lost on a split address")
+
+        # A page authored at a tiny coordinate scale, where the state and
+        # postcode wrap onto the next line and a neighbouring column sits close
+        # enough to be swept into the address.
+        tiny = [
+            {"text": "Work Number", "x0": 64, "x1": 76, "y0": 44, "y1": 45.7, "h": 1.7},
+            {"text": "JOB-TEST-3", "x0": 64, "x1": 76, "y0": 47, "y1": 48.7, "h": 1.7},
+            {"text": "Acct", "x0": 14.4, "x1": 19.8, "y0": 57.9, "y1": 60.0, "h": 2.1},
+            {"text": "Walgreen's(17928) - 662 Quince Orchard Rd",
+             "x0": 19.2, "x1": 56.9, "y0": 57.98, "y1": 59.7, "h": 1.72},
+            {"text": "Marc people", "x0": 64.2, "x1": 77.4, "y0": 58.78, "y1": 60.9, "h": 2.1},
+            {"text": "692 Quince Orchard RD, Gaithersburg,",
+             "x0": 19.2, "x1": 58.8, "y0": 60.73, "y1": 62.8, "h": 2.1},
+            {"text": "Aug 10, 2026, 07:49 AM EDT",
+             "x0": 471.5, "x1": 495.3, "y0": 61.68, "y1": 63.5, "h": 1.8},
+            {"text": "MD 20878", "x0": 19.2, "x1": 29.4, "y0": 63.73, "y1": 65.8, "h": 2.1},
+        ]
+        small = portal_parse.parse_page(tiny)
+        addr = small.get("address", "")
+        if "Gaithersburg, MD" not in small.get("city", ""):
+            problems.append(f"wrapped address not read: {addr!r}")
+        for junk in ("Marc", "Acct", "Aug 10"):
+            if junk in addr:
+                problems.append(f"neighbouring column leaked into the address: {addr!r}")
+                break
     except Exception as e:
         problems.append(f"portal parsing failed: {type(e).__name__}: {e}")
 

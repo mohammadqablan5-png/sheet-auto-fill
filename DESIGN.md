@@ -160,6 +160,13 @@ horizontal tolerance, because OCR row heights vary and the map-pin glyph shifts 
 edge — without that, the brand and store number were at risk of being dropped, which is
 exactly the part a dispatcher needs to identify the site.
 
+**Every geometric threshold is relative to the text size, never absolute.** These portals
+author PDFs at wildly different scales: one writes lines ~1.7 units tall, another ~20. A
+fixed tolerance therefore either glues neighbouring columns together (a technician's name
+and the client's "Acct" ended up inside the address) or splits a single phrase apart. Row
+grouping and the column-gap test are both expressed as multiples of the local line height,
+which made three of the six sample PDFs go from wrong to right at once.
+
 **Reading the address had to become layered**, because it was the single most common
 extraction failure — an empty Address cell with everything else correct. The original code
 required *one text box* to contain "City, ST ZIP", which fails the moment a portal breaks
@@ -238,6 +245,21 @@ on the row when the fallback is used, and the self-test imports the whole PDF st
 explicitly so a build missing any of it fails instead of shipping. **Verify features
 against the packaged app, not only from source** — the two have different import
 environments.
+
+## 4b. Telling the user what the document doesn't contain
+
+A blank field has two very different causes: the reader missed it, or it was never in the
+PDF. Silently leaving both blank makes the tool look unreliable and hides the real problem,
+so the parser reports what it noticed about the document itself, and those notes appear as
+row warnings beside the normal validation ones:
+
+- a page carrying the portal's own *"Sorry, Unexpected Error"* panel — the contact block
+  genuinely failed to render before the page was saved;
+- a **Rate** heading with no amounts beneath it — the page was cut short when printed;
+- a **DMG Contact** heading with nothing under it.
+
+Of the six sample work orders, three were incomplete in one of these ways. Without the
+notes they looked like parser bugs; with them the user knows to re-save the page.
 
 ## 5. Error handling
 

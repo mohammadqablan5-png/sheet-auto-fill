@@ -220,6 +220,12 @@ def _paragraph_below(boxes: list, label) -> str:
 # A store line looks like "Walgreen's (13632) - 311 N Main St" or "Target (0366) - …"
 STORE_LINE_RE = re.compile(r"^(.{2,60}?)\s*\(\s*[\w-]{2,12}\s*\)\s*(?:[-–—]\s*(.+))?$")
 
+# The same shape found *inside* a longer line. The store name often shares its row
+# with a neighbouring column ("Acct", a technician's name), and only the store
+# part belongs in the address.
+STORE_IN_LINE_RE = re.compile(
+    r"[A-Za-z][\w'’.&\-]*(?:\s+[\w'’.&\-]+){0,4}\s*\(\s*[\w-]{2,12}\s*\)\s*[-–—]\s*\S.{2,60}")
+
 # "Louisville, KY 40214" / "Winston-Salem, N.C. 27101-1234"
 CITY_ST_ZIP_LOOSE = re.compile(
     r"([A-Za-z][A-Za-z .'\-]{1,40}),\s*([A-Za-z]{2})\.?\s*(\d{5})(?:-\d{4})?\b")
@@ -241,8 +247,13 @@ def _rows(boxes: list) -> list:
     if not boxes:
         return []
     items = sorted(boxes, key=lambda b: (b["y0"], b["x0"]))
-    heights = sorted(max(b["h"], 4) for b in items)
-    tol = max(4.0, heights[len(heights) // 2] * 0.6)
+    # Every threshold here is relative to the text size. PDFs are authored at
+    # wildly different scales — one of these portals writes at ~1.7 units per
+    # line where another uses ~20 — so an absolute tolerance either merges
+    # neighbouring columns together or splits a single phrase apart.
+    heights = sorted(max(b["h"], 0.5) for b in items)
+    median_h = heights[len(heights) // 2]
+    tol = max(0.8, median_h * 0.6)
 
     lines, current = [], [items[0]]
     for b in items[1:]:
@@ -259,7 +270,8 @@ def _rows(boxes: list) -> list:
         group = [line[0]]
         for b in line[1:]:
             gap = b["x0"] - group[-1]["x1"]
-            if gap <= max(12.0, max(group[-1]["h"], 4) * 2.5):
+            local_h = max(group[-1]["h"], b["h"], median_h, 0.5)
+            if gap <= local_h * 2.0:          # word spacing, not a column break
                 group.append(b)
             else:
                 clusters.append(group)
@@ -291,9 +303,41 @@ def _store_line_above(lines: list, target) -> str:
     for a in reversed(above):
         if STORE_LINE_RE.match(a["text"]):
             return a["text"]
+        # the row may also carry a neighbouring column — keep only the store part
+        m = STORE_IN_LINE_RE.search(a["text"])
+        if m:
+            return m.group(0).strip()
     if above and target["y0"] - above[-1]["y1"] < lh * 1.8:
         return above[-1]["text"]
     return ""
+
+
+# Leftovers from the client block that sometimes share a row with the store name
+ADDRESS_NOISE_WORDS = {"acct", "account", "corporate", "ar", "inc", "llc", "co",
+                       "corp", "national", "team"}
+
+
+def _strip_address_noise(addr: str, names=()) -> str:
+    """Drop text that belongs to a neighbouring column, not to the address.
+
+    The store name shares its row with whatever sits beside it — the client's
+    "…Acct", or an assigned technician's name — and those words get swept up
+    when the row is reassembled.
+    """
+    addr = (addr or "").strip()
+    if not addr:
+        return addr
+
+    for name in names:
+        name = (name or "").strip()
+        if name and addr.lower().startswith(name.lower()):
+            addr = addr[len(name):].strip(" -–—,")
+            break
+
+    words = addr.split()
+    while len(words) > 2 and re.sub(r"[^\w]", "", words[0]).lower() in ADDRESS_NOISE_WORDS:
+        words.pop(0)
+    return " ".join(words)
 
 
 def _address(boxes: list) -> tuple:
@@ -305,13 +349,38 @@ def _address(boxes: list) -> tuple:
     """
     lines = _rows(boxes)
 
+    def wrapped(line):
+        """A wrapped address: '… Gaithersburg,' with 'MD 20878' underneath.
+
+        The continuation is looked up by position, not by list order — the next
+        entry in the list is often a different column on the same row.
+        """
+        lh = max(line["h"], 1.0)
+        below = [b for b in lines
+                 if b is not line
+                 and b["y0"] >= line["y1"] - lh * 0.4
+                 and b["y0"] - line["y1"] <= lh * 2.0
+                 and abs(b["x0"] - line["x0"]) <= lh * 4
+                 and not _is_label(b)]
+        if not below:
+            return None
+        below.sort(key=lambda b: (b["y0"], abs(b["x0"] - line["x0"])))
+        return f"{line['text']} {below[0]['text']}".strip()
+
     # 1. a line containing "City, ST 12345" — the strongest signal
     for line in lines:
-        m = CITY_ST_ZIP_LOOSE.search(line["text"])
+        text = line["text"]
+        m = CITY_ST_ZIP_LOOSE.search(text)
+        if not m:
+            joined = wrapped(line)
+            if joined:
+                m = CITY_ST_ZIP_LOOSE.search(joined)
+                if m:
+                    text = joined
         if not m:
             continue
         head = _store_line_above(lines, line)
-        full = f"{head} {line['text']}".strip() if head else line["text"]
+        full = f"{head} {text}".strip() if head else text
         return re.sub(r"\s{2,}", " ", full), f"{m.group(1).strip()}, {m.group(2).upper()}"
 
     # 2. no postcode anywhere — accept "City, ST" on a line that looks postal
@@ -365,6 +434,13 @@ def parse_page(boxes: list) -> dict:
             value = _paragraph_below(boxes, label)
         else:
             value = _value_below(boxes, label)
+            # Some blocks print the value beside the label rather than under it
+            # (Assigned Technicians does). Reading downwards there returns the
+            # next label instead — "Phone" — so fall back to the right.
+            if not value or _norm(value) in _STOP_KEYS:
+                beside = _value_right(boxes, label)
+                if beside and _norm(beside) not in _STOP_KEYS:
+                    value = beside
         if not value:
             continue
         if meaning in FIELD_ORDER:
@@ -375,6 +451,11 @@ def parse_page(boxes: list) -> dict:
             # page — once naming a person, once naming a rate — so collapsing to
             # the first match silently loses whichever comes second.
             extra.setdefault(meaning, []).append(value)
+
+    # extra values are lists (a label can appear more than once on a page)
+    def first(meaning: str) -> str:
+        values = extra.get(meaning) or []
+        return values[0] if values else ""
 
     # --- job id: confirm the labelled value, else search the page
     found["job_id"] = jobid.find(found.get("job_id", "")) or jobid.find(all_text)
@@ -404,14 +485,14 @@ def parse_page(boxes: list) -> dict:
     # --- address / city
     addr, city = _address(boxes)
     if addr:
-        found["address"] = _fix_digits(addr)
+        # a person's name can sit beside the store line under either label
+        people = [v for v in (extra.get("primary_tech", []) + extra.get("regular_tech", []))
+                  if not MONEY_RE.search(v)]
+        found["address"] = _fix_digits(_strip_address_noise(addr, people))
     if city:
         found["city"] = city
 
     # --- extra detail kept for the work-order text (never written to the sheet)
-    def first(meaning: str) -> str:
-        values = extra.get(meaning) or []
-        return values[0] if values else ""
 
     found["title"] = found.get("title") or first("title")
     found["service_type"] = first("service_type_label") or first("service_line")
@@ -510,6 +591,19 @@ def parse_page(boxes: list) -> dict:
             found["company"] = name
             break
 
+    # --- tell the user when the PDF itself is incomplete, rather than leaving a
+    #     silent blank that looks like the reader failed
+    notes = []
+    if re.search(r"unexpected error|could\s*n[o']?t be completed", all_text, re.I):
+        notes.append("Part of this page did not load in the portal — details it "
+                     "would have shown are missing from the PDF")
+    if re.search(r"(?<![a-z])rate(?![a-z])", all_text, re.I) and not found.get("rates"):
+        notes.append("The Rate section is cut off in this PDF — pay rates are not in it")
+    if re.search(r"dmg contact", all_text, re.I) and not found.get("assignee"):
+        notes.append("The contact block is cut off in this PDF")
+    if notes:
+        found["_notes"] = notes
+
     # --- open task becomes an update note (e.g. "Technician Requested - NTE Increase")
     tm = re.search(r"(technician requested[^\n]{0,40}|nte\s*increase)", all_text, re.I)
     if tm:
@@ -527,6 +621,10 @@ def _merge(base: dict, new: dict) -> dict:
             base[f] = new[f]
         elif f == "sow" and new.get(f) and len(new[f]) > len(base.get(f, "")):
             base[f] = new[f]
+    notes = list(base.get("_notes", [])) + [n for n in new.get("_notes", [])
+                                            if n not in base.get("_notes", [])]
+    if notes:
+        base["_notes"] = notes
     return base
 
 

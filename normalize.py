@@ -64,6 +64,12 @@ def normalize_row(raw: dict) -> dict:
             if w:
                 warnings.append(f"{_LABELS[field]}: {w}")
         row[field] = value
+    # things the reader noticed about the document itself, e.g. a page that was
+    # cut short — worth saying so the blank isn't mistaken for a reader fault
+    for note in raw.get("_notes", []) or []:
+        if note not in warnings:
+            warnings.append(note)
+
     for field in REQUIRED:
         if not row.get(field):
             warnings.append(f"{_LABELS[field]} is missing")
