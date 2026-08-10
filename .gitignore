@@ -16,6 +16,10 @@ samples/*.jpeg
 # Editor / assistant local settings
 .claude/
 
+# Generated installer (built by tools/make_mac_installer.py and by CI)
+mac/Install SHEET auto FILL.command
+mac/Install SHEET auto FILL.command.zip
+
 # Build output (large, rebuilt by CI)
 build/
 dist/

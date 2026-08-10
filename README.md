@@ -59,9 +59,39 @@ py -m PyInstaller build_app.spec --noconfirm
 
 ## Quick start — Mac (MacBook Air etc.)
 
-Two ways. **Option B is the smoother one** — it produces no security warnings at all.
+### Easiest — one file that installs itself
 
-### Option A — download the ready-made app
+Copy **`mac/Install SHEET auto FILL.command.zip`** to your Mac (AirDrop, USB stick,
+Google Drive, email — anything).
+
+1. **Double-click the .zip** to unzip it. You get one file:
+   *Install SHEET auto FILL.command*
+2. **Right-click it → Open**, then **Open** again when macOS asks.
+   *(Right-click the first time — a plain double-click is refused because the file came
+   from the internet. This is only needed once.)*
+3. A black window appears and does everything by itself: finds Python, unpacks the app,
+   installs what it needs, and creates the app icon. **The first run takes a few minutes**
+   and needs internet — it downloads about 200 MB of components. Leave the window open.
+4. When it finishes, **SHEET auto FILL** is in your **Applications** folder. Double-click
+   it any time from then on. You never need the installer again.
+
+That's it — no Python knowledge, no Terminal commands, no GitHub account.
+
+<details>
+<summary>If something goes wrong</summary>
+
+| Problem | Fix |
+|---|---|
+| Double-clicking opens it in TextEdit | You unzipped it wrong or the file lost its permission. In Terminal: `chmod +x "path/to/Install SHEET auto FILL.command"`, then right-click → Open. |
+| "cannot be opened because it is from an unidentified developer" | Right-click → **Open** → **Open**. Don't plain double-click the first time. |
+| "Python 3 is needed and was not found" | A macOS dialog will offer to install it — choose **Install**, wait, then run the installer again. Or get it from [python.org](https://www.python.org/downloads/macos/). |
+| Package install fails | Almost always no internet. Reconnect and run the installer again — it's safe to re-run. |
+| It says Python 3.13/3.14 may be too new | Install Python 3.12 from python.org, then run the installer again. |
+</details>
+
+---
+
+### Alternative — a fully compiled app (needs the GitHub build)
 
 1. Go to the project's **Releases** page on GitHub.
 2. Download the file matching your Mac:
@@ -104,21 +134,25 @@ xattr -dr com.apple.quarantine "/Applications/SHEET auto FILL.app"
 Then open it normally.
 </details>
 
-### Option B — run from the source (no warnings, always works)
+### For developers — run from a copy of the source
 
 Needs the free **Python 3** from [python.org](https://www.python.org/downloads/macos/).
+Copy the project folder to the Mac, then double-click **`mac/install_mac.command`** once,
+and **`mac/run_mac.command`** to start it.
 
-1. Download the project (green **Code** button → *Download ZIP*, then unzip — or
-   `git clone` it).
-2. Open the **`mac`** folder and double-click **`install_mac.command`**. It builds a
-   private environment inside the folder and installs everything — a few minutes, once.
-3. From then on, double-click **`mac/run_mac.command`** to start the app.
+If macOS blocks a `.command` file, right-click it → **Open** the first time, or run
+`chmod +x mac/*.command` in Terminal.
 
-If macOS blocks a `.command` file, right-click it → **Open** the first time (same as
-above), or run `chmod +x mac/*.command` in Terminal.
+Everything else — connecting the sheet, dropping PDFs, the preview table, the work-order
+text — works identically on both platforms.
 
-Everything else — connecting the sheet, dropping PDFs, the preview table — works
-identically on both platforms.
+### Rebuilding the installer after a code change
+
+```bash
+py tools/make_mac_installer.py
+```
+
+That regenerates `dist/Install SHEET auto FILL.command.zip` with the current code inside.
 
 ---
 

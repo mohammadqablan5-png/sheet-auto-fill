@@ -97,9 +97,45 @@ jobs:
           path: ${{ matrix.artifact }}.zip
           retention-days: 30
 
+  mac-installer:
+    name: macOS self-installing file
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Pure text generation — no macOS needed, so this one is quick and free.
+      - name: Build the installer
+        run: python tools/make_mac_installer.py
+
+      - name: Verify it
+        run: |
+          f="dist/Install SHEET auto FILL.command"
+          bash -n "$f"                                   # valid shell
+          ! grep -q $'\r' "$f"                           # no CRLF
+          start=$(awk '/^__PAYLOAD_BELOW__$/ {print NR + 1; exit}' "$f")
+          mkdir -p /tmp/check
+          tail -n +"$start" "$f" \
+            | python -c 'import sys,base64; sys.stdout.buffer.write(base64.b64decode(sys.stdin.buffer.read()))' \
+            | tar xzf - -C /tmp/check
+          test -f /tmp/check/desktop.py
+          # nothing private may travel inside it
+          ! test -e /tmp/check/service_account.json
+          ! test -e /tmp/check/connection.json
+          echo "installer verified"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SHEET-auto-FILL-macOS-Installer
+          path: dist/Install SHEET auto FILL.command.zip
+          retention-days: 30
+
   release:
     name: Publish release
-    needs: build
+    needs: [build, mac-installer]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
