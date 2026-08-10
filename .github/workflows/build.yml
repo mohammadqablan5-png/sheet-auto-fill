@@ -3,9 +3,10 @@ name: Build apps
 # Builds the desktop app on real Windows and macOS machines.
 # Run it from the Actions tab, or push a tag like v1.0.0 to publish a Release.
 on:
-  workflow_dispatch:
+  workflow_dispatch:          # run it by hand from the Actions tab
   push:
-    tags: ["v*"]
+    branches: ["main"]        # every push builds, so nothing has to be clicked
+    tags: ["v*"]              # a version tag also publishes a Release
 
 jobs:
   build:
