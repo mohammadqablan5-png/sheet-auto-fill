@@ -208,7 +208,21 @@ Verified against a real JOUS/DMG job page:
 | Assignee / phone | **DMG Contact** and its **Phone Number** |
 | Updates | any open task, e.g. *Technician Requested – NTE Increase* |
 | Company | detected when named in the page, otherwise from your defaults |
-| *(Rates)* | the **Rate** section — regular tech / helper / trip. Used **only** in the work-order text: never written to the spreadsheet and not shown as a table column. |
+
+Read from the page but **never written to the spreadsheet** — available to the work-order
+text as placeholders (open **Edit layout** and click one to insert it):
+
+| Placeholder | What it holds |
+|---|---|
+| `{rates}` | the **Rate** block — regular tech / helper / trip |
+| `{title}` · `{service_type}` | e.g. *General Door Repair* / *General door repair* |
+| `{primary_tech}` · `{primary_tech_phone}` | the technician named on the portal |
+| `{contact_email}` | the DMG contact's email |
+| `{checkin_window}` | e.g. *Check in by August 07, 2026 from 12:00 AM to 11:30 PM EDT* |
+| `{tasks}` | every open task, e.g. *Provider Request - Reschedule* |
+| `{requirements}` | photo/check-in/COVID requirements |
+| `{visit}` · `{job_type}` · `{progress_note}` · `{last_updated}` | visit number, job type, latest activity |
+| `{page_text}` | the entire page as read — so nothing is ever out of reach |
 
 **Handy man**, **Team leader**, **Dispatcher**, **Payout**, **Cost** and **JMG** are your own
 internal columns — the portal doesn't contain them, so they're left blank for you to fill

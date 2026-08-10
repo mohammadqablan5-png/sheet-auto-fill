@@ -31,9 +31,18 @@ Three tiers, chosen per file:
 - **CSV** (`extractors.extract_csv`): delimiter sniffing, UTF-8-BOM tolerant, and
   header→field mapping from the synonym lists in `mapping.yaml`. Instant and fully
   deterministic.
-- **PDF with a text layer** (`local_parse`): text is pulled with pdfplumber (pypdf as
-  fallback) and fields are located by labelled-value lookup plus patterns for job
-  numbers, money, dates, phones, and `City, ST ZIP` lines.
+- **PDF with a text layer** (`local_parse.pdf_word_boxes` → `portal_parse`): these are
+  *not* read as flat text. The portal's generated PDFs place each glyph individually, so
+  `extract_text()` walks the page row by row and interleaves neighbouring columns
+  character by character — the address came out as
+  `W 81 a 9 l 3 gr M ee a n l 's l R (5 D 7 , 6 F 3 l ) o - r e…`, which is unparseable
+  and was silently producing near-empty rows. Instead the glyph boxes are grouped into
+  rows and split into phrases wherever the horizontal gap is far wider than the type
+  (measured on a real file: intra-word gaps ≈0.02, spaces ≈0.85, column gaps ≫1), which
+  reconstructs `Walgreen's (5763) - 8193 Mall Rd` and its neighbour as separate phrases.
+  Those boxes then feed **the same spatial parser used for screenshots**, so both PDF
+  kinds share one implementation. Flat-text parsing remains only as a last-resort
+  fallback.
 - **Image-only PDF / screenshot** (`ocr` + `portal_parse`): pypdfium2 renders each page
   at 300 DPI and rapidocr-onnxruntime (ONNX, offline, no account) reads it. The real
   work-order PDFs are portal screenshots with no text layer, so this is the primary path.

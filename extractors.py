@@ -36,6 +36,16 @@ def extract_document(data: bytes, ext: str, progress=None) -> list:
     if ext == ".pdf":
         text = local_parse.pdf_text(data)
         if len(text.strip()) >= 120:          # real text layer — no OCR needed
+            import portal_parse
+
+            # Read it by position first. A generated PDF stores each column
+            # separately, so flat text interleaves neighbouring columns; the
+            # layout parser used for screenshots handles it properly.
+            pages = local_parse.pdf_word_boxes(data)
+            if pages:
+                jobs = portal_parse.parse_pages(pages)
+                if jobs:
+                    return jobs
             jobs = local_parse.parse_jobs(text)
             if jobs:
                 return jobs

@@ -165,6 +165,25 @@ def selftest() -> int:
     except Exception as e:
         problems.append(f"layout preset check failed: {type(e).__name__}: {e}")
 
+    # Generated PDFs place glyphs one at a time; reading them as flat lines
+    # interleaves neighbouring columns, so the rebuild must keep them apart.
+    try:
+        import local_parse
+
+        def _c(ch, x, y, w=1.8, h=3.1):
+            return {"text": ch, "x0": x, "x1": x + w, "top": y, "bottom": y + h}
+
+        chars = []
+        for i, ch in enumerate("JOB-1"):          # left column
+            chars.append(_c(ch, 50 + i * 1.8, 100))
+        for i, ch in enumerate("Aug 7"):          # right column, same row
+            chars.append(_c(ch, 200 + i * 1.8, 100))
+        rebuilt = [b["text"] for b in local_parse._chars_to_boxes(chars)]
+        if rebuilt != ["JOB-1", "Aug 7"]:
+            problems.append(f"column rebuild wrong: {rebuilt}")
+    except Exception as e:
+        problems.append(f"text-layer rebuild failed: {type(e).__name__}: {e}")
+
     try:
         import posts
 

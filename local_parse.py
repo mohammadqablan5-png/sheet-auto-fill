@@ -9,10 +9,87 @@ rather than returning empty rows.
 """
 import io
 import re
+import statistics
 
 from fields import FIELD_ORDER
 
 # ------------------------------------------------------------------ PDF text
+
+
+def _box(run: list, text: str) -> dict:
+    return {
+        "text": re.sub(r"\s{2,}", " ", text).strip(),
+        "x0": min(c["x0"] for c in run),
+        "x1": max(c["x1"] for c in run),
+        "y0": min(c["top"] for c in run),
+        "y1": max(c["bottom"] for c in run),
+        "h": max(max(c["bottom"] - c["top"] for c in run), 1.0),
+    }
+
+
+def _chars_to_boxes(chars: list) -> list:
+    """Rebuild the phrases a reader sees from individually placed glyphs.
+
+    These PDFs position characters one at a time, so reading them as flat lines
+    interleaves neighbouring columns ("W 81 a 9 l 3 gr M ee a n l 's…") and
+    scatters spaces through every value. Working from the glyph boxes instead:
+    characters are grouped into rows, then split into phrases wherever the gap
+    is far wider than the type — which is exactly where a column boundary is —
+    and a space is inserted only where the gap is wide enough to be one.
+    """
+    chars = [c for c in chars if (c.get("text") or "").strip()]
+    if not chars:
+        return []
+
+    chars.sort(key=lambda c: (round(c["top"], 1), c["x0"]))
+    rows, current = [], [chars[0]]
+    for c in chars[1:]:
+        head = current[0]
+        height = max(head["bottom"] - head["top"], 1.0)
+        if abs(c["top"] - head["top"]) <= max(1.0, height * 0.6):
+            current.append(c)
+        else:
+            rows.append(current)
+            current = [c]
+    rows.append(current)
+
+    boxes = []
+    for row in rows:
+        row.sort(key=lambda c: c["x0"])
+        width = statistics.median([c["x1"] - c["x0"] for c in row]) or 1.0
+        space_gap = max(width * 0.30, 0.2)     # measured: real spaces ≈ 0.5×width
+        break_gap = max(width * 2.2, 2.5)      # column gaps are far wider still
+
+        run, text = [row[0]], row[0]["text"]
+        for prev, c in zip(row, row[1:]):
+            gap = c["x0"] - prev["x1"]
+            if gap > break_gap:
+                boxes.append(_box(run, text))
+                run, text = [c], c["text"]
+                continue
+            if gap > space_gap:
+                text += " "
+            text += c["text"]
+            run.append(c)
+        boxes.append(_box(run, text))
+
+    return [b for b in boxes if b["text"]]
+
+
+def pdf_word_boxes(data: bytes) -> list:
+    """Pages of positioned text phrases — the text-layer twin of ocr.pdf_boxes()."""
+    try:
+        import pdfplumber
+    except Exception:
+        return []
+    pages = []
+    try:
+        with pdfplumber.open(io.BytesIO(data)) as pdf:
+            for page in pdf.pages:
+                pages.append(_chars_to_boxes(page.chars))
+    except Exception:
+        return []
+    return pages
 
 
 def pdf_text(data: bytes) -> str:

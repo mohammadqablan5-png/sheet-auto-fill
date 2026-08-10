@@ -133,7 +133,25 @@ async function openTemplate() {
   })).json();
   $('postTpl').value = res.template || '';
   $('tplMsg').textContent = '';
+  renderPlaceholders();
   $('tplDlg').showModal();
+}
+
+function renderPlaceholders() {
+  const box = $('placeholderList');
+  if (!box || !STATUS) return;
+  const all = STATUS.all_fields || STATUS.fields;
+  box.innerHTML = all.map(f =>
+    `<button class="tiny" data-ph="${f}" title="${esc(STATUS.labels[f] || f)}">{${f}}</button>`
+  ).join('');
+  box.querySelectorAll('[data-ph]').forEach(b => b.onclick = () => {
+    const ta = $('postTpl');
+    const at = ta.selectionStart ?? ta.value.length;
+    const token = `{${b.dataset.ph}}`;
+    ta.value = ta.value.slice(0, at) + token + ta.value.slice(ta.selectionEnd ?? at);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = at + token.length;
+  });
 }
 
 $('saveTplBtn').onclick = async () => {

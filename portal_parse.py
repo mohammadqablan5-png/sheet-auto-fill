@@ -44,6 +44,10 @@ def _norm(s: str) -> str:
     return re.sub(r"[^a-z]", "", s)
 
 
+def _clean_ws(s: str) -> str:
+    return re.sub(r"\s{2,}", " ", (s or "")).strip()
+
+
 def _money(s: str) -> str:
     """'$38.00 per hour' -> '$38'   ·   '$22.50' -> '$22.50'"""
     m = MONEY_RE.search(s or "")
@@ -84,7 +88,7 @@ LABELS = {
     "contact": "assignee",
     "sitecontact": "assignee",
     "phonenumber": "assignee_phone",
-    "primarytechnician": "primary_tech",
+    "primarytechnician": "primary_tech_label",
     # "Regular Technician" appears twice in the portal: under Assigned Technicians
     # (a person) and under Rate (a dollar amount). It gets its own key so it can
     # never be shadowed by "Primary Technician", and the money check decides
@@ -93,14 +97,15 @@ LABELS = {
     "helpertechnician": "rate_helper",
     "trip": "rate_trip",
     "rate": "_ignore",
+    "phone": "tech_phone_label",
     "serviceline": "service_line",
-    "servicetype": "service_type",
+    "servicetype": "service_type_label",
     "lastupdatedon": "_ignore",
     "createdon": "_ignore",
-    "emailaddress": "_ignore",
+    "emailaddress": "contact_email_label",
     "assignedtechnicians": "_ignore",
-    "requirements": "_ignore",
-    "task": "_ignore",
+    "requirements": "requirements_label",
+    "task": "task_label",
     "status": "_ignore",
     "priority": "_ignore",
     "finishby": "_ignore",
@@ -112,7 +117,6 @@ LABELS = {
     "workdetails": "_ignore",
     "attachments": "_ignore",
     "spot": "_ignore",
-    "phone": "_ignore",
 }
 
 # Both sides of the comparison must go through the same folding, or keys
@@ -155,6 +159,43 @@ def _value_below(boxes: list, label, max_lines: int = 1):
     if not picks:
         return ""
     return " ".join(p["text"] for p in picks[:max_lines])
+
+
+def _items_below(boxes: list, label, gap_mult: float = 5.0, limit: int = 12) -> list:
+    """List entries stacked under a label (open tasks, requirements…).
+
+    Rows in these lists sit further apart than the lines of a paragraph, so the
+    tighter paragraph gap would stop after the first entry.
+    """
+    lh = max(label["h"], 4)
+    below = [b for b in boxes
+             if b["y0"] > label["y1"]
+             and abs(b["x0"] - label["x0"]) <= lh * 1.5]
+    below.sort(key=lambda b: b["y0"])
+    items, prev_y = [], label["y1"]
+    for b in below:
+        if _is_label(b):
+            break                       # the next section starts here
+        if b["y0"] - prev_y > lh * gap_mult:
+            break
+        items.append(b["text"].strip())
+        prev_y = b["y1"]
+        if len(items) >= limit:
+            break
+    return items
+
+
+def _value_right(boxes: list, label):
+    """Value printed beside a label instead of under it (Assigned Technicians)."""
+    picks = []
+    for b in boxes:
+        if b is label or b["x0"] < label["x1"]:
+            continue
+        overlap = min(b["y1"], label["y1"]) - max(b["y0"], label["y0"])
+        if overlap > 0 and not _is_label(b):
+            picks.append(b)
+    picks.sort(key=lambda b: b["x0"])
+    return picks[0]["text"].strip() if picks else ""
 
 
 def _paragraph_below(boxes: list, label) -> str:
@@ -234,6 +275,16 @@ def parse_page(boxes: list) -> dict:
     for label, meaning in _find_labels(boxes):
         if meaning == "_ignore":
             continue
+        if meaning in ("task_label", "requirements_label"):
+            items = _items_below(boxes, label)
+            if items:
+                extra.setdefault(meaning, []).append("\n".join(items))
+            continue
+        if meaning == "tech_phone_label":
+            beside = _value_right(boxes, label)
+            if beside:
+                extra.setdefault(meaning, []).append(beside)
+            continue
         if meaning in ("sow", "special"):
             value = _paragraph_below(boxes, label)
         else:
@@ -281,12 +332,62 @@ def parse_page(boxes: list) -> dict:
     if city:
         found["city"] = city
 
-    # --- scope, plus the special instructions appended
-    # extra values are lists (a label can appear more than once on a page).
+    # --- extra detail kept for the work-order text (never written to the sheet)
     def first(meaning: str) -> str:
         values = extra.get(meaning) or []
         return values[0] if values else ""
 
+    found["title"] = found.get("title") or first("title")
+    found["service_type"] = first("service_type_label") or first("service_line")
+    found["requirements"] = first("requirements_label")
+    found["tasks"] = first("task_label")
+
+    email = first("contact_email_label")
+    if "@" in email:
+        email = re.sub(r"\s+", "", email)      # the PDF prints it with spaces
+    found["contact_email"] = email
+
+    # "Primary Technician" is the person; the same words under Rate are money.
+    for meaning in ("primary_tech_label", "regular_tech"):
+        if found.get("primary_tech"):
+            break
+        for value in extra.get(meaning, []):
+            if value and not MONEY_RE.search(value):
+                found["primary_tech"] = value
+                break
+
+    for value in extra.get("tech_phone_label", []):
+        if len(re.sub(r"\D", "", value)) >= 10:
+            found["primary_tech_phone"] = value
+            break
+
+    vm = re.search(r"\bVST-\d{5,6}-\d{3,6}\b", all_text, re.I)
+    if vm:
+        found["visit"] = vm.group(0).upper()
+
+    jt = re.search(r"((?:Non[- ]?Routine|Routine|Emergency)[^\n]{0,30}Job)", all_text, re.I)
+    if jt:
+        found["job_type"] = _clean_ws(jt.group(1))
+
+    pn = re.search(r"([^\n]{0,60}(?:checked out|return trip|checked in)[^\n]{0,60})",
+                   all_text, re.I)
+    if pn:
+        found["progress_note"] = _clean_ws(pn.group(1))
+
+    lu = re.search(r"Last Updated On\s*\n?\s*([^\n]{6,60})", all_text, re.I)
+    if lu:
+        found["last_updated"] = _clean_ws(lu.group(1))
+
+    # Everything the reader saw — so a detail with no field of its own is still
+    # available to the work-order text via {page_text}.
+    found["page_text"] = all_text.strip()
+
+    # the full check-in window, e.g. "August 07, 2026 from 12:00 AM to 11:30 PM"
+    wm = re.search(r"(Check in by [^\n]{6,90})", all_text, re.I)
+    if wm:
+        found["checkin_window"] = _clean_ws(wm.group(1))
+
+    # --- scope, plus the special instructions appended
     sow = found.get("sow", "")
     if not sow:
         sow = first("title")

@@ -1,7 +1,7 @@
 # Bump this whenever fields are added or renamed. On startup the app replaces an
 # older copy sitting next to it with this one (keeping a .bak), so upgrades take
 # effect instead of being shadowed by a stale file.
-schema_version: 4
+schema_version: 5
 
 # Canonical fields, in the order they appear in the preview table.
 # label:      shown in the preview UI
@@ -90,6 +90,62 @@ fields:
     label: "Updates"
     sheet: ["updates", "update", "notes"]
     csv: ["comments", "note"]
+  # ---- read from the portal but never written to the spreadsheet ----
+  # Available to the work-order text as {placeholders}; hidden from the table.
+  title:
+    label: "Title"
+    sheet: []
+    hidden: true
+  service_type:
+    label: "Service type"
+    sheet: []
+    hidden: true
+  primary_tech:
+    label: "Primary technician"
+    sheet: []
+    hidden: true
+  primary_tech_phone:
+    label: "Primary tech phone"
+    phone: true
+    sheet: []
+    hidden: true
+  contact_email:
+    label: "Contact email"
+    sheet: []
+    hidden: true
+  checkin_window:
+    label: "Check-in window"
+    sheet: []
+    hidden: true
+  tasks:
+    label: "Open tasks"
+    sheet: []
+    hidden: true
+  requirements:
+    label: "Requirements"
+    sheet: []
+    hidden: true
+  visit:
+    label: "Visit number"
+    sheet: []
+    hidden: true
+  job_type:
+    label: "Job type"
+    sheet: []
+    hidden: true
+  progress_note:
+    label: "Progress note"
+    sheet: []
+    hidden: true
+  last_updated:
+    label: "Last updated"
+    sheet: []
+    hidden: true
+  page_text:
+    label: "Whole page"
+    # Everything the reader saw, so nothing on the page is ever unavailable.
+    sheet: []
+    hidden: true
   rates:
     label: "Rates"
     # Pay rates from the portal. NEVER written to the spreadsheet (no sheet
