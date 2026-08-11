@@ -4,11 +4,6 @@ name: Build apps
 # Run it from the Actions tab, or push a tag like v1.0.0 to publish a Release.
 on:
   workflow_dispatch:          # run it by hand from the Actions tab
-    inputs:
-      intel:
-        description: "Also build for Intel Macs (pre-2020). Slow: free Intel runners queue for hours."
-        type: boolean
-        default: false
   push:
     branches: ["main"]        # every push builds, so nothing has to be clicked
     tags: ["v*"]              # a version tag also publishes a Release
@@ -18,9 +13,6 @@ jobs:
     name: ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 40      # a hung smoke test must fail, not run forever
-    # Intel Macs are pre-2020 and GitHub's free Intel runners queue for hours,
-    # which left every run permanently "in progress". Build them only on request.
-    if: matrix.os != 'macos-13' || inputs.intel
     strategy:
       fail-fast: false
       matrix:
@@ -31,9 +23,13 @@ jobs:
           - os: macos-14          # Apple Silicon (M1/M2/M3/M4)
             label: macOS Apple Silicon
             artifact: SHEET-auto-FILL-macOS-AppleSilicon
-          - os: macos-13          # Intel Macs
-            label: macOS Intel
-            artifact: SHEET-auto-FILL-macOS-Intel
+          # Intel Macs (pre-2020) are deliberately not built: GitHub's free
+          # Intel runners queued for hours and never started, which left every
+          # run stuck "in progress" and blocked releases. Add this back if an
+          # Intel machine ever needs it:
+          #   - os: macos-13
+          #     label: macOS Intel
+          #     artifact: SHEET-auto-FILL-macOS-Intel
 
     steps:
       - uses: actions/checkout@v4

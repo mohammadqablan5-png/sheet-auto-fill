@@ -79,6 +79,29 @@ for base, dirs, files in os.walk(os.path.join(ROOT, "mac")):
             if not blob.startswith(b"#!"):
                 problems.append(f"mac/{f}: missing shebang")
 
+# The build workflow must be valid, or GitHub rejects the file and no job runs
+# at all — which looks like a build failure with nothing to read. The matrix
+# context does not exist yet when a job-level "if" is evaluated; that mistake
+# cost a whole run once.
+WORKFLOW = os.path.join(ROOT, ".github", "workflows", "build.yml")
+if os.path.exists(WORKFLOW):
+    try:
+        import yaml
+    except ImportError:
+        pass
+    else:
+        try:
+            flow = yaml.safe_load(read(WORKFLOW))
+        except yaml.YAMLError as e:
+            problems.append(f".github/workflows/build.yml: invalid YAML — {e}")
+        else:
+            for name, job in (flow.get("jobs") or {}).items():
+                if "matrix" in str(job.get("if", "")):
+                    problems.append(
+                        f".github/workflows/build.yml: job '{name}' uses the matrix "
+                        "context in a job-level if — only github/needs/vars/inputs "
+                        "exist there. Put the condition on the steps instead.")
+
 # macOS needs pyobjc for the native window
 reqs = read(os.path.join(ROOT, "requirements.txt"))
 if 'sys_platform == "darwin"' not in reqs:
