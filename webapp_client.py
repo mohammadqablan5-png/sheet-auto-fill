@@ -91,11 +91,17 @@ class WebAppClient:
         final = (r.url or "").lower()
 
         if "accounts.google.com" in final or "signin" in final:
-            return ("Google asked for a sign-in, which means this deployment is not "
-                    "public yet.\n"
-                    "In the Apps Script editor: Deploy → Manage deployments → the pencil "
-                    "icon → set Who has access to “Anyone” → Deploy. Then copy the URL "
-                    "again — it must end in /exec.")
+            return ("Google asked for a sign-in, so this link is not public.\n"
+                    "Almost always the link belongs to a different deployment than the "
+                    "one that was set to “Anyone” — Manage deployments can hold several, "
+                    "and each has its own URL. The reliable fix is to keep exactly one:\n"
+                    "1. Deploy → Manage deployments.\n"
+                    "2. On every entry listed, use the ⋮ menu → Archive.\n"
+                    "3. Deploy → New deployment → gear → Web app.\n"
+                    "4. Execute as: Me. Who has access: “Anyone” — NOT “Anyone with "
+                    "Google account”, which still demands a sign-in.\n"
+                    "5. Deploy, then copy the URL from that dialog with its Copy button "
+                    "and paste it here.")
 
         if "authorization is required" in low or "authorisation is required" in low:
             return ("The script has not been authorised yet.\n"

@@ -317,11 +317,14 @@
         <b>Deploy it and paste the link back here.</b>
         Save the script first (<b>Ctrl+S</b>) — a deployment freezes whatever is saved at
         that moment. Then <b>Deploy → New deployment</b> → gear → <b>Web app</b> →
-        <b>Execute as: Me</b>, <b>Who has access: Anyone</b> → <b>Deploy</b> → authorise
+        <b>Execute as: Me</b>, <b>Who has access: Anyone</b> (not "Anyone with Google
+        account", which still asks for a sign-in) → <b>Deploy</b> → authorise
         (Google warns "unverified" about your own script — <i>Advanced → Go to … (unsafe)</i>)
         → copy the <b>Web app URL</b> with the <b>Copy</b> button (it ends in <code>/exec</code>).
         <div class="hint" style="margin-top:6px">Already deployed once? Editing the code is
-          not enough — use <b>Manage deployments → pencil → Version: New version → Deploy</b>.</div>
+          not enough — use <b>Manage deployments → pencil → Version: New version → Deploy</b>.
+          If a sign-in page keeps appearing, the link is probably from an older deployment:
+          archive every entry in <b>Manage deployments</b> (⋮ → Archive) and make one fresh one.</div>
         <div class="row" style="margin-top:8px">
           <input id="scriptUrl" type="text" style="flex:1;min-width:300px"
                  placeholder="https://script.google.com/macros/s/..../exec">
