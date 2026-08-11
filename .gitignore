@@ -5,6 +5,8 @@ connection.json
 **/connection.json
 .env
 mac.zip
+# Generated copy of the Apps Script with the key already substituted in
+PASTE-THIS-INTO-APPS-SCRIPT.gs
 
 # Real work orders — contain customer names, phones and addresses.
 # Keep them locally for testing; never publish them.

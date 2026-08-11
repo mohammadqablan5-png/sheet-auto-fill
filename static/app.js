@@ -228,6 +228,20 @@ $('viewScriptBtn').onclick = async () => {
   $('scriptText').value = await getScript(); $('scriptDlg').showModal();
 };
 
+$('copyCodeBtn').onclick = async () => {
+  const msg = $('codeMsg');
+  const res = await (await fetch('/api/connect/code')).json();
+  if (res.error) { msg.innerHTML = `<span class="err-t">${esc(res.error)}</span>`; return; }
+  try {
+    await navigator.clipboard.writeText(res.code);
+    msg.innerHTML = '<span class="ok-t">✔ Copied — paste it into the box above ' +
+                    'on your other computer.</span>';
+  } catch {
+    $('scriptText').value = res.code; $('scriptDlg').showModal();
+    msg.innerHTML = 'Select all in the box and copy.';
+  }
+};
+
 $('saveScriptBtn').onclick = async () => {
   const msg = $('scriptUrlMsg');
   msg.innerHTML = 'Checking the link…';

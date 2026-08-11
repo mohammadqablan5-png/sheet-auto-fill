@@ -2,6 +2,7 @@
 
 Run:  py app.py   then open http://localhost:8765
 """
+import base64
 import json
 import os
 import re
@@ -228,14 +229,64 @@ def script_code():
     return jsonify({"code": code.replace("__APP_KEY__", key)})
 
 
+# A second computer cannot simply re-copy the script: doing so mints a new key
+# and silently breaks the machine that already works. The code below carries the
+# link and the existing key together, so every computer shares one deployment.
+CODE_PREFIX = "SAF1-"
+
+
+def _make_code(url: str, key: str) -> str:
+    raw = json.dumps({"u": url, "k": key}, separators=(",", ":")).encode()
+    return CODE_PREFIX + base64.urlsafe_b64encode(raw).decode().rstrip("=")
+
+
+def _read_code(text: str):
+    body = text.strip()[len(CODE_PREFIX):]
+    body += "=" * (-len(body) % 4)                    # restore stripped padding
+    data = json.loads(base64.urlsafe_b64decode(body.encode()))
+    url, key = (data.get("u") or "").strip(), (data.get("k") or "").strip()
+    if not url or not key:
+        raise ValueError("incomplete code")
+    return url, key
+
+
+@app.get("/api/connect/code")
+def connection_code():
+    """A copyable code that connects another computer to the same sheet."""
+    if not (webapp.url and webapp.key):
+        return jsonify({"error": "Connect this computer first, then a code appears "
+                                 "here for your other machines."}), 400
+    return jsonify({"code": _make_code(webapp.url, webapp.key)})
+
+
 @app.post("/api/connect/script")
 def connect_script():
-    """Save the deployed Web App link and prove it works."""
+    """Save the deployed Web App link and prove it works.
+
+    Accepts either the /exec link or a connection code from another computer.
+    """
     url = (request.get_json(force=True).get("url") or "").strip()
     if not url:
         _save_connection(webapp_url="")
         webapp.url = ""
         return jsonify({"ok": True, "cleared": True})
+
+    if url.startswith(CODE_PREFIX):
+        try:
+            url, key = _read_code(url)
+        except Exception:
+            return jsonify({"error": "That connection code is damaged. Copy it again "
+                                     "from the computer that already works — it must "
+                                     "be complete, starting with " + CODE_PREFIX}), 400
+        probe = WebAppClient(url, key)
+        try:
+            data = probe.info()
+        except WebAppError as e:
+            return jsonify({"error": str(e)}), 400
+        _save_connection(webapp_url=url, webapp_key=key)
+        webapp.url, webapp.key = url, key
+        return jsonify({"ok": True, "title": data.get("title"),
+                        "tabs": data.get("tabs", [])})
 
     if "script.google.com" not in url:
         return jsonify({"error": "That isn't an Apps Script link. After deploying, copy the "

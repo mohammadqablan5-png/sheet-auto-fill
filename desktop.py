@@ -242,6 +242,23 @@ def selftest() -> int:
     except Exception as e:
         problems.append(f"posts failed: {type(e).__name__}: {e}")
 
+    # A second computer joins with this code instead of re-copying the script,
+    # which would mint a new key and disconnect the first machine.
+    try:
+        import app as app_module
+
+        url = "https://script.google.com/macros/s/AKfycb-example/exec"
+        key = "k3y-with_urlsafe-chars"
+        code = app_module._make_code(url, key)
+        if not code.startswith(app_module.CODE_PREFIX):
+            problems.append("connection code lost its prefix")
+        if url in code or key in code:
+            problems.append("connection code exposes the key in plain sight")
+        if app_module._read_code(code) != (url, key):
+            problems.append("connection code did not survive a round trip")
+    except Exception as e:
+        problems.append(f"connection code failed: {type(e).__name__}: {e}")
+
     lines = ([f"SELFTEST FAIL: {p}" for p in problems] or
              ["SELFTEST OK: app, OCR engine and field mapping all load"])
     report = "\n".join(lines)
