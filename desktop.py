@@ -20,11 +20,17 @@ def _free_port() -> int:
 
 
 def _wait_until_up(port: int, timeout: float = 60.0) -> bool:
+    """Wait for the local server, using an endpoint that answers instantly.
+
+    This must not poll anything that reaches the network: /api/status calls
+    Google once a sheet is connected and takes seconds, so a short per-request
+    timeout could never succeed and a working app looked like a blocked one.
+    """
     deadline = time.time() + timeout
-    url = f"http://127.0.0.1:{port}/api/status"
+    url = f"http://127.0.0.1:{port}/api/ping"
     while time.time() < deadline:
         try:
-            with urllib.request.urlopen(url, timeout=2):
+            with urllib.request.urlopen(url, timeout=5):
                 return True
         except Exception:
             time.sleep(0.25)
@@ -258,6 +264,22 @@ def selftest() -> int:
             problems.append("connection code did not survive a round trip")
     except Exception as e:
         problems.append(f"connection code failed: {type(e).__name__}: {e}")
+
+    # Startup polls /api/ping. If it ever reaches the network, a connected
+    # sheet makes it slower than the probe allows and the app will not open.
+    try:
+        import app as app_module
+
+        with app_module.app.test_client() as client:
+            started = time.time()
+            reply = client.get("/api/ping")
+            took = time.time() - started
+        if reply.status_code != 200 or not reply.get_json().get("ok"):
+            problems.append(f"/api/ping did not answer ok ({reply.status_code})")
+        if took > 1.0:
+            problems.append(f"/api/ping took {took:.1f}s — it must not call out")
+    except Exception as e:
+        problems.append(f"/api/ping failed: {type(e).__name__}: {e}")
 
     lines = ([f"SELFTEST FAIL: {p}" for p in problems] or
              ["SELFTEST OK: app, OCR engine and field mapping all load"])

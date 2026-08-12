@@ -54,6 +54,18 @@ def index():
     return send_from_directory(app.static_folder, "index.html")
 
 
+@app.get("/api/ping")
+def ping():
+    """Liveness only — must never touch the network.
+
+    Startup waits for the local server by polling this. /api/status is not
+    usable for that: once a sheet is connected it calls Google and takes
+    several seconds, so every poll timed out and the app refused to start
+    with "could not start its local service".
+    """
+    return jsonify({"ok": True})
+
+
 @app.get("/api/status")
 def status():
     if request.args.get("recheck"):
