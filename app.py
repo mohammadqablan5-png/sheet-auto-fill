@@ -326,9 +326,18 @@ def connect_script():
 
 
 # Used only when no sheet is connected and the real headers can't be read.
+# A connected sheet always wins: tabs differ from each other, and this order
+# matches the newest tab, not every tab.
 LAYOUT_PRESETS = {
     "standard": {
-        "label": "17 columns",
+        "label": "15 columns",
+        "fields": ["job_id", "nte", "cost", "address", "city", "deadline",
+                   "company", "team_leader", "job_status", "sow", "dispatcher",
+                   "payout", "handyman", "handyman_phone", "updates"],
+    },
+    # Older tabs keep SOW second and carry an assignee pair.
+    "legacy": {
+        "label": "17 columns (older tabs)",
         "fields": ["job_id", "sow", "nte", "cost", "address", "city", "deadline",
                    "company", "team_leader", "job_status", "dispatcher", "payout",
                    "handyman", "handyman_phone", "assignee", "assignee_phone", "updates"],

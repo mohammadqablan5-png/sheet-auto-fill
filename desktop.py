@@ -196,9 +196,17 @@ def selftest() -> int:
     try:
         import app as _app
 
+        # Offline fallback only — a connected sheet's own header row wins.
+        # Mirrors the newest tab: 15 columns, SOW after Job status, no assignee.
         standard = _app.LAYOUT_PRESETS["standard"]["fields"]
-        if len(standard) != 17:
-            problems.append("default paste layout no longer matches the sheet")
+        expected = ["job_id", "nte", "cost", "address", "city", "deadline",
+                    "company", "team_leader", "job_status", "sow", "dispatcher",
+                    "payout", "handyman", "handyman_phone", "updates"]
+        if standard != expected:
+            problems.append(f"offline paste layout drifted from the sheet: {standard}")
+        for gone in ("cap", "jmg"):
+            if gone in standard:
+                problems.append(f"{gone.upper()} came back into the paste layout")
 
         import fields as _fields
 
