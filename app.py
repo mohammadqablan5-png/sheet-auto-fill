@@ -21,6 +21,7 @@ sync_asset_set(["mapping.yaml", "post_template.txt"])
 with open(ensure_external_copy("config.yaml"), encoding="utf-8") as f:
     CONFIG = yaml.safe_load(f)
 
+import companies  # noqa: E402
 import posts  # noqa: E402
 from extractors import extract_file, ocr_available, ExtractionError  # noqa: E402
 from normalize import normalize_row  # noqa: E402
@@ -52,6 +53,33 @@ def backend():
 @app.get("/")
 def index():
     return send_from_directory(app.static_folder, "index.html")
+
+
+@app.get("/api/companies")
+def companies_list():
+    return jsonify({"companies": companies.load()})
+
+
+@app.post("/api/companies")
+def companies_edit():
+    """Add or remove a dispatch company the reader should recognise."""
+    body = request.get_json(force=True) or {}
+    action = (body.get("action") or "").strip()
+    name = (body.get("name") or "").strip()
+
+    if action == "add":
+        if not name:
+            return jsonify({"error": "Type a company name first."}), 400
+        if len(name) > 60:
+            return jsonify({"error": "That name is too long."}), 400
+        names = companies.add(name)
+    elif action == "remove":
+        names = companies.remove(name)
+    elif action == "reset":
+        names = companies.save(companies.DEFAULTS)
+    else:
+        return jsonify({"error": "Unknown action."}), 400
+    return jsonify({"companies": names})
 
 
 @app.get("/api/ping")
@@ -330,10 +358,10 @@ def connect_script():
 # matches the newest tab, not every tab.
 LAYOUT_PRESETS = {
     "standard": {
-        "label": "15 columns",
+        "label": "13 columns",
         "fields": ["job_id", "nte", "cost", "address", "city", "deadline",
                    "company", "team_leader", "job_status", "sow", "dispatcher",
-                   "payout", "handyman", "handyman_phone", "updates"],
+                   "payout", "updates"],
     },
     # Older tabs keep SOW second and carry an assignee pair.
     "legacy": {

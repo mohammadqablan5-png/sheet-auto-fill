@@ -201,7 +201,7 @@ def selftest() -> int:
         standard = _app.LAYOUT_PRESETS["standard"]["fields"]
         expected = ["job_id", "nte", "cost", "address", "city", "deadline",
                     "company", "team_leader", "job_status", "sow", "dispatcher",
-                    "payout", "handyman", "handyman_phone", "updates"]
+                    "payout", "updates"]
         if standard != expected:
             problems.append(f"offline paste layout drifted from the sheet: {standard}")
         for gone in ("cap", "jmg"):
@@ -288,6 +288,27 @@ def selftest() -> int:
             problems.append(f"/api/ping took {took:.1f}s — it must not call out")
     except Exception as e:
         problems.append(f"/api/ping failed: {type(e).__name__}: {e}")
+
+    # One editable list drives the PDF reader and the Company box. It used to
+    # be two hard-coded lists that disagreed, so a new company needed a build.
+    try:
+        import companies as _co
+
+        for name in ("keystone", "SmartRide", "Kevon", "TrueCraft", "Onpoint"):
+            if name not in _co.DEFAULTS:
+                problems.append(f"{name} missing from the company defaults")
+        checks = [("awarded to KEYSTONE", "keystone"),
+                  ("Smart Ride dispatch", "SmartRide"),
+                  ("SMARTRIDE", "SmartRide"),
+                  ("no company here", None)]
+        for text, want in checks:
+            got = _co.match(text)
+            if got != want:
+                problems.append(f"company match wrong for {text!r}: {got!r} != {want!r}")
+        if _co._pattern("Kevon") and _co.match("kevonsomething") is not None:
+            problems.append("company matching runs past the end of the name")
+    except Exception as e:
+        problems.append(f"company list failed: {type(e).__name__}: {e}")
 
     lines = ([f"SELFTEST FAIL: {p}" for p in problems] or
              ["SELFTEST OK: app, OCR engine and field mapping all load"])

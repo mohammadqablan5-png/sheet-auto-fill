@@ -121,6 +121,14 @@
   .ok-t { color:var(--good); } .err-t { color:var(--bad); } .warn-t { color:var(--warn); }
   .hint { color:var(--muted); font-size:12px; }
 
+  .chips { display:flex; flex-wrap:wrap; gap:7px; }
+  .chips .c { display:inline-flex; align-items:center; gap:7px; font-size:12.5px;
+              background:var(--surface-2); border:1px solid var(--border);
+              border-radius:99px; padding:4px 6px 4px 12px; }
+  .chips .c button { background:none; border:0; color:var(--muted); cursor:pointer;
+                     padding:0 4px; font-size:14px; line-height:1; border-radius:99px; }
+  .chips .c button:hover { color:var(--bad); }
+
   /* output tabs */
   .otabs { display:flex; gap:4px; border-bottom:1px solid var(--border); margin-bottom:14px; }
   .otabs button { background:none; border:0; border-bottom:2px solid transparent; border-radius:0;
@@ -188,7 +196,9 @@
     <div class="row" style="margin-top:14px">
       <div><label class="small">Write into tab</label>
         <select id="tabSelect"><option value="latest">Latest tab</option></select></div>
-      <div><label class="small">Company</label><input id="d_company" placeholder="keystone" style="width:130px"></div>
+      <div><label class="small">Company</label>
+        <input id="d_company" list="companyList" placeholder="keystone" style="width:130px">
+        <datalist id="companyList"></datalist></div>
       <div><label class="small">Team leader</label><input id="d_team_leader" placeholder="Nick" style="width:120px"></div>
       <div><label class="small">Dispatcher</label><input id="d_dispatcher" placeholder="Adam" style="width:120px"></div>
       <div><label class="small">Job status</label><input id="d_job_status" placeholder="Secured" style="width:120px"></div>
@@ -277,6 +287,19 @@
           <div class="sw" data-accent="slate"  style="background:#41556e" title="Slate"></div>
         </div>
       </div>
+    </div>
+
+    <div class="setsec">
+      <h3>Companies</h3>
+      <p class="hint" style="margin:0 0 10px">Names the reader looks for in a PDF, and the
+        list the Company box offers. Add new ones as you take them on.</p>
+      <div id="companyChips" class="chips"></div>
+      <div class="row" style="margin-top:10px">
+        <input id="newCompany" placeholder="New company name" style="width:190px">
+        <button id="addCompanyBtn" class="primary">Add</button>
+        <button id="resetCompaniesBtn" class="tiny">Reset to defaults</button>
+      </div>
+      <div id="companyMsg" class="hint" style="margin-top:8px"></div>
     </div>
 
     <div class="setsec">

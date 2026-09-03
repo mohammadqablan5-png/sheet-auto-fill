@@ -228,6 +228,55 @@ $('viewScriptBtn').onclick = async () => {
   $('scriptText').value = await getScript(); $('scriptDlg').showModal();
 };
 
+/* ========================== companies =========================== */
+// One editable list feeds both the PDF reader and the Company box, so a new
+// company is added once and recognised everywhere.
+
+async function renderCompanies(names) {
+  const box = $('companyChips');
+  box.innerHTML = names.map(n =>
+    `<span class="c">${esc(n)}<button title="Remove ${esc(n)}" ` +
+    `data-name="${esc(n)}">×</button></span>`).join('');
+  box.querySelectorAll('button').forEach(b => {
+    b.onclick = () => companyAction('remove', b.dataset.name);
+  });
+
+  const list = $('companyList');
+  if (list) list.innerHTML = names.map(n => `<option value="${esc(n)}">`).join('');
+}
+
+async function loadCompanies() {
+  try {
+    const res = await (await fetch('/api/companies')).json();
+    await renderCompanies(res.companies || []);
+  } catch { /* the list is optional; the Company box still accepts free text */ }
+}
+
+async function companyAction(action, name) {
+  const msg = $('companyMsg');
+  const res = await (await fetch('/api/companies', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, name })
+  })).json();
+  if (res.error) { msg.innerHTML = `<span class="err-t">${esc(res.error)}</span>`; return; }
+  await renderCompanies(res.companies || []);
+  msg.innerHTML = action === 'add'
+    ? `<span class="ok-t">✔ “${esc(name)}” added — PDFs naming it will fill Company automatically.</span>`
+    : action === 'remove' ? `Removed “${esc(name)}”.` : 'Reset to the built-in list.';
+}
+
+$('addCompanyBtn').onclick = () => {
+  const el = $('newCompany');
+  const name = el.value.trim();
+  if (!name) { $('companyMsg').innerHTML = 'Type a name first.'; return; }
+  el.value = '';
+  companyAction('add', name);
+};
+$('newCompany').onkeydown = e => { if (e.key === 'Enter') $('addCompanyBtn').click(); };
+$('resetCompaniesBtn').onclick = () => companyAction('reset', '');
+
+loadCompanies();
+
 $('copyCodeBtn').onclick = async () => {
   const msg = $('codeMsg');
   const res = await (await fetch('/api/connect/code')).json();

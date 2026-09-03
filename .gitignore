@@ -5,6 +5,9 @@ connection.json
 **/connection.json
 .env
 mac.zip
+# The user's own company list, written at runtime
+companies.json
+**/companies.json
 # Generated copy of the Apps Script with the key already substituted in
 PASTE-THIS-INTO-APPS-SCRIPT.gs
 

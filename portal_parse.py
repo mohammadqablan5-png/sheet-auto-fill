@@ -9,6 +9,7 @@ number starts a new job.
 """
 import re
 
+import companies
 from fields import FIELD_ORDER
 
 # ------------------------------------------------------------------ helpers
@@ -24,12 +25,7 @@ CITY_ST_ZIP_RE = re.compile(r"([A-Za-z][A-Za-z .'\-]{2,}),\s*([A-Z]{2})\.?\s+(\d
 STATUSES = ["on hold", "completed", "complete", "secured", "in progress", "scheduled",
             "cancelled", "canceled", "dispatched", "open", "assigned", "pending"]
 
-PLATFORM_PATTERNS = [
-    (r"keystone", "keystone"),
-    (r"smart\s*ride", "SmartRide"),
-    (r"\bapex\b", "apex"),
-    (r"\bjous\b", "jous"),
-]
+# Company names come from companies.py, which the user can edit in Options.
 
 
 def _norm(s: str) -> str:
@@ -586,10 +582,9 @@ def parse_page(boxes: list) -> dict:
             break
 
     # --- dispatch platform (appears in the timeline, e.g. "KEYSTONE ... awarded")
-    for pat, name in PLATFORM_PATTERNS:
-        if re.search(pat, low):
-            found["company"] = name
-            break
+    name = companies.match(low)
+    if name:
+        found["company"] = name
 
     # --- tell the user when the PDF itself is incomplete, rather than leaving a
     #     silent blank that looks like the reader failed

@@ -11,6 +11,7 @@ import io
 import re
 import statistics
 
+import companies
 from fields import FIELD_ORDER
 
 # ------------------------------------------------------------------ PDF text
@@ -136,8 +137,8 @@ DATE_RE = re.compile(
     r"|\d{1,2}/\d{1,2}/\d{2,4}"
     r"|\d{4}-\d{2}-\d{2})\b", re.I)
 
-PLATFORMS = ["apex", "keystone", "smartride", "jous", "servicechannel", "corrigo",
-             "fexa", "ecotrak", "facilitysource", "sms assist", "lightning"]
+# Company names live in companies.py so the user can add their own without
+# a code change; see the Companies section in Options.
 
 # label -> canonical field. Longest labels first so "nte date" beats "nte".
 LABELS = [
@@ -289,10 +290,9 @@ def _parse_one(segment: str) -> dict:
     # dispatch platform
     low = text.lower()
     if not job.get("company"):
-        for p in PLATFORMS:
-            if p in low:
-                job["company"] = p
-                break
+        name = companies.match(low)
+        if name:
+            job["company"] = name
 
     # scope of work — trim to something readable
     if job.get("sow"):
