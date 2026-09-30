@@ -35,6 +35,72 @@ internal class Studio : Form
 		web.CoreWebView2.PostWebMessageAsJson(json.Serialize(value));
 	}
 
+	private static string DefaultSaveRoot()
+	{
+		return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Dashboard Calculator", "Saved Dumps");
+	}
+
+	private static string SettingsPath()
+	{
+		return Path.Combine(Path.GetDirectoryName(Program.Root) ?? Program.Root, "settings.json");
+	}
+
+	private string ConfiguredSaveFolder()
+	{
+		try
+		{
+			if (File.Exists(SettingsPath()))
+			{
+				Dictionary<string, string> dictionary = json.Deserialize<Dictionary<string, string>>(File.ReadAllText(SettingsPath()));
+				string value;
+				if (dictionary != null && dictionary.TryGetValue("saveFolder", out value) && !string.IsNullOrWhiteSpace(value))
+				{
+					return value;
+				}
+			}
+		}
+		catch (Exception)
+		{
+		}
+		return "";
+	}
+
+	private string SaveRoot()
+	{
+		string text = ConfiguredSaveFolder();
+		if (text.Length > 0)
+		{
+			try
+			{
+				Directory.CreateDirectory(text);
+				return text;
+			}
+			catch (Exception)
+			{
+			}
+		}
+		return DefaultSaveRoot();
+	}
+
+	private void StoreSaveFolder(string path)
+	{
+		Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath()));
+		File.WriteAllText(SettingsPath(), json.Serialize(new Dictionary<string, string> { { "saveFolder", path } }));
+	}
+
+	private void SendSettings(bool changed, string message)
+	{
+		string text = SaveRoot();
+		Send(new
+		{
+			type = "settings",
+			saveFolder = text,
+			isDefault = string.Equals(text, DefaultSaveRoot(), StringComparison.OrdinalIgnoreCase),
+			changed = changed,
+			message = message
+		});
+	}
+
 	private static string HistoryPath()
 	{
 		return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Dashboard Calculator", "Operation History.csv");
@@ -353,7 +419,54 @@ internal class Studio : Form
 				await ExportHistoryPdf(msg);
 				return;
 			}
-			string root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Dashboard Calculator", "Saved Dumps");
+			if (action == "getSettings")
+			{
+				SendSettings(changed: false, message: "");
+				return;
+			}
+			if (action == "resetFolder")
+			{
+				StoreSaveFolder("");
+				SendSettings(changed: true, message: "Using the default folder.");
+				return;
+			}
+			if (action == "chooseFolder")
+			{
+				using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog())
+				{
+					folderBrowserDialog.Description = "Choose the folder where modified dumps are saved";
+					folderBrowserDialog.ShowNewFolderButton = true;
+					string current = SaveRoot();
+					if (Directory.Exists(current))
+					{
+						folderBrowserDialog.SelectedPath = current;
+					}
+					if (folderBrowserDialog.ShowDialog(this) == DialogResult.OK)
+					{
+						string chosen = folderBrowserDialog.SelectedPath;
+						try
+						{
+							Directory.CreateDirectory(chosen);
+							string probe = Path.Combine(chosen, ".write-test-" + Guid.NewGuid().ToString("N"));
+							File.WriteAllText(probe, "x");
+							File.Delete(probe);
+						}
+						catch (Exception ex4)
+						{
+							Send(new
+							{
+								type = "settingsError",
+								message = "This folder is not writable: " + ex4.Message
+							});
+							return;
+						}
+						StoreSaveFolder(chosen);
+						SendSettings(changed: true, message: "Save folder updated.");
+					}
+				}
+				return;
+			}
+			string root = SaveRoot();
 			if (action == "listSaved")
 			{
 				savedFiles.Clear();
@@ -505,7 +618,7 @@ internal class Studio : Form
 						vehicle = "Isuzu D-MAX";
 						text = text.Substring("DC_ISUZU__".Length);
 					}
-					string text2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Dashboard Calculator", "Saved Dumps", vehicle);
+					string text2 = Path.Combine(SaveRoot(), vehicle);
 					Directory.CreateDirectory(text2);
 					SaveFileDialog val = new SaveFileDialog();
 					try
