@@ -88,6 +88,11 @@ html,body{height:100%;overflow:hidden!important}.dashboard-container{height:calc
                     <span class="input-group-text">KM</span>
                 </div>
 
+                <div class="input-group mb-3">
+                    <input type="number" class="form-control" id="priceInput" placeholder="Price" min="0" step="0.01">
+                    <span class="input-group-text">$</span>
+                </div>
+
                 <div class="d-grid gap-2 mb-3">
                     <button class="btn btn-primary" onclick="handleApply()">Apply Mileage</button>
                     <button class="btn btn-success" onclick="saveFile()" id="saveBtn" disabled>Save Dump As…</button>
@@ -280,6 +285,6 @@ const editLog=[];function recordEdit(kind,before,after,details){const changes=[]
 let loggedBytes=null;const loggedLoad=handleFile;handleFile=function(file){editLog.length=0;loggedBytes=null;recordEdit('OPEN',null,null,{file:file.name,size:file.size});return loggedLoad(file)};
 const loggedHexRender=updateHexViewer;updateHexViewer=function(){if(currentFileData){if(loggedBytes)recordEdit('HEX_OR_MILEAGE',loggedBytes,currentFileData,{oldKm:readCurrentMileage(loggedBytes),newKm:readCurrentMileage(currentFileData)});loggedBytes=currentFileData.slice();}return loggedHexRender()};
 
-const originalAnchorClick=HTMLAnchorElement.prototype.click;HTMLAnchorElement.prototype.click=function(){if(this.download&&this.download.endsWith('.bin')&&parent!==window){const entries=editLog.filter(e=>e.operation==='OPEN'||e.changedBytes>0);parent.postMessage({action:'auditSave',name:this.download,entries:entries},location.origin);}return originalAnchorClick.call(this)};
+const originalAnchorClick=HTMLAnchorElement.prototype.click;HTMLAnchorElement.prototype.click=function(){if(this.download&&this.download.endsWith('.bin')&&parent!==window){const entries=editLog.filter(e=>e.operation==='OPEN'||e.changedBytes>0);parent.postMessage({action:'auditSave',name:this.download,entries:entries,price:(document.getElementById('priceInput')?.value||'')},location.origin);}return originalAnchorClick.call(this)};
 </script></body>
-</html>
+</html>
