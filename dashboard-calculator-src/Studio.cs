@@ -534,7 +534,7 @@ internal class Studio : Form
 			{
 				savedFiles.Clear();
 				List<object> list2 = new List<object>();
-				string[] array = new string[2] { "Ford F150", "Isuzu D-MAX" };
+				string[] array = new string[3] { "Ford F150", "Isuzu D-MAX", "Toyota" };
 				foreach (string text in array)
 				{
 					string path2 = Path.Combine(root, text);
@@ -586,7 +586,7 @@ internal class Studio : Form
 				{
 					type = "savedFile",
 					name = fileInfo.Name,
-					profile = ((fileInfo.Directory.Name == "Ford F150") ? "ford" : "isuzu"),
+					profile = ((fileInfo.Directory.Name == "Ford F150") ? "ford" : ((fileInfo.Directory.Name == "Toyota") ? "toyota" : "isuzu")),
 					data = Convert.ToBase64String(File.ReadAllBytes(path))
 				});
 			}
@@ -670,6 +670,11 @@ internal class Studio : Form
 						vehicle = "Ford F150";
 						text = text.Substring("DC_FORD__".Length);
 					}
+					else if (text.StartsWith("DC_TOYOTA__", StringComparison.Ordinal))
+					{
+						vehicle = "Toyota";
+						text = text.Substring("DC_TOYOTA__".Length);
+					}
 					else
 					{
 						if (!text.StartsWith("DC_ISUZU__", StringComparison.Ordinal))
@@ -683,7 +688,7 @@ internal class Studio : Form
 					}
 					string text2 = Path.Combine(SaveRoot(), vehicle);
 					Directory.CreateDirectory(text2);
-					ApplyFolderIcon(text2, (vehicle == "Ford F150") ? "ford.ico" : "isuzu.ico");
+					ApplyFolderIcon(text2, (vehicle == "Ford F150") ? "ford.ico" : ((vehicle == "Toyota") ? "toyota.ico" : "isuzu.ico"));
 					SaveFileDialog val = new SaveFileDialog();
 					try
 					{

@@ -22,6 +22,7 @@
     <EmbeddedResource Include="dashboard.ico" LogicalName="dashboard.ico" />
     <EmbeddedResource Include="saved.ico" LogicalName="saved.ico" />
     <EmbeddedResource Include="isuzu.ico" LogicalName="isuzu.ico" />
+    <EmbeddedResource Include="toyota.ico" LogicalName="toyota.ico" />
     <EmbeddedResource Include="editor.html" LogicalName="editor.html" />
   </ItemGroup>
   <ItemGroup>
