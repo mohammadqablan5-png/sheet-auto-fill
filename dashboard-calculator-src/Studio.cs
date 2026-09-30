@@ -440,7 +440,6 @@ internal class Studio : Form
 		JavaScriptSerializer val2 = new JavaScriptSerializer();
 		val2.MaxJsonLength = 25000000;
 		json = val2;
-		((Form)this)._002Ector();
 		test = selftest;
 		((Control)this).Text = "Dashboard Calculator | Ford F150 + Isuzu D-MAX";
 		((Control)this).Width = 1440;
