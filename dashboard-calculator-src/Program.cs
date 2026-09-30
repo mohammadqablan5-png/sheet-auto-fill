@@ -24,7 +24,7 @@ internal static class Program
 				Root = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../work/desktop/test-runtime");
 			}
 			Directory.CreateDirectory(Root);
-			string[] array = new string[7] { "index.html", "ford.html", "isuzu.html", "theme.css", "Microsoft.Web.WebView2.Core.dll", "Microsoft.Web.WebView2.WinForms.dll", "WebView2Loader.dll" };
+			string[] array = new string[6] { "index.html", "ford.html", "isuzu.html", "Microsoft.Web.WebView2.Core.dll", "Microsoft.Web.WebView2.WinForms.dll", "WebView2Loader.dll" };
 			foreach (string text in array)
 			{
 				using Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(text);

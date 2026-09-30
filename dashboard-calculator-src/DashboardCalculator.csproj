@@ -15,11 +15,10 @@
     <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="index.html;ford.html;isuzu.html;theme.css" />
+    <None Remove="index.html;ford.html;isuzu.html" />
     <EmbeddedResource Include="index.html" LogicalName="index.html" />
     <EmbeddedResource Include="ford.html" LogicalName="ford.html" />
     <EmbeddedResource Include="isuzu.html" LogicalName="isuzu.html" />
-    <EmbeddedResource Include="theme.css" LogicalName="theme.css" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2151.40" />
