@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Instrument Cluster EEPROM Editor</title>
+<style>
+*{box-sizing:border-box}body{font:16px/1.5 Arial,sans-serif;color:#212529;background:white;margin:0}.dashboard-container{max-width:900px;margin:2rem auto;padding:24px;background:#f8f9fa;border-radius:10px;box-shadow:0 0 20px #00000018}h2{text-align:center;font-size:26px;font-weight:500;margin:0 0 24px}.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}.file-drop-area{border:2px dashed #ccc;padding:25px 15px;text-align:center;background:#fff;cursor:pointer;margin-bottom:18px}.file-drop-area.dragover{border-color:#0d6efd;background:#f0f8ff}.file-drop-area span{color:#0d6efd}.file-drop-area p{margin:0}button,input{font:inherit}button{cursor:pointer;padding:9px 12px;border:1px solid #ced4da;border-radius:5px;background:white;color:#212529}button:disabled{opacity:.5;cursor:not-allowed}.primary{background:#0d6efd;border-color:#0d6efd;color:#fff}.success{background:#198754;border-color:#198754;color:#fff}.buttons{display:grid;gap:10px;margin-top:14px}.input-group{display:flex;margin:8px 0 14px}.input-group input{min-width:0;width:100%;padding:9px;border:1px solid #ced4da;border-radius:5px 0 0 5px}.input-group span{padding:9px;background:#e9ecef;border:1px solid #ced4da;border-left:0;border-radius:0 5px 5px 0}.reading{background:white;border:1px solid #ddd;padding:12px;margin-bottom:16px;border-radius:5px}.reading small{display:block;color:#6c757d;font-size:13px}#km{font-size:23px;overflow-wrap:anywhere;margin:5px 0}#messageArea{padding:10px;border-radius:5px;margin:14px 0;font-size:14px;background:#e7f1ff;color:#084298;overflow-wrap:anywhere}#messageArea.error{background:#f8d7da;color:#842029}.hint{font-size:13px;color:#6c757d;margin:8px 0}.hex-viewer{font-family:Consolas,monospace;background:white;border:1px solid #ddd;height:380px;overflow:auto}.hex-viewer table{border-collapse:collapse;white-space:nowrap;width:100%;font-size:13px}.hex-viewer td,.hex-viewer th{padding:3px;text-align:center}.hex-viewer th{position:sticky;top:0;background:#e9ecef;color:#495057}.offset{color:#666;padding:5px 8px!important}.ascii{text-align:left!important;color:#777;padding:5px 8px!important}.byte{font:13px Consolas,monospace;min-width:23px;border:0;border-radius:2px;padding:3px 1px;background:transparent}.byte.km{background:#d1e7dd;color:#0f5132}.byte.modified{background:#fff3cd;color:#664d03;box-shadow:inset 0 -2px #ffc107}.byte.selected{outline:2px solid #0d6efd;outline-offset:-1px}.toolbar,.pager,.byte-edit{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:10px 0;font-size:13px}.toolbar{margin-top:0}.toolbar input{width:100px;padding:5px;border:1px solid #ced4da;border-radius:4px}.toolbar button,.pager button,.byte-edit button{font-size:13px;padding:5px 10px}.pager{justify-content:space-between}.byte-edit{border-top:1px solid #ddd;padding-top:12px}.byte-edit input{width:55px;padding:5px;border:1px solid #ced4da}#selected{flex-basis:100%;color:#666}.file-info{font-size:13px;color:#6c757d;overflow-wrap:anywhere;margin:16px 0}details{margin-top:20px;border-top:1px solid #ddd;padding-top:12px;font-size:14px}summary{cursor:pointer}.diff-wrap{max-height:240px;overflow:auto;margin-top:10px}.diff-wrap table{width:100%;border-collapse:collapse;font:13px Consolas,monospace}.diff-wrap th,.diff-wrap td{text-align:left;padding:6px;border-bottom:1px solid #ddd}.legend{font-size:12px;color:#666;text-align:right}.legend span{padding:2px 6px;margin-left:8px}.legend .km{background:#d1e7dd}.legend .modified{background:#fff3cd}button:focus-visible,input:focus-visible,.file-drop-area:focus-visible{outline:2px solid #0d6efd;outline-offset:2px}@media(max-width:800px){.dashboard-container{margin:12px;padding:18px}.row{grid-template-columns:1fr}.hex-viewer{height:330px}}
+.ford-logo{display:block;width:150px;height:auto;max-width:100%;margin:0 auto 16px}
+</style><style>
+:root{color-scheme:dark}body{background:#09121f!important;color:#dceafa!important;font-family:Segoe UI,Arial!important}.dashboard-container{max-width:1500px!important;background:#101e30!important;box-shadow:none!important;border:1px solid #233951;margin:18px auto!important;padding:24px!important}h2{font-size:23px!important;color:#edf7ff}.row{display:grid!important;grid-template-columns:minmax(270px,0.8fr) minmax(600px,1.6fr)!important;gap:24px!important}.row>*{width:auto!important;min-width:0}.reading,.file-drop-area,.hex-viewer{background:#091523!important;border-color:#294764!important;color:#d8ebff!important}.file-drop-area{border-radius:10px;padding:30px 18px!important}.hex-viewer{height:480px!important;max-height:65vh!important;overflow:auto!important;padding:8px!important}.hex-viewer th{background:#19314b!important;color:#8cbbd9!important}.byte{color:#d0e6f8!important;font-size:14px!important;min-width:26px!important}.byte.km{background:#12414b!important;color:#55e5ed!important}.byte.modified{background:#553a15!important;color:#ffd58a!important}.offset,.hex-address{color:#58b9eb!important}.ascii{color:#6c91ae!important}input{background:#0a1728!important;color:#eef9ff!important;border-color:#34516d!important}button,.btn{border-radius:7px!important}button:not(.byte){background:#17334d;color:#d8efff;border-color:#315370}.primary,.btn-primary{background:#0086c2!important;border-color:#19b9ef!important;color:white!important}.success,.btn-success{background:#116950!important;color:white!important}.input-group span{background:#21394f!important;color:#9bc1da;border-color:#34516d!important}.hint,small,.file-info,.legend,#selected{color:#91abc2!important}#messageArea{background:#17344c!important;color:#bbdef5!important}#messageArea.error{background:#552432!important;color:#ffd5df!important}.hex-row{flex-wrap:nowrap!important;font:14px Consolas,monospace;line-height:2}.hex-data{flex-wrap:nowrap!important}.hex-byte{min-width:29px}.info-panel{color:#93adc3}details,.byte-edit{border-color:#2d4660!important}#km{font-size:30px;color:#53d8ff} @media(max-width:1080px){.row{grid-template-columns:1fr!important}}
+</style><style>
+body{background:#0c1015!important;color:#e3e7eb!important}.dashboard-container{background:#171d25!important;border-color:#343d47!important}.reading,.file-drop-area,.hex-viewer{background:#0f141b!important;border-color:#3a444f!important;color:#e2e7ed!important}h2,#km{color:#f1f3f5!important}.primary,.btn-primary{background:#dc2632!important;border-color:#f84650!important}.success,.btn-success{background:#35414d!important;border-color:#657382!important}input{background:#10161d!important;border-color:#47525f!important;color:#f5f6f7!important}.hint,small,.file-info,.legend,#selected,.info-panel{color:#a1adbb!important}#messageArea{background:#252e38!important;color:#dde5ed!important}.toolbar button,button:not(.byte){background:#29333f;color:#e4e8ed;border-color:#4a5665}.input-group span{background:#2a333d!important;color:#c3cbd4!important}.hex-viewer{padding:0!important;height:420px!important;max-height:none!important}.shared-row{display:grid;grid-template-columns:70px repeat(16,28px) 160px;align-items:center;min-width:690px;min-height:30px;font:13px Consolas,monospace;border-bottom:1px solid #ffffff06;padding:0 10px}.shared-row:nth-child(even){background:#ffffff03}.shared-row .offset{color:#8995a5!important;padding:0!important}.shared-byte{padding:4px 0!important;border:0!important;border-radius:3px!important;background:transparent!important;color:#d9e1ea!important;font:13px Consolas,monospace!important;cursor:pointer}.shared-byte:hover,.shared-byte.selected{background:#454f5e!important;outline:1px solid #9ba8b8}.shared-byte.changed{background:#682d35!important;color:#ffd0d4!important}.shared-byte.km{box-shadow:inset 0 -2px #df4451}.shared-ascii{white-space:pre;color:#808d9e;margin-left:14px}.shared-head{position:sticky;top:0;background:#28323e!important;color:#9eacbe;z-index:2;font-size:12px}.shared-controls{display:flex;gap:12px;align-items:center;justify-content:space-between;font:12px Consolas,monospace;padding:10px 0;color:#a8b6c5}.shared-controls button{padding:5px 12px}.shared-caption{font:12px Segoe UI;color:#98a6b5;margin:8px 0}.pager{display:none!important}.row{grid-template-columns:minmax(260px,.75fr) minmax(710px,1.5fr)!important}@media(max-width:1150px){.row{grid-template-columns:1fr!important}}
+</style><style>body{background:#f0f2f5!important;color:#27323f!important;color-scheme:light}.dashboard-container{max-width:1600px!important;background:white!important;border:1px solid #d5dce4!important;border-radius:5px!important;padding:20px!important;margin:14px!important}h2{color:#303c4a!important;font-size:20px!important}.dashboard-container>img{max-width:96px!important;margin:0 auto 10px!important}.reading,.file-drop-area,.hex-viewer{background:#f9fafc!important;border-color:#c8d2dd!important;color:#273440!important}.file-drop-area{padding:20px!important;border-radius:4px!important}.row{gap:20px!important}.hint,small,.file-info,.legend,#selected,.info-panel{color:#657487!important}#km{color:#263c51!important;font-size:27px!important}input{background:white!important;color:#263544!important;border-color:#bcc9d6!important}.input-group span{background:#e9edf2!important;color:#526478!important;border-color:#bcc9d6!important}button:not(.shared-byte):not(.byte){background:#edf1f5;color:#314356;border-color:#bdc9d6;border-radius:4px!important}.primary,.btn-primary{background:#345f87!important;color:white!important;border-color:#345f87!important}.success,.btn-success{background:#386b56!important;color:white!important;border-color:#386b56!important}#messageArea{background:#edf2f7!important;color:#405c78!important}#messageArea.error{background:#fbe5e7!important;color:#912c38!important}.shared-row{border-bottom:1px solid #edf0f4;background:white!important}.shared-row:nth-child(even){background:#f7f9fb!important}.shared-head{background:#e6ebf1!important;color:#617289}.shared-row .offset{color:#6c7c90!important}.shared-byte{color:#25384b!important}.shared-byte:hover,.shared-byte.selected{background:#d9e7f4!important;outline-color:#6b90b3}.shared-byte.changed{background:#ffe2bb!important;color:#814d13!important}.shared-byte.km{box-shadow:inset 0 -2px #659882}.shared-ascii{color:#8a96a4}.shared-controls,.shared-caption{color:#65768a}.hex-viewer{height:440px!important}details,.byte-edit{border-color:#d2dbe5!important}.ascii{color:#8190a2!important}</style><style>body{background:#f4f6fa!important;font-family:Segoe UI,Arial!important}.dashboard-container{background:white!important;border:0!important;border-radius:14px!important;box-shadow:0 4px 24px #2f3f5507!important;padding:26px!important;margin:20px!important}h2{font-size:21px!important;letter-spacing:-.5px;color:#27334a!important}.row{gap:26px!important}.reading{background:#f4f3fd!important;border:1px solid #e8e4fa!important;border-radius:12px!important;padding:19px!important}#km{color:#6252c8!important;font-size:32px!important}.file-drop-area{background:#fafbfe!important;border:1px dashed #bfc7d9!important;border-radius:12px!important;padding:26px 18px!important}.primary,.btn-primary{background:#7364df!important;border-color:#7364df!important;color:white!important}.success,.btn-success{background:#22394b!important;border-color:#22394b!important;color:white!important}button:not(.shared-byte){border-radius:8px!important}.buttons{gap:10px!important}input{border-radius:8px!important;padding:11px!important;border-color:#dce2ec!important}.hint,small,.file-info,.legend,#selected,.info-panel{color:#8591a5!important}#messageArea{background:#f3f5fa!important;color:#64728a!important;border-radius:10px!important;padding:13px!important}.hex-viewer{border:1px solid #e0e5ed!important;border-radius:10px!important;height:490px!important}.shared-head{background:#eef1f7!important;color:#8893a5!important}.shared-row{min-height:29px;border-color:#f0f3f7!important}.shared-byte{color:#42516a!important}.shared-byte:hover,.shared-byte.selected{background:#ebe7ff!important;outline-color:#b4a7f3}.shared-byte.changed{background:#ffeed0!important;color:#987232!important}.shared-byte.km{box-shadow:inset 0 -2px #9d8bde}.shared-controls{padding:14px 0!important;color:#8b97a9!important}.shared-controls button{background:#f2f4f9!important;border-color:#e3e7ef!important;color:#566680!important}.shared-ascii{color:#9eabba!important}.toolbar{gap:8px!important}details{border-color:#e9edf4!important}summary{color:#5e6b83!important}</style><style>body{background:#f4f6f5!important}.dashboard-container{box-shadow:0 2px 16px #182c3705!important;border:1px solid #e3eae6!important}h2{color:#182c37!important}.reading{background:#f0f6f2!important;border-color:#deebe2!important}#km{color:#238779!important}.primary,.btn-primary{background:#238779!important;border-color:#238779!important}.success,.btn-success{background:#182c37!important;border-color:#182c37!important}.file-drop-area{background:#fafcfb!important;border-color:#c2d3c9!important}.hex-viewer{border-color:#dfe8e2!important}.shared-head{background:#edf3ef!important;color:#789285!important}.shared-byte{color:#29483b!important}.shared-byte:hover,.shared-byte.selected{background:#e0efe5!important;outline-color:#7eae97}.shared-byte.km{box-shadow:inset 0 -2px #238779}.shared-row:nth-child(even){background:#f8faf9!important}.shared-controls button{background:#f1f5f2!important;border-color:#dce6df!important;color:#50705f!important}#messageArea{background:#f2f6f3!important;color:#688172!important}input{border-color:#d8e3dc!important}.hint,small,.file-info,.legend,#selected,.info-panel{color:#7a9084!important}</style><style>.shared-byte:focus{outline:2px solid #238779!important;outline-offset:-1px;background:#e0efe5!important}.shared-byte.editing{background:#fff0be!important;color:#775919!important}</style><style>
+html,body{height:100%;overflow:hidden!important}.dashboard-container{height:calc(100vh - 16px)!important;max-height:calc(100vh - 16px);margin:8px!important;padding:12px 16px!important;display:flex;flex-direction:column;overflow:hidden}.dashboard-container>img{max-width:68px!important;height:26px!important;object-fit:contain;margin:0 auto 3px!important}.dashboard-container>h2{font-size:16px!important;margin:0 0 10px!important}.row{display:grid!important;grid-template-columns:minmax(245px,0.65fr) minmax(0,1.6fr)!important;gap:16px!important;flex:1;min-height:0;margin:0!important}.row>section,.row>.col-md-6{min-height:0;min-width:0;width:auto!important;display:flex;flex-direction:column;padding:0!important}.hex-viewer{height:auto!important;min-height:100px!important;max-height:none!important;flex:1;overflow:auto!important}.file-drop-area{padding:12px!important;margin-bottom:10px!important}.reading{padding:10px!important;margin-bottom:8px!important}#km{font-size:24px!important;margin:2px 0!important}h2{line-height:1.25!important}.input-group{margin:4px 0 8px!important}input{padding:6px 8px!important}.buttons{gap:6px!important;margin-top:8px!important}button:not(.shared-byte){padding:6px 10px!important;font-size:12px!important}#messageArea{padding:7px!important;margin:8px 0!important;font-size:11px!important;max-height:60px;overflow:auto}.hint,.file-info,.info-panel,small{font-size:11px!important;line-height:1.35!important}.hint{margin:4px 0!important}.file-info{margin:6px 0!important}.info-panel{display:none}.toolbar,.byte-edit,.shared-controls{margin:4px 0!important;padding:5px 0!important;font-size:11px!important}.shared-controls{flex-shrink:0}.byte-edit{gap:5px!important}.legend{font-size:10px!important}.shared-row{min-height:25px!important;grid-template-columns:62px repeat(16,24px) 150px!important;min-width:600px!important}.shared-byte{font-size:12px!important;padding:3px 0!important}.shared-ascii{font-size:12px!important}.dashboard-container>details{flex-shrink:0;margin-top:5px!important;padding-top:5px!important;font-size:12px!important}.dashboard-container>details[open]{max-height:26vh;overflow:auto}.diff-wrap{max-height:16vh!important}@media(max-height:750px){.dashboard-container>img{display:none!important}#readState{max-height:30px;overflow:auto}.file-drop-area{padding:8px!important}.reading{padding:7px!important}#writeState{max-height:45px;overflow:auto}.dashboard-container>h2{font-size:14px!important;margin-bottom:6px!important}}
+</style><style>.sar{display:inline-block;width:.9em;height:1em;vertical-align:-.12em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1124.14 1256.39%22 fill=%22black%22%3E%3Cpath d=%22M699.62%2C1113.02h0c-20.06%2C44.48-33.32%2C92.75-38.4%2C143.37l424.51-90.24c20.06-44.47%2C33.31-92.75%2C38.4-143.37l-424.51%2C90.24Z%22/%3E%3Cpath d=%22M1085.73%2C895.8c20.06-44.47%2C33.32-92.75%2C38.4-143.37l-330.68%2C70.33v-135.2l292.27-62.11c20.06-44.47%2C33.32-92.75%2C38.4-143.37l-330.68%2C70.27V66.13c-50.67%2C28.45-95.67%2C66.32-132.25%2C110.99v403.35l-132.25%2C28.11V0c-50.67%2C28.44-95.67%2C66.32-132.25%2C110.99v525.69l-295.91%2C62.88c-20.06%2C44.47-33.33%2C92.75-38.42%2C143.37l334.33-71.05v170.26l-358.3%2C76.14c-20.06%2C44.47-33.32%2C92.75-38.4%2C143.37l375.04-79.7c30.53-6.35%2C56.77-24.4%2C73.83-49.24l68.78-101.97v-.02c7.14-10.55%2C11.3-23.27%2C11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1124.14 1256.39%22 fill=%22black%22%3E%3Cpath d=%22M699.62%2C1113.02h0c-20.06%2C44.48-33.32%2C92.75-38.4%2C143.37l424.51-90.24c20.06-44.47%2C33.31-92.75%2C38.4-143.37l-424.51%2C90.24Z%22/%3E%3Cpath d=%22M1085.73%2C895.8c20.06-44.47%2C33.32-92.75%2C38.4-143.37l-330.68%2C70.33v-135.2l292.27-62.11c20.06-44.47%2C33.32-92.75%2C38.4-143.37l-330.68%2C70.27V66.13c-50.67%2C28.45-95.67%2C66.32-132.25%2C110.99v403.35l-132.25%2C28.11V0c-50.67%2C28.44-95.67%2C66.32-132.25%2C110.99v525.69l-295.91%2C62.88c-20.06%2C44.47-33.33%2C92.75-38.42%2C143.37l334.33-71.05v170.26l-358.3%2C76.14c-20.06%2C44.47-33.32%2C92.75-38.4%2C143.37l375.04-79.7c30.53-6.35%2C56.77-24.4%2C73.83-49.24l68.78-101.97v-.02c7.14-10.55%2C11.3-23.27%2C11.3-36.97v-149.98l132.25-28.11v270.4l424.53-90.28Z%22/%3E%3C/svg%3E") center/contain no-repeat}.input-group .sar,.input-group-text .sar{font-size:1.3em;vertical-align:middle}</style>
+<style>
+.toolbar{flex-wrap:wrap}
+.toolbar input#find{width:190px;font-family:Consolas,monospace}
+.tool-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+#inspector{display:flex;flex-wrap:wrap;gap:6px 22px;background:#f6f9f8;border:1px solid #dfe8e5;border-radius:8px;padding:9px 14px;font:12px Consolas,monospace;color:#4a625c;margin:10px 0}
+#inspector[hidden]{display:none}
+#inspector b{color:#1b2f3d;font-weight:700}
+.shared-byte.match{outline:2px solid #e39b00!important;background:#fff1cc!important;color:#664d03!important}
+.shared-ascii span{cursor:pointer;border-radius:2px}
+.shared-ascii span.selected{background:#cfe9e3}.shared-ascii span.changed{background:#f8d7da;color:#842029}
+.shared-byte.selected{background:#d9ebf7!important;outline:1px solid #6aa7d1!important}
+.shared-controls button{padding:5px 12px}
+.diff-wrap tr:hover td{background:#eef6f3}
+.hint kbd{font:11px Consolas,monospace;background:#eef2f2;border:1px solid #d5dede;border-radius:4px;padding:0 5px}
+</style>
+</head><body><main class="dashboard-container">
+<img id="brand" class="ford-logo" alt="" height="54"><h2 id="title"></h2><div class="row"><section>
+<div class="file-drop-area" id="drop" role="button" tabindex="0" aria-label="Open EEPROM file"><p>Load EEPROM dump: <span>Browse…</span></p></div><input type="file" id="file" accept=".bin,.eeprom,.flash,.eep,.rom" hidden>
+<div class="reading"><small>Current Mileage (KM)</small><div id="km">—</div><small id="readState">Open a file to read KM</small></div>
+<label for="newKm">New Mileage (KM)</label><div class="input-group"><input type="number" id="newKm" placeholder="New mileage" min="0" step="1" disabled><span>KM</span></div>
+<label for="price">Price</label><div class="input-group"><input type="number" id="price" placeholder="0.00" min="0" step="0.01"><span><i class="sar" role="img" aria-label="SAR"></i></span></div>
+<p id="targetInfo" class="hint" aria-live="polite"></p><div class="buttons"><button id="apply" class="primary" disabled>Apply Mileage</button><button id="save" class="success" disabled>Save Dump As…</button><button id="reset" disabled>Restore Original Dump</button></div>
+<div id="messageArea" role="status" aria-live="polite">Open a raw memory file (up to 16 MiB).</div><p id="writeState" class="hint"></p><div id="fileInfo" class="file-info"></div>
+</section><section><div class="toolbar"><label for="offset">Offset</label><input id="offset" placeholder="0x0A89"><button id="go">Go</button><button id="location">KM Location</button><label for="find">Find</label><input id="find" placeholder='HEX: 1F 3A   text: "ML3T"' aria-label="Find HEX bytes or text"><button id="findPrev" title="Previous match (Shift+Enter)">‹</button><button id="findNext" title="Next match (Enter)">›</button></div>
+<div class="tool-row"><button id="undo" disabled title="Ctrl+Z">↶ Undo</button><button id="redo" disabled title="Ctrl+Y">↷ Redo</button><button id="prevChange" disabled>‹ Prev change</button><button id="nextChange" disabled>Next change ›</button></div>
+<div id="hex" class="hex-viewer"><p style="padding:15px;color:#666">File bytes will appear here.</p></div><div class="shared-controls"><button id="prev" disabled>‹ Previous</button><span id="page">—</span><button id="next" disabled>Next ›</button></div>
+<div id="inspector" hidden></div>
+<form id="byteForm" class="byte-edit"><span id="selected">Click a byte and type two HEX digits.</span><label for="byte">HEX</label><input id="byte" maxlength="2" pattern="[0-9a-fA-F]{2}" placeholder="FF" disabled><button id="applyByte" disabled>Apply Byte</button></form><div class="legend"><span class="km">KM data</span><span class="modified">Modified</span></div>
+<p class="hint">Shortcuts: type <kbd>2 HEX digits</kbd> to edit · <kbd>Shift</kbd>+arrows/click select a range · <kbd>Ctrl+C</kbd> copy · <kbd>Ctrl+V</kbd> paste HEX · <kbd>Ctrl+Z</kbd>/<kbd>Ctrl+Y</kbd> undo/redo · <kbd>Ctrl+F</kbd> find.</p></section></div>
+<details><summary>Changes: <b id="count">0</b> bytes</summary><div id="diff" class="diff-wrap"></div><p class="hint">Original file stays unchanged. Save File downloads a new copy with the same byte length. Manual HEX edits do not rebuild checksums. Click a row to jump to that byte.</p></details></main>
+<script>
+const LOGOS={ford:"data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgd2lkdGg9IjEwMDAiCiAgIGhlaWdodD0iMzU5LjkxMzgyIgogICB2ZXJzaW9uPSIxLjEiCiAgIHZpZXdCb3g9IjAgMCAyNjQuNTgzMzMgOTUuMjI3MzM5IgogICBpZD0ic3ZnMTYiCiAgIHNvZGlwb2RpOmRvY25hbWU9IkZvcmQuc3ZnIgogICBpbmtzY2FwZTp2ZXJzaW9uPSIxLjIuMiAoNzMyYTAxZGE2MywgMjAyMi0xMi0wOSkiCiAgIHhtbG5zOmlua3NjYXBlPSJodHRwOi8vd3d3Lmlua3NjYXBlLm9yZy9uYW1lc3BhY2VzL2lua3NjYXBlIgogICB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGRlZnMKICAgICBpZD0iZGVmczIwIiAvPgogIDxzb2RpcG9kaTpuYW1lZHZpZXcKICAgICBpZD0ibmFtZWR2aWV3MTgiCiAgICAgcGFnZWNvbG9yPSIjZmZmZmZmIgogICAgIGJvcmRlcmNvbG9yPSIjMTExMTExIgogICAgIGJvcmRlcm9wYWNpdHk9IjEiCiAgICAgaW5rc2NhcGU6c2hvd3BhZ2VzaGFkb3c9IjAiCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAiCiAgICAgaW5rc2NhcGU6cGFnZWNoZWNrZXJib2FyZD0iMSIKICAgICBpbmtzY2FwZTpkZXNrY29sb3I9IiNkMWQxZDEiCiAgICAgc2hvd2dyaWQ9ImZhbHNlIgogICAgIGlua3NjYXBlOnpvb209IjAuNiIKICAgICBpbmtzY2FwZTpjeD0iNDYyLjUiCiAgICAgaW5rc2NhcGU6Y3k9IjE4MCIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjEzNjYiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iNzA1IgogICAgIGlua3NjYXBlOndpbmRvdy14PSItOCIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iLTgiCiAgICAgaW5rc2NhcGU6d2luZG93LW1heGltaXplZD0iMSIKICAgICBpbmtzY2FwZTpjdXJyZW50LWxheWVyPSJzdmcxNiIgLz4KICA8ZwogICAgIGlkPSJnMjMxNyI+CiAgICA8cGF0aAogICAgICAgZD0iTSAxMzIuMjkxNjcsMCBDIDU5LjE5OTYzNywwIC0xLjk3ODYwNTFlLTQsMjEuMjgyMyAtMS45Nzg2MDUxZS00LDQ3LjYxNDY3MSBjIDAsMjYuMzI0MzcyIDU5LjIwMzgzNDg2MDUxLDQ3LjYxMjY3MiAxMzIuMjkxODY3ODYwNTEsNDcuNjEyNjcyIDczLjA5NzAzLDAgMTMyLjI5MTg2LC0yMS4yODkzIDEzMi4yOTE4NiwtNDcuNjEyNjcyIEMgMjY0LjU4MzUzLDIxLjI4MTMgMjA1LjM4OTcsMCAxMzIuMjkxNjcsMCBaIgogICAgICAgZmlsbD0iIzA2NGE5MyIKICAgICAgIGlkPSJwYXRoMiIKICAgICAgIHN0eWxlPSJmaWxsOiMwMDA5NWI7ZmlsbC1vcGFjaXR5OjE7c3Ryb2tlLXdpZHRoOjEuMDAwMDEiIC8+CiAgICA8cGF0aAogICAgICAgZD0ibSAxMzIuOTYxNjgsOTEuMDUxMjg0IGMgLTcwLjM4NDk5NiwwIC0xMjcuNDQxOCwtMTkuNjYxMjc3IC0xMjcuNDQxOCwtNDMuOTE2NjE5IDAsLTI0LjI1ODM0MiA1Ny4wNTc4MDQsLTQzLjkxODYxOTYgMTI3LjQ0MTgsLTQzLjkxODYxOTYgNzAuMzc3OTksMCAxMjcuNDMxNzksMTkuNjU5Mjc3NiAxMjcuNDMxNzksNDMuOTE4NjE5NiAwLDI0LjI1NDM0MiAtNTcuMDU1OCw0My45MTY2MTkgLTEyNy40MzE3OSw0My45MTY2MTkgeiBtIDAsLTg0LjAzMDE4NSBjIC02Ny45MTE5NjEsMCAtMTIyLjk2MTczNjksMTcuOTU2MjUzIC0xMjIuOTYxNzM2OSw0MC4xMTM1NjYgMCwyMi4xNTgzMTIgNTUuMDQ3Nzc1OSw0MC4xMTY1NjUgMTIyLjk2MTczNjksNDAuMTE2NTY1IDY3LjkxMDk1LDAgMTIyLjk1MTczLC0xNy45NTkyNTMgMTIyLjk1MTczLC00MC4xMTY1NjUgMCwtMjIuMTU3MzEzIC01NS4wNDQ3OCwtNDAuMTEzNTY2IC0xMjIuOTUxNzMsLTQwLjExMzU2NiB6IgogICAgICAgaWQ9InBhdGg2IgogICAgICAgc3R5bGU9ImZpbGw6I2ZmZmZmZjtzdHJva2Utd2lkdGg6MS4wMDAwMSIgLz4KICAgIDxwYXRoCiAgICAgICBpZD0icGF0aDgiCiAgICAgICBzdHlsZT0iZmlsbDojZmZmZmZmO3N0cm9rZS13aWR0aDoxLjAwMDAxIgogICAgICAgZD0ibSA5OS43MTg0MTEsMTQuMTUzMTYyIGMgLTEuODA4NjAyLDAuMDA1NyAtMy42MjY0OTgsMC4wNzYwNyAtNS40NTY1MjIsMC4yMjU4MjcgLTEyLjE1NTE1OSwxLjAxMzAxMyAtMjMuNzI0ODczLDcuNzg5MzQxIC0yMy43NDU4NzMsMTguMDc3NDc2IC0wLjAxMyw1LjIxNzA2OCAzLjczMjgyMyw5LjQ0NDM2NiA5LjUzNjksOS4yNTgzNjMgNi44MjAwODksLTAuMjI5MDAyIDEyLjQxODk1MiwtNS42MzkxNSAxNS4zNDk5OSwtMTIuNDYwMjQgMS4xMTIwMTUsLTIuNTg4MDM0IC0wLjk0NzUyMSwtMy42NjMwMTYgLTEuOTI3NTM0LC0yLjE3Mjk5NyBhIDE3LjI5ODI0NCwxNy4yOTgyNDQgMCAwIDEgLTYuODgyMjc3LDYuMDYxNjU1IGMgLTMuMjA5MDQyLDEuNTU2MDIgLTYuNjM5MTE3LDEuMTM2MTkyIC03LjY3OTEzLC0xLjQ0Mzg0MiAtMS40NjIwMTksLTMuNjQwMDQ3IDEuNTc3MDY0LC05LjA4NjkxOSA4LjUxMjE1NSwtMTEuNjQ5OTUyIDEwLjAxNzEzMSwtMy42NzIwNDggMjAuNDk4MDUsLTEuMjQyOTg4IDMwLjU4MzE5LDAuNjMzMDM3IDAuMTQ0LDAgMC42ODEyLDAuMjk1MDE3IDAuMjA2MTksMC41NDAwMiAtMS44MDYwMywwLjk3NTAxMyAtMy41ODQxMSwxLjc2Nzg4OSAtNi4zNTQxNCw0LjEyNzkxOSAtMS45ODYwMywxLjY4NDAyMyAtNC41ODYwMSwzLjkyNjA2NSAtNi41OTcwMyw2LjM2ODA5NiAtMS45OTYwMiwyLjQwNzAzMiAtMy40MTA4Niw0LjU1MzkyMyAtNS4yODI4ODUsNi45MzM5NTQgLTAuMjYxMDA0LDAuMzQ0MDA1IC0wLjU4MjI2MSwwLjMyODE0NiAtMC41NzgyNjEsMC4zMjgxNDYgLTQuNTYzMDU5LDAuNzYzMDA5IC05LjAzMDA5NSwxLjI3NDE2IC0xMy4xMjAxNDgsNC4wOTAxOTYgLTAuODQ2MDEyLDAuNTc4MDA3IC0xLjIxMzIyNSwxLjYwMzk5NSAtMC43MDAyMTcsMi4zODkwMDUgMC40NjEwMDUsMC42OTYwMDkgMS41MTU0MDIsMC43Njk4ODcgMi4yNDc0MTEsMC4yNDI4NzkgMi41NDEwMzQsLTEuODgyMDI0IDUuMTU3MDk4LC0yLjc2Nzk1OSA4LjE1NzEzNywtMi44NDk5NTkgMC4xMzEwMDIsMC4wMDggMC4xOTM5OTQsMC4wMjkwNCAwLjIzMDk5NCwwLjEwOTAzNyAwLjAyMywwLjA0NSAwLjAwOSwwLjEzOTgwNyAtMC4wNDQ5NiwwLjIwOTgwNyAtNC40OTQwNTksNi4xNzMwODEgLTUuNjE5NDUzLDcuNTY4MTM3IC05LjAwMDQ5OCwxMS4zOTUxODcgLTEuNzI5MDIyLDEuOTY3MDI2IC0zLjQyOTg5LDMuNjI3MjE0IC01LjMyOTkxNSw1LjM1NTIzNyAtNy42NzYxLDcuMDYxMDkyIC0xNS45MzI0NDMsNi45MzkwNTMgLTE4Ljg5NDQ4MiwyLjUxMTk5NSAtMS43NzAwMjMsLTIuNjU3MDM1IC0xLjUzNjczNywtNS40NDYyMzEgLTAuMzc2NzIyLC03Ljc2MDI2MiAxLjQyODAxOSwtMi44MzQwMzcgNC4zMTM3ODEsLTQuOTExMTY3IDYuNzEzODEyLC02LjEyNDE4MyAwLjg5MTAxMSwtMC40NTAwMDYgMS4xNDcyOTQsLTEuNTc4MDMzIDAuMjU1MjgyLC0yLjYwNjA0NiAtMC41NjcwMDcsLTAuNjcwMDA4IC0xLjk0MjIxOCwtMC43ODkwNjcgLTIuOTY2MjMxLC0wLjYwMzA2NSAtMy4xNDQwNDIsMC41NzUwMDggLTYuODU5MjEzLDIuOTI4MzQzIC05LjA1NDI0Miw1Ljc2MDM4MSAtMi40NzQwMzIsMy4xNzgwNCAtMy43MDk4OTgsNy4wMzYxOTEgLTMuMjk0ODk0LDExLjM2NjI0OCAwLjc0NTAxMSw3LjgxMzEwMiA3LjI0MjE1NCwxMi4zMjYyMDQgMTQuNjE4MjUxLDEyLjI3NDIwNCA1Ljg2OTMwNSwtMC4wNDU0IDExLjM5Nzc4MywtMS44MDYyMTcgMTguMDUwMDg4LC04LjQ5MjUxNyA2LjIwMTA4MSwtNi4yMzYwODIgMTEuODUwNTA5LC0xNS41NTExNDQgMTcuMTQwNTgsLTI0LjE4OTI1NyAwLjE2NiwtMC4yNzYwMDQgMC4yODM3OCwtMC40MjM5NjcgMS4wODc3OSwtMC41MjI5NjcgMy4zMTgwNSwtMC40MTEwMDUgOC4yMTc0MywtMC44Nzg4NSAxMS4zNTc0NywtMS4wNTg4NTEgMC42OTgwMSwtMC4wMzggMC44Mzk4MywtMC4wMzAzIDEuMTE5ODMsMC4zMTQ3MSAwLjgxODAxLDEuMDIyMDE0IDIuMDQ2ODEsMS44ODk0MiAzLjAzMDgyLDIuNDE3NDI3IDAuNDgwMDEsMC4yNTgwMDMgMC43MDgyLDAuMzg2NzQxIDEuMDg1MjEsMC4zOTI3NDEgMC40NjUsMC4wMSAwLjgyNjkyLC0wLjIzNzcwOSAxLjA2MDkyLC0wLjQ5OTcxMiAwLjMzMzAxLC0wLjM2MjAwNCAwLjQyNDk1LC0wLjgzNTQ5NyAwLjI0NDk1LC0xLjE0MDUgLTAuMTg4MDEsLTAuMzIwMDA1IC0yLjM3Nzc1LC0xLjUyMTYyNiAtMi40NDI3NSwtMi4wMDc2MzMgLTAuMDQ4LC0wLjMwMzAwNCAwLjI4NjgsLTAuMzc2MjA1IDAuMjg2OCwtMC4zNzYyMDUgMS42MTAwMiwtMC41MDAwMDYgMy4yODQ5OSwtMS41MjkwMzEgNC4zLC0zLjQ1NDA1NyAwLjk5NzAxLC0xLjg5NTAyNSAxLjE1NzkxLC00LjQyNDEyNiAtMC42NjYxMSwtNS44MzAxNDQgLTEuNjAxMDIsLTEuMjM1MDE2IC00LjAyLC0xLjA0MDEyNyAtNS45NTAwMywwLjY3NDg5NSAtMS44ODgwMiwxLjY2NTAyMSAtMi41MTI3NSw0LjA4NzQ1NSAtMi4yNTc3NSw2LjIxMDQ4MyAwLjA0NiwwLjM2ODAwNSAwLjAyNjksMC40OTE4MTggLTAuNDgwMDcsMC41MzM4MTggLTIuOTAyMDQsMC4yMzAwMDMgLTUuNjk4MjIsMC4zMDk4MzggLTguODA4MjYsMC40NzI4NCAtMC4yMDgsMC4wMTUgLTAuMjczOTYsLTAuMTIxMDY1IC0wLjE1Mjk2LC0wLjI2NDA2NyAzLjU4MTA0LC02LjE2MDA4MSA4LjkyNzkyLC0xMC41NDY3NTggMTQuODQyMDEsLTE0Ljg2NjgxNSAwLjM5MiwtMC4yOTEwMDMgMC4yNzIzMSwtMC44NDQzNzYgMC4yNTYzMSwtMS4zMDYzODIgMTAuNjc4MTQsMi4yOTcwMyAyMC45OTc0Nyw2LjU3MjI2OCAzMi4wNzU2MSw2LjQ4MTI2OCA0LjU4MTA3LC0wLjAzNyA4Ljk2Njg1LC0wLjcyNjkyNiAxMy4xNTg5MSwtMy4wMDM5NTUgMy42ODcwNCwtMS45OTEwMjYgNS4xODMyMiwtMy44MzI5MiA1LjI5MzIyLC01Ljc0Njk0NSAwLjA4NiwtMS4zMjMwMTggLTAuODQzMjYsLTIuMTU5MzExIC0yLjE2NjI4LC0xLjg3NDMwNyAtMTEuMTkzMTQsMi41NDYwMzQgLTIxLjg3MTIsMi41MTc5MjcgLTMzLjAwNzMzLDEuMTgzOTA5IC0xMi43MTkxNywtMS41Mjg2NDUgLTI0LjkyNDExLC00LjY3NTU2MyAtMzcuNTg0MzMxLC00LjYzNTkgeiBtIDIyLjM0Mjg1OSwxNy44NTI2ODQgYyAwLjI2MTYsMC4wMTM4NiAwLjUwNjM1LDAuMTAwNzE2IDAuNzA0MzUsMC4yNjg3MTggMC41OTAwMSwwLjQ5OTAwNiAwLjMxMDc1LDEuNzQ0MDM1IC0wLjI4NTI2LDIuNjA2MDQ2IC0wLjY1MTAxLDAuOTUxMDEyIC0xLjc1NTEsMS43NzE5NzMgLTIuNzYyMTEsMS45NzE5NzYgLTAuMjAyLDAuMDM3IC0wLjM3NjkyLC0wLjA0ODk1IC0wLjQ1OTkyLC0wLjQ5MTk2MSBoIC0wLjAwMSBjIC0wLjE2NCwtMS4xNzMwMTYgMC4yMjIyNywtMi43NDM5MTggMS40ODgyOCwtMy44NTA5MzMgMC4zOTYyNiwtMC4zNDY4NzkgMC44Nzk2OCwtMC41MjY5NDIgMS4zMTU2OSwtMC41MDM4NDYgeiBtIDg5Ljg1NDU5LDAuMjI0NzkzIGMgLTIuMDM1MDIsMCAtNC43MDM4OSwwLjAwMzYgLTYuODI0OTEsMC4wMDM2IC0wLjUwNSwwIC0wLjc2NjExLDAuMDYxMDYgLTEuMDA1MTEsMC41MjYwNjcgLTAuNzgyMDEsMS40ODUwMTkgLTEwLjMyMDQyLDE1LjYzODQ5OSAtMTIuMDk2NDQsMTguMzg3NTM1IC0wLjI5ODAxLDAuNDE4MDA2IC0wLjY2MzksMC4zNTk3IC0wLjcwNTksLTAuMTE3MzA1IC0wLjE4LC0xLjYzMjAyMiAtMS42MDMyNCwtMy41MDc5MjcgLTMuODQ2MjgsLTQuNDA1OTQgLTEuNzEwMDIsLTAuNjg3MDA4IC0zLjM4MjA1LC0wLjgxMDkxMyAtNS4xMTkwOCwtMC41ODI5MTEgLTMuMTM3MDMsMC40MTcwMDYgLTUuOTMxNjQsMi4wNTcxMzYgLTguMzg5NjgsMy45MDQxNjEgLTMuNzAzMDQsMi43ODkwMzcgLTYuODk3NTQsNi4zOTk3MDkgLTExLjAyMjYsOS4wNjk3NDQgLTIuMjUyMDMsMS40NTMwMTkgLTUuMzM0OTgsMi43MjA0NjYgLTcuMzk4MDEsMC44MzA0NDEgLTEuODY3MDEsLTEuNzE0MDIyIC0xLjY1NzExLC01LjUyMjEyMyAxLjE5OTkzLC04LjQ2NjE2MiAwLjMwMTAxLC0wLjMwOTAwNCAwLjY2MjEzLC0wLjA1MTE4IDAuNjA1MTMsMC4yMjU4MjYgLTAuMjcsMS4zMzIwMTcgMC4wNjIxLDIuNjU2MzA0IDEuMDgzMTQsMy41ODUzMTYgMS4yNDYwMSwxLjEwNTAxNSAzLjAyOTc5LDEuMjMxMDA0IDQuNTU1OCwwLjQ5Mjk5NCAxLjgwMjAyLC0wLjg4MzAxMSAyLjg2MDM2LC0yLjU5MDM4NiAzLjE3MDM2LC00LjUyODQxMiAwLjQ3NzAxLC0zLjAwNTAzOSAtMS44NjAxMSwtNS42NTU4NjUgLTQuNzgyMTUsLTUuODY3ODY4IC0yLjM3NTAzLC0wLjE2NTAwMyAtNC42NTE4NCwwLjY1MzAxMyAtNi44Njk4NywyLjQ2NzAzNyAtMS4xMTMwMiwwLjkxMzAxMiAtMS43NDYzMSwxLjU4ODk1OSAtMi43MDczMywyLjk0Mjk3NyAtMC4yMzUsMC4zMzQwMDUgLTAuNTk0OTEsMC4zNjc5NDkgLTAuNTgyOTEsLTAuMTI1MDU3IDAuMTExMDEsLTMuODQ3MDUgLTEuNDk3MjgsLTYuMDExODQxIC00LjcxMDMyLC02LjA4Mjg0MiAtMi40OTIwNCwtMC4wNTggLTUuMTU2NjIsMS4yNzk3IC03LjIzMjY0LDIuOTE5NzIzIC0yLjI3NjA0LDEuODEwMDIzIC00LjI2NjA4LDQuMjA4MTE3IC02LjM5OTEsNi40NjIxNDcgLTAuMjY1LDAuMjc4MDA0IC0wLjQ5NzAzLDAuMjY1MTIxIC0wLjU3MTAzLC0wLjI3Mzg4NSAtMC4wNjUsLTIuNTQ5MDM0IC0wLjcxMjI2LC01LjAxODE1IC0xLjkwNDI4LC02Ljc3MTE3MyAtMC40MjEwMSwtMC42MTAwMDggLTEuMzA4MTMsLTAuOTEyMjM1IC0yLjA1NDE0LC0wLjUwMDIyOSAtMC4zNDQsMC4xODcwMDMgLTEuNTQyOCwwLjczMjI5NyAtMi40MTM4MSwxLjQyNzMwNSAtMC40MzMwMSwwLjM1MzAwNSAtMC42MDAzMSwwLjg2Mzc2NCAtMC40MTAzMSwxLjUxODc3MyAxLjE1MDAyLDMuODA3MDQ5IDAuODk3MDEsOC4xMzcxMTYgLTAuNjYzMDEsMTEuNzk1MTYzIC0xLjQzMzAyLDMuMzQ4MDQ0IC00LjIxNzk2LDYuMzcwMzEyIC03LjQ4OTk5LDcuMzkyMzI1IC0yLjE1NjAzLDAuNjc3MDA5IC00LjM5ODE3LDAuMzQ1ODI5IC01Ljc4NTE5LC0xLjU0NzE5NSAtMS45MDUwMiwtMi42MTIwMzUgLTEuMTM0NzgsLTcuMTUzOTQ4IDEuNzAzMjYsLTEwLjkyNjk5OCAyLjUwNzAzLC0zLjMyMDA0MyA2LjEzMDE3LC01LjQzMDI0MiA5Ljc0NzIyLC02Ljc4OTI2IDAuNDI2LC0wLjE2MjAwMyAwLjUxMjc0LC0wLjQzMTYxMiAwLjM5Mjc0LC0wLjc4OTYxNyAtMC4xOTcsLTAuNTkwMDA4IC0wLjUwOTcyLC0xLjM5MDUxMyAtMC42Mzg3MiwtMS43NTc1MTggLTAuMzMxLC0wLjg3MzAxMiAtMS4yNjAxMywtMS4wMTU5NzIgLTIuMzkzMTQsLTAuODkyOTcgLTIuNjI3MDQsMC4zMDMwMDQgLTQuOTk2LDEuMTkzOTggLTcuMzM3MDMsMi40MzQ5OTcgLTYuMTMwMDgsMy4yNTAwNDIgLTkuMjAyMjYsOS41NDAxNjQgLTEwLjU1MDI3LDEyLjkwNjIwOCAtMC42NDgwMSwxLjYxNTAyMSAtMS4yMDI3OCwyLjYyNTE1OSAtMS45MTk3OSwzLjUxOTE3MSAtMC45NjYwMSwxLjIwMzAxNSAtMi4xNzkxMjIsMi4yOTcwNzkgLTQuMzk3MTUxLDQuMjI2MTA0IC0wLjIwMDAwMywwLjE3NzAwMiAtMC4zNDk5MDMsMC41NDU3OTggLTAuMTgxOTAyLDAuODg3ODAzIDAuMjI3MDAzLDAuNDY1MDA2IDEuMzc5ODM3LDIuMDc3MDU0IDEuNzA1ODQyLDIuMjIxMDU2IDAuMzYxMDA1LDAuMTc2MDAyIDAuNzc5NzQ1LC0wLjA2OTY1IDAuOTQ3NzQ3LC0wLjE4OTY1MyAxLjU1MjAxNCwtMS4wNDEwMTQgMy40MDkwODQsLTIuNjkyMTYxIDQuMzE4MDk0LC0zLjgxMjE3NiAwLjMxOCwtMC4zODMwMDQgMC42NDY0NSwtMC4yMjE4MjIgMC44MTU0NSwwLjM2MDE4NiAwLjg0ODAyLDIuOTk2MDM5IDMuMDY4NjUsNS40NDE3MTggNi4xMzk2OSw2LjQ2NDczMSA1LjYyMDA3LDEuODc3MDI1IDExLjQ1MDE2LC0wLjgzOTU5OCAxNS44NTAyMiwtNS41Njg2NjEgMi43OTYwMywtMy4wMDUwNCAzLjgwNTIyLC00LjkzODMyNCA0Ljg3NzIyLC02LjI1MjM0MSAxLjgxNjAzLC0yLjIyOTAyOSA1LjQwMDA3LC03LjIxNDg3NSA5LjY2NzEzLC0xMC40MTU5MTcgMS41NjUwMiwtMS4xODAwMTUgMy40MTgxMiwtMi4wODAxMjQgNC4zNTAxMywtMS40ODMxMTUgMC43NDcwMSwwLjQ4MDAwNiAwLjk4ODE0LDEuNTk0Nzg2IC0wLjIxMTg4LDMuNzU0ODE1IC00LjM1MDA1LDcuODY3MTAzIC0xMC43NTQ0NywxNy4xMTAzMzkgLTExLjkyODQ4LDE5LjM1MzM2OSAtMC4yMTQsMC4zODkwMDUgLTAuMDI3MSwwLjY5NDAxNiAwLjM4Mzk1LDAuNjk0MDE2IDIuMjc3MDMsLTAuMDEgNC41MzUxNiwtMC4wMDUyIDYuNjAyMTksLTAuMDA1MiAwLjM0MywtMC4wMTYgMC40OTgyNSwtMC4xNzA4NTkgMC42NzAyNSwtMC40MTE4NjIgMy4zMzkwNCwtNS4xNzUwNjggNi40ODIwMSwtMTAuMTAyOTI3IDkuODUwMDYsLTE1LjE5NTk5NCAwLjE5LC0wLjMwMDAwNCAwLjM2MywtMC4wNjc0NCAwLjM3LDAuMDYzNTYgMC4wNywxLjE4MTAxNiAwLjM2MjczLDIuNzk4MjIxIDEuMDcwNzQsMy44NjAyMzUgMS4yNzQwMiwxLjk2MjAyNSAzLjA3ODI5LDIuODA0OTIgNS4wODAzMSwyLjgxNzkyIDEuNTkyMDIsMC4wMTggMi4zOTY5NCwtMC4yMjE3ODggNC4xMTM5NywtMC44NTY3OTYgYSAxNC40NzUyMDQsMTQuNDc1MjA0IDAgMCAwIDMuMzgwMTYsLTEuNzk2Mjc2IGMgMC41MDMwMSwtMC4zNDUwMDQgMC41OTA3NSwwLjIzMzQ2IDAuNTc3NzUsMC4zMjI0NjIgLTAuNzcyMDEsNC4xMDkwNTQgMC4xODIxNSw4Ljk3NjcgNC4zMDYyLDEwLjk5NTcyNyA0LjkzNjA2LDIuNDEwMDMyIDEwLjM1ODIzLC0wLjk3NjgyOCAxMy40NzgyNywtNC4wMzM4NjggMC4zMDUwMSwtMC4yOTUwMDQgMC42MzQwNywtMC4yNjQwMDUgMC42NjUwNywwLjM3MDAwNCAwLjA2NiwxLjE2ODAxNSAwLjU5ODA1LDIuNTUzMjkxIDEuNTc0MDcsMy41MjMzMDQgMi42MTQwMywyLjU5ODAzNCA3Ljg5MDIsMS41Njg3NjIgMTMuMTg1MjYsLTIuNDkwMjkxIDMuNDAwMDUsLTIuNTk3MDM0IDYuOTU2OSwtNi4yNjc4OTkgMTAuMTY5OTQsLTEwLjE1NDk1MSAwLjExOTAxLC0wLjE1MDAwMSAwLjIwNzc5LC0wLjM5MzE2NyAtMC4wMjIyLC0wLjYzNzE3MSAtMC40OSwtMC41MDcwMDYgLTEuMTk3NTgsLTEuMDg3MjcgLTEuNjgyNTksLTEuNTM0Mjc1IC0wLjIyMSwtMC4xODYwMDMgLTAuNTQ2MjksLTAuMTMyNzM0IC0wLjczMzI5LDAuMDA4MyAtMy4yOTMwNSwzLjEwMTA0MSAtNi4yNTY5OSw2LjYzODIxNSAtMTAuNTQzMDQsOS41NjMyNTUgLTEuNDQ1MDIsMC45OTgwMTMgLTMuNzQ3MTMsMS44MDQwOCAtNC43ODIxNSwwLjQxODA2MiAtMC40MDMsLTAuNTM4MDA3IC0wLjM1NjY5LC0xLjI4MzMxOCAwLjA0MDMsLTIuMjYwMzMgMS4yNTEwMiwtMy4wODYwNDEgMjEuMDMwMDMsLTMyLjkwNDQ0NSAyMi4wNTYwNSwtMzQuNjYwNDY4IGwgMC4wMDIsLTAuMDAyMSBjIDAuMTc2LC0wLjMwNjAwNCAtMC4wMSwtMC41Mjk2ODQgLTAuMzk5OTgsLTAuNTI5Njg0IHogbSAtMjcuNzE0NjMsMTguNjQxNzgzIGMgMC41MTc4OSwtMC4wMDQ1IDEuMDAyOCwwLjA5NDE5IDEuNDQ0MzYsMC4zMDQzNzUgMi40MzYwMywxLjE1MTAxNSAxLjY1Nzk3LDMuOTQ0MDczIDAuNTY4OTYsNi4xMzcxMDIgYSAwLjU4NzAwODI4LDAuNTg3MDA4MjggMCAwIDAgLTAuMDQzOSwwLjQ1MjE3IGMgMC4wNCwwLjIyODAwMyAwLjMzOTU3LDAuNDQ4OTcxIDAuNjM0NTgsMC41NTM5NzIgMC4xMDMsMC4wMzggMC4xNjE0NSwwLjExMTkxNCAwLjA0NDUsMC4zNTE5MTcgLTAuODQyMDIsMS43ODUwMjMgLTEuNjE0MDksMi44MTQwNjEgLTIuNjY5MSw0LjM2NDA4MSAtMC45NjgsMS40MzMwMTkgLTIuMDYwMjcsMi41NTAxMjcgLTMuMzg0MjksMy42MjYxNDEgLTEuOTk1MDMsMS42MzUwMjEgLTQuNzY0ODUsMy40MTM5NzEgLTcuMDU0ODgsMi4yMTc5NTYgLTEuMDE4MDEsLTAuNTI0MDA3IC0xLjQ1NzEyLC0xLjkzMzIyMSAtMS40MzcxMiwtMy4wNzQyMzYgMC4wNTMsLTMuMjEwMDQyIDEuNDkwMTcsLTYuNTA0MDE0IDQuMTUyMjEsLTkuNzQyMDU1IDIuNjM3NDEsLTMuMjE0MjkzIDUuNTAwNiwtNS4xNzE3MSA3Ljc0NDc1LC01LjE5MTQyMyB6IiAvPgogIDwvZz4KPC9zdmc+Cg==",isuzu:"data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIgogICB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgdmVyc2lvbj0iMS4xIgogICBpZD0ic3ZnMiIKICAgd2lkdGg9IjEwMDAiCiAgIGhlaWdodD0iMTcxLjgwNCIKICAgdmlld0JveD0iMCAwIDEwMDAgMTcxLjgwNCIKICAgaW5rc2NhcGU6dmVyc2lvbj0iMC45MSByMTM3MjUiCiAgIHNvZGlwb2RpOmRvY25hbWU9IklzdXp1LnN2ZyI+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIKICAgICBib3JkZXJjb2xvcj0iIzY2NjY2NiIKICAgICBib3JkZXJvcGFjaXR5PSIxIgogICAgIG9iamVjdHRvbGVyYW5jZT0iMTAiCiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAiCiAgICAgZ3VpZGV0b2xlcmFuY2U9IjEwIgogICAgIGlua3NjYXBlOnBhZ2VvcGFjaXR5PSIwIgogICAgIGlua3NjYXBlOnBhZ2VzaGFkb3c9IjIiCiAgICAgaW5rc2NhcGU6d2luZG93LXdpZHRoPSIxMzY2IgogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9IjcwNSIKICAgICBpZD0ibmFtZWR2aWV3NzAxNCIKICAgICBzaG93Z3JpZD0iZmFsc2UiCiAgICAgaW5rc2NhcGU6em9vbT0iMjU2IgogICAgIGlua3NjYXBlOmN4PSI5OTguNTAwNjQiCiAgICAgaW5rc2NhcGU6Y3k9IjE3MS4zOTIyNiIKICAgICBpbmtzY2FwZTp3aW5kb3cteD0iLTgiCiAgICAgaW5rc2NhcGU6d2luZG93LXk9Ii04IgogICAgIGlua3NjYXBlOndpbmRvdy1tYXhpbWl6ZWQ9IjEiCiAgICAgaW5rc2NhcGU6Y3VycmVudC1sYXllcj0ic3ZnMiIgLz4KICA8bWV0YWRhdGEKICAgICBpZD0ibWV0YWRhdGExNSI+CiAgICA8cmRmOlJERj4KICAgICAgPGNjOldvcmsKICAgICAgICAgcmRmOmFib3V0PSIiPgogICAgICAgIDxkYzpmb3JtYXQ+aW1hZ2Uvc3ZnK3htbDwvZGM6Zm9ybWF0PgogICAgICAgIDxkYzp0eXBlCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgICAgICA8ZGM6dGl0bGU+PC9kYzp0aXRsZT4KICAgICAgPC9jYzpXb3JrPgogICAgPC9yZGY6UkRGPgogIDwvbWV0YWRhdGE+CiAgPGRlZnMKICAgICBpZD0iZGVmczQiPgogICAgPGNsaXBQYXRoCiAgICAgICBpZD0iYSI+CiAgICAgIDxwYXRoCiAgICAgICAgIGlkPSJwYXRoNyIKICAgICAgICAgZD0ibSAwLDAgNjA5LjQ0OCwwIDAsNzkzLjcwMSBMIDAsNzkzLjcwMSAwLDAgWiIKICAgICAgICAgaW5rc2NhcGU6Y29ubmVjdG9yLWN1cnZhdHVyZT0iMCIgLz4KICAgIDwvY2xpcFBhdGg+CiAgPC9kZWZzPgogIDxwYXRoCiAgICAgc3R5bGU9ImZpbGw6I2U2MDAxMiIKICAgICBpbmtzY2FwZTpjb25uZWN0b3ItY3VydmF0dXJlPSIwIgogICAgIGQ9Im0gNDM1LjM0MDE1LDE3MS4yMTg4OCBjIDMuNTQzNTcsMCAyNS4wOTMzNSwtMC4xMTUzNCA0Mi40OTA4LC0xLjMyNjQzIDIxLjAyNDMyLC0xLjQ2NzQxIDMxLjg2MDA4LC04LjY3NjMgMzkuNzk5NDcsLTE5LjAwNTg0IDkuODQ4OTUsLTEyLjc4Mzc2IDkuNzg0ODgsLTM2Ljc1NTczIDkuNzcyMDYsLTU1LjQwOTEzMyAtMC4wMTIxLC0yMC44MzIwOSAwLjI3NTU0LC04MS4xODgxMjEgMC4xODU4OSwtODYuNTcwNzYwMyAtMC4wNzA2LC01LjQwMTg2MSAtMi4xMTQ2MiwtOC4yMDg1MjI5IC04LjI5MTg0LC04LjE1NzI1ODkgLTYuMTgzNjEsMC4wMzg0NSAtMjMuNjE5NTEsMCAtMjkuNjA0NDksMC4wNTEyNiBsIC0xMC42NjI3NiwtMC4wNTEyNiBjIC02LjE4MzYzLC0wLjA1MTI3IC04LjIyMTMzLDIuNzU1Mzk3OSAtOC4zMTEwNSw4LjE1NzI1ODkgbCAwLDUuNzg2MzM2MyBjIDAuMDg5Nyw2LjM4ODY3OSAtMC4wODMzLDY3LjI4Mjk3NCAtMC4xMDg4Nyw4MS41NTk3ODEgbCAwLDYuMzI0NTk2IGMgLTAuMTY2NTMsMTMuMTQ5MDIgLTEuNzY4NTksMjUuOTM5MTkgLTIwLjM2NDMxLDI3LjkxOTIzIC04LjAyMjcsMC44NDU4NSAtMTEuNzAwODIsMS4yMjM5MSAtMjEuNjM5NDksMS4yMjM5MSAtOS45NTE0NywwIC0xMy42MTY4LC0wLjM3ODA2IC0yMS43NDg0MywtMS4yMjM5MSAtMTguNTg5MzEsLTEuOTU0NDEgLTE5LjcxNzExLC0xNC43NzAyMSAtMTkuODkwMTIsLTI3LjkxOTIzIGwgMCwtNi4zMjQ1OTYgYyAtMC4wMjU2LC0xNC4yNzY4MDcgLTAuMTk4NTgsLTc1LjE3MTEwMiAtMC4xMjE3NywtODEuNTU5NzgxIGwgMCwtNS43ODYzMzYzIGMgLTAuMDc2OCwtNS40MDE4NjEgLTIuMTI3NDIsLTguMjA4NTIyOSAtOC4yOTgyMiwtOC4xNTcyNTg5IGwgLTEwLjY3NTU5LDAuMDUxMjYgYyAtNS45ODQ5OCwtMC4wNTEyNiAtMjMuNDA4MDYsLTAuMDEyODIgLTI5LjU5ODEsLTAuMDUxMjYgLTYuMTcwOCwtMC4wNTEyNyAtOC4yMTQ5MiwyLjc1NTM5NzkgLTguMjg1NCw4LjE1NzI1ODkgLTAuMDg5Nyw1LjM4MjYzOTMgLTAuMDI1Niw2NS43Mzg2NzAzIC0wLjA1MTIsODYuNTcwNzYwMyAtMC4wMTIxLDE4LjY1MzQwMyAtMC4wNjQxLDQyLjYyNTM3MyA5Ljc3MjA2LDU1LjQwOTEzMyA3LjkyMDE2LDEwLjMyOTU0IDE4LjYwODU0LDE3LjUzODQzIDM5LjU2MjM5LDE5LjAwNTg0IDE3LjM5NzQ0LDEuMjIzOTEgMzguMzA2NDMsMS4zMjY0MyA0Mi45MzkzNSwxLjMyNjQzIGwgMTMuMTI5NzksMCB6IE0gNTcuNDQ2OTE5LDE2My4zODcxNSBjIC0wLjEyMTc1NCw1Ljg2MzIzIC0xLjg1MTg4Myw4LjE3NjQ4IC03Ljg1NjA4Nyw4LjMxNzQ1IC02LjAyMzQyOSwwLjE3MzAxIC0zNS40OTMzNzEsMC4wNzY5IC00MC44NjMxOTMzLDAuMDMyIEMgMy4zODM0NDgxLDE3MS42NzkgMC4wODk3ODYzNCwxNzAuMDU3NzcgMC4wNzY5NzA1MywxNjQuMzIyNyAwLjAzODUyMzEyLDE1OC41OTQwNCAwLjAzODUyMzEyLDE0LjU1MDc5NyA3LjU3MDk3NzJlLTUsOS4wNzg0NDg3IC0wLjAxMjc0MDEsMy42MzE3MzE3IDIuNTU2ODI4OCwxLjA0OTM0NjcgOC4yMDIxOTA4LDEuMjIyMzYwNyBjIDUuNjMyNTQ2MiwwLjEzNDU2NiAzNC41NzcwNDEyLC0wLjE1Mzc5IDQyLjI2MDExNjIsLTAuMDE5MjEgNS44MTE5NjcsLTAuMDQ0ODUgNy4xNzY4NSwzLjMwNjQ3OCA3LjE5NjA3NCw5LjI5MTQ1OTMgMC4xNDA5NjgsOC4wNDgzMjYgLTAuMDcwNDgsMTQ3LjA2MTM2IC0wLjIxMTQ2MiwxNTIuODkyNTUgTSA4NjAuNDQwMzgsMTA1LjExNTYgYyAwLjEwODg3LDEzLjUyMDY4IDMuMzc2OTcsMjIuNTY4NjQgMTguODcxMjgsMjQuOTc4MDEgMTIuNDA1NjksMS4yODE1OCAyOS4xODc5OCwxLjU0NDMgNDIuMDY3ODgsMC4yMzcwOSAxMS43OTA1NCwtMS4yOTQ0IDIwLjg3MDU0LC02LjA3NDY5IDIxLjQwMjQsLTE5LjQyMjM1IDAuNTk1OTIsLTExLjI3MTUwMiAwLjY0NzIsLTEzLjIxMzA5NyAwLjY4NTY0LC0yNS4wOTk3NTcgMC4wNjQxLC0yOC44NDgzNzQgLTAuMjQ5OTIsLTcwLjc0OTY0OSAtMC4xNTM4MywtNzQuODYzNTIyIGwgMC4wNTEyLC0xLjc0OTM1NzMgYyAtMC4wOTYyLC02LjM4ODY3OSAyLjgxOTQ4LC05LjA4NjQwNTkgOC4yMjc3NiwtOS4wODY0MDU5IEwgOTU0LjgyODcsMy43NDc5NDkyZS00IEMgOTYwLjk4NjY4LDAuMDUxNjM0OCA5ODUuNzY2MDUsMC4xMDkzMDc4IDk5MS43NjM4NCwwLjEwOTMwNzggYyA1LjQwODI4LDAgOC4zMjM4NiwyLjY5NzcyNjkgOC4yMzQxNyw5LjA4NjQwNTkgbCAtMC4wNzY4LDEuOTkyODU3MyBjIDAuMTE1MjksNi4wMjM0MjkgLTAuMDcwNiw2OS44Mzk3MjcgLTAuMTM0NjcsODguNjcyNTUzIC0wLjMzOTYyLDkuNDU4MDY2IC0xLjAxMjQ0LDMxLjQ4ODQzNiAtOC4yOTgyMyw0NS40NTc2NTYgLTYuMzQzODMsMTIuMTIzNzUgLTE3LjY5ODYyLDIxLjQ0NzI1IC0zNy4wMDU2NCwyMy4zNjMyMiAtMzcuMTA4MTYsMy42OTczNSAtNzAuOTQxODgsMi4xNTk0NiAtOTYuOTk2NDIsMS4wNzAxMSAtMTkuMzY0NjgsLTAuOTk5NjMgLTMxLjg0MDg3LC01LjMzNzc4IC00Mi4xODk2NCwtMTYuODM5OTYgLTExLjcxMzY0LC0xMy4xODc0NiAtMTIuMzI4ODEsLTM1LjcyNDA2IC0xMi4xNTU3OCwtNjEuNTczNTM3IC0wLjIyNDI4LC01Ny4wMzY3MzggLTAuMzk3MywtNzMuNDczMDA4IC0wLjMwNzU4LC03OC45MTMzMTYgbCAwLC0zLjIyOTU4MzMgYyAtMC4wODk3LC02LjM4ODY3OSAyLjgyNTg4LC05LjA4NjQwNTkgOC4yMzQxNSwtOS4wODY0MDU5IEwgODE0LjI4NDE3LDMuNzQ3OTQ5MmUtNCBDIDgyMC40OTk4NCwwLjA1MTYzNDggODQ2LjIwODM0LDAuMTA5MzA3OCA4NTIuMjE4OTUsMC4xMDkzMDc4IGMgNS4zODkwNSwwIDguMzMwMjgsMi42OTc3MjY5IDguMjIxMzMsOS4wODY0MDU5IC0wLjA4OTcsNi40MTQzMTEzIC0wLjAyNTYsNzkuNDU3OTg4MyAwLDk1LjU0ODIzNjMgTSA1NzEuNzk2NDIsMC42MTQ4OTE4IGMgNS43OTI3NSwtMC4xNzMwMTQgMTA5LjM5NTcyLC0wLjA1MTI2IDE0MS43ODc2NywwLjEyODE1NyAyOC42ODE3NywwLjMyMDM5NDkgMzkuMjg2ODUsNC40MDIyMjg5IDQ3LjA3MjQ1LDE0LjgyMTQ3NzIgOC45ODM4NywxMi4wNDA0NSA5LjkxMzAyLDI3LjEyNDY1MiAyLjY1Mjg2LDM5LjUzNjc1OSAtNS4yMDk2MSw4LjkwMDU3NSAtMTQuODQ3MTEsMTYuNjY2OTUzIC0yOS4zMDMzNCwyMy43MjIwNTUgLTExLjQ3NjU1LDUuODk1MjY5IC0zMS41NzE3MywxNC44NDA3MDEgLTUxLjIxMTk1LDIzLjQ4NDk2IC0yNi4zMDQ0MywxMS42MTc1MyAtNTAuMTIyNjEsMjEuNjc3OTQgLTU0LjEyNzU1LDIzLjc3MzMyIC01LjQyMTA5LDIuODQ1MTEgLTMuMzcwNTcsNy4xMDYzNiAwLjkzNTU0LDcuMDQyMjggMTEuMjM5NDgsLTAuMTM0NTUgMTE5Ljc2MzcyLC0xLjAxODg1IDEyNS41NTY0NiwtMS4wMzE2NyA1LjgxODM2LC0wLjAwNiA3LjcwODcxLDIuMDg4OTggNy43MDg3MSw4LjMzNjY4IC0wLjAxMjEsNi41MzYwNiAwLjA1MTIsMTcuNzExNDQgMC4wNjQxLDIyLjc4MDEgLTAuMTM0NjgsNi4wOTM5MSAtMi4wNzYxNyw3Ljc1OTk2IC03Ljg0OTY4LDcuODE3NjQgLTYuNTkzNzMsMC4wNzA1IC0xMjIuMTk4NzEsMC4xMDI1MiAtMTMwLjQyMDA0LDAuMTQwOTYgLTE4LjI3NTM0LC0wLjA0NDkgLTM3LjA5NTM0LDAuMDI1NiAtNDguMzIxOTksLTUuNDE0NjcgLTE0LjAyMDUsLTYuODExNiAtMTguNzYyMzQsLTIwLjQ2Njg0IC0xOC43NzUxNiwtMzAuMDQwMjUgMC42NjY0MywtMjMuMzMxMTcgMTMuNjY4MDYsLTMwLjgwMjc5IDM3LjA5NTM2LC00MS42NTc3NzQgMjYuMDQ4MTIsLTExLjgyMjU3OSAxMDIuOTQyOTUsLTQ1LjA4NTk5OSAxMDcuNTI0NiwtNDcuMjEzNDI1IDUuNjc3NCwtMi42NDY0NjMgMy45MTUyMiwtNy44NDk2OCAtMS4zNTIwOCwtNy42NzY2NjYgLTQuMDQzMzgsMC4wODMzMSAtMTIxLjgyNzAzLDAuNjg1NjQ1IC0xMjcuNjQ1NCwwLjY3OTIzOCAtNS43OTkxNSwtMC4wMTkxNSAtOS40OTAxMiwtMC45NTQ3NzggLTkuNDkwMTIsLTYuNTgwOTE2IDAuMDEyMSwtNS42MDA1MDYgLTAuMDUxMiwtMTkuNjQ2NjI5IC0wLjA1MTIsLTI1LjQyNjU1NjMgMCwtNS44MDU1NiAyLjMzMjQ4LC03LjAzNTg3NjkgOC4xNTA4NSwtNy4yMjE3MDU5IE0gMjY3LjYwNjg5LDg4LjM1MTI1IEMgMjQxLjU1MjM2LDc3LjUyODMwMiAxNjUuNTI5MDEsNTMuNDc5NDQ1IDE1NS40NDI5Nyw0OC40ODc2OSBjIC00Ljg1NzE5LC0yLjA4ODk3OCAtNC41MzAzOSwtOC4yOTE4MjYgMi4wNDQxMiwtOC4yOTE4MjYgMTEuMjI2NjUsMC4xNjY2MTMgMTIyLjY2MDA2LDAuMzg0NDc0IDEyOC40Nzg0NSwwLjQyMjkyMSA1LjgxMTk1LDAuMDEyOSA4LjI1OTc3LC0yLjI0OTE3MyA4LjI1OTc3LC04LjUwOTY5NCAwLjAyNTYsLTYuNTI5NjUyIC0wLjAyMDIsLTE4LjUxMjQzMSAtMC4wOTYyLC0yMy43NzMzMTgzIC0wLjA3NjgsLTUuMzUwNTk4IC0yLjAwNTY4LC03LjM3NTQ5NDkgLTYuODExNjEsLTcuMzg4MzEwOSAtNC44MDU5MiwwIC0xMzMuNTAyMjMsMC4xNTM3ODk5IC0xMzMuNTAyMjMsMC4xNTM3ODk5IC0zNS45MTYyOSwtMC4wODMzIC00NS4xMzA4NSw1LjIwMzIxNyAtNTUuMzA2NjAyLDE3LjQyMzA4NjMgLTEzLjI2NDM1NywxNS45NDI4NjIgLTkuMDQ3OTU5LDM3LjUyNDY3NiAtMS40MzUzNzEsNDguNjU1MjAyIDguNTczNzczLDEyLjQ1MDU1NSAyMi43Mjg4MzMsMTcuOTU0OTQzIDQ1LjI1MjYwMywyNS44MzY2NjIgMjcuMjg0ODUsOC44NzQ5NDggOTEuNTQzMywzMS40NzU2MTggOTEuNTQzMywzMS40NzU2MTggNS44ODg4NSwyLjU0Mzk0IDUuNDQwMzEsOC43MTQ3NSAtMS44MzI2Niw4LjcxNDc1IDAsMCAtMTIyLjU3Njc3LC0xLjEwMjE2IC0xMjguMzgyMzMsLTEuMTE0OTggLTUuODE4MzczLC0wLjAwNiAtOC42NTcwNzIsMi44MzIyOSAtOC42ODI3MDUsOC40NTIwMyAwLDUuNjE5NzMgLTAuMDUxMjcsMTUuOTE3MjMgLTAuMDc2OSwyMS43NjEyMyAwLDUuNzc5OTMgMS42Nzg4NjksOS4wOCA3LjQ5NzI0NSw5LjI4NTA1IDUuNzc5OTMsMC4xOTg2NSAxMTEuMTc3MTEsLTAuMTk4NjUgMTQzLjU4ODI4LC0wLjI2MjcyIDI0LjY1NzYxLC0wLjA2NDEgNDguNDc1NzgsLTcuNjgzMDggNTMuMzY1MDEsLTM0LjkxNjY2IDIuOTI4NDEsLTIzLjQ2NTc0IC03LjAwMzgzLC0zOC4wMTE2NzkgLTMxLjczODM0LC00OC4wNTkyNjkiCiAgICAgaWQ9InBhdGgxMSIgLz4KPC9zdmc+Cg=="};
+</script>
+<script>
+(function(g){
+const list=[];
+g.KM={register(m){if(list.some(x=>x.id===m.id))throw Error('Duplicate module');list.push(m)},modules:list,
+hex(n,width=2){return n.toString(16).toUpperCase().padStart(width,'0')},
+crc32(b,end=b.length){let c=0xffffffff;for(let i=0;i<end;i++){c^=b[i];for(let k=0;k<8;k++)c=(c>>>1)^((c&1)?0xedb88320:0)}return(c^0xffffffff)>>>0},
+diff(a,b){if(a.length!==b.length)throw Error('File sizes differ');const d=[];for(let i=0;i<a.length;i++)if(a[i]!==b[i])d.push(i);return d;},
+detect(b){return list.filter(m=>m.detect(b));}};
+})(globalThis);
+
+(function(K){
+'use strict';
+const START=0xA88,END=0xD59,RATIO=1.609344;
+// The status layout comes from the user's working 118300 KM reference.
+// General values are experimental until independently tested on the cluster.
+const template=Uint8Array.from('5a111f0160000000000000000000000000000000000000000000000000000000004ca75a5a121f015000000000000000000000000000000000000000000000000000000000365c5a5a131f014000000000000000000000000000000000000000000000000000000000fffa5a69141f013000000000000000000000000000000000000000000000000000000000e3ba6969151f0120000000000000000000000000000000000000000000000000000000002a1c6969161f01100000000000000000000000000000000000000000000000000000000050e76969171f01000000000000000000000000000000000000000000000000000000000099416969181f01f00000000000000000000000000000000000000000000000000000000068676969191f01e000000000000000000000000000000000000000000000000000000000a1c169691a1f01d000000000000000000000000000000000000000000000000000000000db3a695a1b1f01c000000000000000000000000000000000000000000000000000000000129c5a5a1c1f01b0000000000000000000000000000000000000000000000000000000000edc5a5a1d1f01a000000000000000000000000000000000000000000000000000000000c77a5a691e1f019000000000000000000000000000000000000000000000000000000000bd8169691f1f01800000000000000000000000000000000000000000000000000000000074276969201f0120000000000000000000000000000000000000000000000000000000003b6d6969211f013000000000000000000000000000000000000000000000000000000000f2cb6969221f01000000000000000000000000000000000000000000000000000000000088306969231f01100000000000000000000000000000000000000000000000000000000041966969241f0160000000000000000000000000000000000000000000000000000000005dd669c3'.match(/../g),s=>parseInt(s,16));
+const matches=(b,p,o)=>p.every((v,i)=>b[o+i]===v);
+const header=new TextEncoder().encode('ML3T-10849-ABM'),calibration=new TextEncoder().encode('ML3T-14F094-ACA');
+// Empirically inferred nibble fold: six nibbles, 3-bit steps, polynomial
+// 0x1D (degree 4), final XOR 5. All 140 supplied records match.
+function checkByte(raw){if(!Number.isInteger(raw)||raw<0||raw>0xffffff)throw Error('Raw mileage out of range.');let c=0;for(let shift=20;shift>=0;shift-=4){c=(c<<3)^((raw>>>shift)&15);for(let bit=6;bit>=4;bit--)if(c&(1<<bit))c^=0x1D<<(bit-4)}return(c^5)<<4}
+// Fixed-length equivalent CRC parameters, not a unique identification of
+// the firmware's initialization: init 0, polynomial 0x1021, xorout 0xDA58.
+function crcRecord(b,o){let c=0;for(let i=0;i<32;i++){c^=b[o+i]<<8;for(let k=0;k<8;k++)c=((c<<1)^((c&0x8000)?0x1021:0))&0xffff}return c^0xDA58}
+function detect(b){return b.length===8192&&matches(b,header,1)&&matches(b,calibration,25)&&Array.from({length:20},(_,n)=>0xa89+36*n).every(o=>(b[o+3]&15)===0&&b.slice(o+4,o+32).every(v=>v===0))}
+function records(b){return Array.from({length:20},(_,n)=>{const o=0xa89+36*n,raw=b[o]+256*b[o+1]+65536*b[o+2],stored=b[o+32]+256*b[o+33],crcValid=stored===crcRecord(b,o),nibbleValid=b[o+3]===checkByte(raw);return{index:n+1,offset:o,raw,km:raw*RATIO,crcValid,nibbleValid,valid:crcValid&&nibbleValid,status:crcValid&&nibbleValid?'Fields match':'Field mismatch'}})}
+function statusMatches(b){for(let n=0;n<20;n++){const o=36*n;if(b[START+o]!==template[o]||b[START+o+35]!==template[o+35])return false}return b[END-1]===template[template.length-1]}
+function analyze(b){if(!detect(b))return{currentKm:null,min:0,max:0,valid:false,crcValid:false,nibbleValid:false,records:[],message:'Unsupported or damaged layout.'};const rs=records(b),crcValid=rs.every(r=>r.crcValid),nibbleValid=rs.every(r=>r.nibbleValid),valid=crcValid&&nibbleValid,normalized=rs.every((r,i)=>r.raw===rs[0].raw+i)&&statusMatches(b),ref=matches(b,template,START);return{currentKm:valid&&normalized?Math.round(rs[19].km):null,estimatedKm:valid&&normalized?rs[19].km:null,min:Math.min(...rs.map(r=>r.km)),max:Math.max(...rs.map(r=>r.km)),valid,crcValid,nibbleValid,referenceMatch:ref,normalized,records:rs,message:ref?'Matches the supplied working 118300 KM reference.':normalized?'Estimated mileage from the generated sequence; dashboard behavior for this value is unverified.':'Candidate range; active-record selection for this original layout is not established.'}}
+function plan(km){if(!Number.isSafeInteger(km)||km<31||km>999999)throw Error('Enter a whole number from 31 to 999999 KM.');const raw=Math.round(km/RATIO);return{requestedKm:km,raw,estimatedKm:raw*RATIO,roundedKm:Math.round(raw*RATIO),firstRaw:raw-19}}
+function encode(b,km){const p=plan(km);if(!detect(b))throw Error('Expected an 8192-byte ML3T F150 dump.');if(!analyze(b).valid)throw Error('Mileage field validation failed. Restore the original file.');const out=b.slice();out.set(template,START);for(let n=0;n<20;n++){const o=0xa89+36*n,v=p.firstRaw+n;out[o]=v&255;out[o+1]=(v>>>8)&255;out[o+2]=(v>>>16)&255;out[o+3]=checkByte(v);const crc=crcRecord(out,o);out[o+32]=crc&255;out[o+33]=crc>>>8}const a=analyze(out);if(!a.valid||!a.normalized||a.records[19].raw!==p.raw)throw Error('Generated data did not pass structural checks.');return out}
+K.register({id:'f150-2021-experimental-v2',name:'Ford F150 2021 / ML3T / experimental',memory:'24C64 / 8192 bytes',writable:true,experimental:true,detect,checkByte,crcRecord,analyze,encode,plan,ranges(){return Array.from({length:20},(_,n)=>({start:0xa89+36*n,end:0xa8b+36*n,kind:'km'}))}});
+})(KM);
+</script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const hex=(n,w=2)=>n.toString(16).toUpperCase().padStart(w,'0');
+const format=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:3});
+const kmText=n=>Number.isFinite(n)?Math.round(n).toLocaleString('en-US'):'UNKNOWN';
+const PAGE=256,MAX_UNDO=500;
+
+/* ------------------------------------------------------------------
+   Vehicle profiles. Each profile only knows how to READ the mileage,
+   PLAN/ENCODE a new value and NAME the saved file. Everything else
+   (open, view, HEX editing, undo, search, save) is shared.
+   The Ford and Isuzu algorithms are unchanged from the previous build.
+------------------------------------------------------------------- */
+const Profiles={
+ ford:{
+  vehicle:'Ford F150',title:'Ford F150 24X_24C64 Instrument Cluster EEPROM Editor',logoWidth:150,
+  detect:data=>({module:KM.detect(data)[0]||null}),
+  inspect(data,ctx){
+   const m=ctx.module,a=m?m.analyze(data):null,canWrite=!!m?.writable&&a?.valid===true;
+   return{a,canWrite,
+    km:a?.records?.length?(a.currentKm!==null?format(a.currentKm):format(a.min)+' – '+format(a.max)):'Unknown',
+    state:a?(a.currentKm!==null?(a.referenceMatch?'KM / matches the confirmed 118300 reference':'Estimated KM / experimental encoding'):'Candidate range; active mileage is not confirmed'):'No mileage algorithm matches this file',
+    note:canWrite?'Experimental targets: 31–999999 KM. Fields are recalculated; arbitrary values have not been verified on a dashboard.':m?'Mileage CRC or check-byte validation failed. Restore the original file before applying changes.':'Unsupported layout. Manual HEX editing is available.',
+    info:m?'Ford F150 / ML3T / 24C64 · CRC: '+(a?.valid?'20/20 match, including check bytes':'mismatch'):'Generic HEX',
+    currentKm:a?.currentKm??null,ranges:m?m.ranges():[]};
+  },
+  plan(km,ctx){const p=ctx.module.plan(km);return'Encoded estimate: '+format(p.estimatedKm)+' KM ('+p.raw+' miles). Whole-mile storage may differ from the requested display.'},
+  encode(data,km,ctx){
+   if(!ctx.module?.writable)throw Error('Automatic mileage editing is not verified for this format.');
+   if(km>0xffffffff)throw Error('Mileage is outside the supported range.');
+   const r=ctx.module.encode(data,km);
+   if(r.length!==data.length||ctx.module.analyze(r).valid!==true)throw Error('Modified file failed validation.');
+   return r;
+  },
+  done:km=>'Experimental data generated for '+format(km)+' KM. All 20 check bytes and CRCs match the inferred formulas. Dashboard test still required.',
+  fileName(s){
+   const a=s.info.a,originalAnalysis=s.ctx.module?.analyze(s.original);
+   const previousNew=s.name.match(/NEW[ _-]*([0-9,]+)\s*km/i),labeled=s.name.match(/([0-9][0-9,]{3,})\s*KM/i),afterYear=s.name.match(/2021\D+([0-9][0-9,]{3,})/);
+   const fromName=previousNew||labeled||afterYear;
+   const oldKm=fromName?Number(fromName[1].replace(/,/g,'')):originalAnalysis?.currentKm;
+   const newKm=s.requestedKm!==null?s.requestedKm:a?.currentKm;
+   return'DC_FORD__Ford F-150 - 2021 - OLD '+kmText(oldKm)+' km - NEW '+kmText(newKm)+' km - MOD - 24X_24C64 EEPROM'+(s.requestedKm===null&&!a?.referenceMatch?' - HEX-UNVERIFIED':'')+'.bin';
+  }
+ },
+ isuzu:{
+  vehicle:'Isuzu D-MAX',title:'Isuzu D-MAX 93C66 Instrument Cluster EEPROM Editor',logoWidth:180,min:100,max:999900,
+  detect:()=>({}),
+  read(data){if(data.length<100)return null;const v=(data[1]<<8)|data[0];return v===0xFFFF?null:v*23},
+  inspect(data){
+   const km=this.read(data),canWrite=data.length>=100;
+   return{canWrite,km:km!==null?format(km):'Unknown',
+    state:km!==null?'KM / raw value × 23':'Invalid file format',
+    note:canWrite?'Targets: 100–999900 KM. The raw value (KM ÷ 23) is written 50 times and bytes 0x2E–0x35 are set to FF.':'File is too small for this layout (needs at least 100 bytes). Manual HEX editing is available.',
+    info:'Isuzu D-MAX / 93C66',currentKm:km,ranges:km!==null?[{start:0,end:1,kind:'km'}]:[]};
+  },
+  plan(km){if(km<100||km>999900)throw Error('Mileage must be between 100 and 999900 KM');const raw=Math.floor(km/23);return'Encoded value: '+raw+' × 23 = '+format(raw*23)+' KM. Stored in whole units of 23 KM.'},
+  encode(data,km){
+   if(km<100||km>999900)throw Error('Mileage must be between 100 and 999900 KM');
+   if(data.length<100)throw Error('File is too small for this layout.');
+   const out=data.slice(),raw=Math.floor(km/23);
+   for(let i=0;i<50;i++){out[i*2]=raw&0xFF;out[i*2+1]=(raw>>8)&0xFF}
+   for(let i=0x2E;i<0x36;i++)out[i]=0xFF;
+   return out;
+  },
+  done:()=> 'Modification successful',
+  fileName(s){return'DC_ISUZU__Isuzu D-MAX - OLD '+kmText(this.read(s.original))+' km - NEW '+kmText(this.read(s.data))+' km - MOD - 93C66 EEPROM.bin'}
+ }
+};
+const profile=Profiles[new URLSearchParams(location.search).get('profile')==='isuzu'?'isuzu':'ford'];
+
+/* ---------------------------------------------------------------- state */
+const state={original:null,data:null,ctx:null,info:null,name:'',page:0,anchor:null,selected:null,changes:[],requestedKm:null,undo:[],redo:[],hit:null};
+const editLog=[];
+const message=(text,error=false)=>{$('messageArea').textContent=text;$('messageArea').classList.toggle('error',error)};
+function logEdit(kind,entries,details){editLog.push({time:new Date().toISOString(),operation:kind,details:details||{},changedBytes:entries.length,changes:entries.map(e=>({offset:'0x'+hex(e.i,6),old:hex(e.o),new:hex(e.n)}))})}
+function diffEntries(a,b){const out=[];for(let i=0;i<a.length;i++)if(a[i]!==b[i])out.push({i,o:a[i],n:b[i]});return out}
+function writeEntries(entries,dir){for(const e of entries)state.data[e.i]=dir>0?e.n:e.o}
+function commit(kind,entries,details,km){
+ if(entries.length){state.undo.push({kind,entries,prevKm:state.requestedKm,km});if(state.undo.length>MAX_UNDO)state.undo.shift();state.redo.length=0;logEdit(kind,entries,details)}
+ state.requestedKm=km===undefined?null:km;refresh();
+}
+function setBytes(start,values,kind){
+ const entries=[];values.forEach((v,k)=>{const i=start+k;if(i>=0&&i<state.data.length&&state.data[i]!==v)entries.push({i,o:state.data[i],n:v})});
+ writeEntries(entries,1);commit(kind,entries,{offset:'0x'+hex(start,6),length:values.length});
+}
+function undo(){const s=state.undo.pop();if(!s)return;writeEntries(s.entries,-1);state.redo.push(s);logEdit('UNDO',s.entries.map(e=>({i:e.i,o:e.n,n:e.o})),{of:s.kind});state.requestedKm=s.prevKm;refresh();message('Undone: '+labelOf(s.kind)+' ('+s.entries.length+' byte'+(s.entries.length===1?'':'s')+').')}
+function redo(){const s=state.redo.pop();if(!s)return;writeEntries(s.entries,1);state.undo.push(s);logEdit('REDO',s.entries,{of:s.kind});state.requestedKm=s.km===undefined?null:s.km;refresh();message('Redone: '+labelOf(s.kind)+'.')}
+const labelOf=k=>({HEX_EDIT:'byte edit',PASTE:'paste',MILEAGE:'mileage change',RESTORE:'restore original'}[k]||k);
+
+/* ------------------------------------------------------------- refresh */
+function refresh(){
+ const d=state.data;if(!d)return;
+ state.changes=[];for(let i=0;i<d.length;i++)if(d[i]!==state.original[i])state.changes.push(i);
+ const s=state.info=profile.inspect(d,state.ctx);
+ $('count').textContent=state.changes.length;
+ $('save').disabled=false;$('reset').disabled=!state.changes.length;
+ $('undo').disabled=!state.undo.length;$('redo').disabled=!state.redo.length;
+ $('newKm').disabled=!s.canWrite;$('apply').disabled=!s.canWrite;
+ $('km').textContent=s.km;$('readState').textContent=s.state;$('writeState').textContent=s.note;
+ $('fileInfo').textContent=state.name+' · '+format(d.length)+' bytes · '+s.info;
+ $('location').disabled=!s.ranges.length;
+ ['prevChange','nextChange'].forEach(id=>$(id).disabled=!state.changes.length);
+ render();renderDiff();selectByte();
+}
+const isKm=i=>state.info.ranges.some(r=>r.kind==='km'&&i>=r.start&&i<=r.end);
+const inHit=i=>state.hit&&i>=state.hit.start&&i<state.hit.start+state.hit.len;
+const selRange=()=>state.selected===null?null:[Math.min(state.anchor,state.selected),Math.max(state.anchor,state.selected)];
+
+/* ------------------------------------------------------------ HEX grid */
+const hexEl=$('hex');
+function render(){
+ const d=state.data;if(!d)return;
+ const start=state.page*PAGE,end=Math.min(start+PAGE,d.length),sel=selRange(),frag=document.createDocumentFragment();
+ const head=document.createElement('div');head.className='shared-row shared-head';
+ for(const t of['Offset',...Array.from({length:16},(_,i)=>hex(i)),'ASCII']){const s=document.createElement('span');s.textContent=t;head.append(s)}
+ frag.append(head);
+ for(let o=start;o<end;o+=16){
+  const row=document.createElement('div');row.className='shared-row';
+  const off=document.createElement('span');off.className='offset';off.textContent=hex(o,6);row.append(off);
+  const ascii=document.createElement('span');ascii.className='shared-ascii';
+  for(let j=0;j<16;j++){
+   const i=o+j,b=document.createElement('button');b.className='shared-byte';b.type='button';
+   if(i<end){
+    const v=d[i];b.textContent=hex(v);b.dataset.offset=i;
+    b.title='Offset 0x'+hex(i,6)+' ('+i+') · '+v+' · type two HEX digits';
+    if(v!==state.original[i])b.classList.add('changed');
+    if(sel&&i>=sel[0]&&i<=sel[1])b.classList.add('selected');
+    if(isKm(i))b.classList.add('km');
+    if(inHit(i))b.classList.add('match');
+    const c=document.createElement('span');c.dataset.offset=i;c.textContent=v>=32&&v<=126?String.fromCharCode(v):'.';
+    if(sel&&i>=sel[0]&&i<=sel[1])c.classList.add('selected');
+    if(v!==state.original[i])c.classList.add('changed');
+    ascii.append(c);
+   }else b.disabled=true;
+   row.append(b);
+  }
+  row.append(ascii);frag.append(row);
+ }
+ hexEl.replaceChildren(frag);
+ $('page').textContent='0x'+hex(start,6)+' – 0x'+hex(end-1,6)+' / '+d.length+' bytes · page '+(state.page+1)+'/'+Math.ceil(d.length/PAGE);
+ $('prev').disabled=state.page===0;$('next').disabled=end>=d.length;
+}
+function moveTo(target,extend,focus=true){
+ const n=state.data.length;if(target<0)target=0;if(target>=n)target=n-1;
+ state.selected=target;if(!extend||state.anchor===null)state.anchor=target;
+ state.page=Math.floor(target/PAGE);render();selectByte();
+ if(focus)hexEl.querySelector('[data-offset="'+target+'"].shared-byte')?.focus();
+}
+let pending='';
+hexEl.addEventListener('click',e=>{const t=e.target.closest('[data-offset]');if(!t)return;moveTo(Number(t.dataset.offset),e.shiftKey)});
+hexEl.addEventListener('keydown',e=>{
+ const b=e.target.closest('.shared-byte');if(!b||b.disabled)return;const i=Number(b.dataset.offset),n=state.data.length;
+ if(e.ctrlKey||e.metaKey){
+  if(e.key.toLowerCase()==='c'){e.preventDefault();copySelection()}
+  else if(e.key.toLowerCase()==='a'){e.preventDefault();state.anchor=0;state.selected=n-1;render();selectByte();b.focus()}
+  return;
+ }
+ if(e.altKey)return;
+ if(/^[0-9a-f]$/i.test(e.key)){
+  e.preventDefault();pending+=e.key.toUpperCase();b.textContent=pending.length===1?pending+'_':pending;b.classList.add('editing');
+  if(pending.length===2){const v=parseInt(pending,16);pending='';setBytes(i,[v],'HEX_EDIT');moveTo(Math.min(i+1,n-1),false)}
+  return;
+ }
+ if(e.key==='Escape'){e.preventDefault();pending='';b.textContent=hex(state.data[i]);b.classList.remove('editing');return}
+ const rowStart=i-(i%16),moves={ArrowRight:i+1,ArrowLeft:i-1,ArrowDown:i+16,ArrowUp:i-16,PageDown:i+PAGE,PageUp:i-PAGE,Home:rowStart,End:Math.min(rowStart+15,n-1)};
+ if(e.key in moves){e.preventDefault();pending='';moveTo(moves[e.key],e.shiftKey)}
+});
+hexEl.addEventListener('focusout',e=>{const b=e.target.closest?.('.shared-byte');if(b&&pending){pending='';if(state.data&&b.dataset.offset!==undefined){b.textContent=hex(state.data[Number(b.dataset.offset)]);b.classList.remove('editing')}}});
+hexEl.addEventListener('paste',e=>{
+ if(state.selected===null)return;e.preventDefault();
+ const text=(e.clipboardData.getData('text')||'').replace(/0x/gi,'').replace(/[\s,;:-]+/g,'');
+ if(!/^[0-9a-f]+$/i.test(text)||text.length%2){return message('Paste HEX bytes only, for example: 1F 3A 00.',true)}
+ const bytes=text.match(/../g).map(x=>parseInt(x,16)),at=selRange()[0];
+ if(at+bytes.length>state.data.length)return message('Pasted data goes past the end of the file.',true);
+ setBytes(at,bytes,'PASTE');message('Pasted '+bytes.length+' byte'+(bytes.length===1?'':'s')+' at 0x'+hex(at,6)+'.');
+});
+async function copySelection(){
+ const r=selRange();if(!r)return;const text=Array.from(state.data.slice(r[0],r[1]+1),v=>hex(v)).join(' ');
+ try{await navigator.clipboard.writeText(text)}catch{const t=document.createElement('textarea');t.value=text;document.body.append(t);t.select();document.execCommand('copy');t.remove()}
+ message('Copied '+(r[1]-r[0]+1)+' byte'+(r[1]===r[0]?'':'s')+' from 0x'+hex(r[0],6)+'.');
+}
+$('prev').onclick=()=>{if(state.page){state.page--;render()}};
+$('next').onclick=()=>{if(state.data&&(state.page+1)*PAGE<state.data.length){state.page++;render()}};
+
+/* ------------------------------------------------ inspector / byte form */
+function selectByte(){
+ const yes=state.selected!==null&&state.data,r=yes?selRange():null,i=yes?r[0]:null;
+ $('byte').disabled=!yes;$('applyByte').disabled=!yes;
+ $('selected').textContent=yes?(r[1]>r[0]?(r[1]-r[0]+1)+' bytes selected from 0x'+hex(r[0],6)+' to 0x'+hex(r[1],6):'Offset 0x'+hex(i,6)+' | Original: '+hex(state.original[i])+' | Current: '+hex(state.data[i])):'Click a byte and type two HEX digits. Arrows move, Shift extends, Esc cancels.';
+ $('byte').value=yes?hex(state.data[i]):'';
+ const el=$('inspector');
+ if(!yes){el.replaceChildren();el.hidden=true;return}
+ el.hidden=false;const d=state.data,b=d[i];
+ const rows=[['Offset','0x'+hex(i,6)+' · '+i],['Byte','0x'+hex(b)+' · '+b+' · '+b.toString(2).padStart(8,'0')],['Char',b>=32&&b<=126?"'"+String.fromCharCode(b)+"'":'—']];
+ if(i+1<d.length){rows.push(['u16 LE',format(d[i]|d[i+1]<<8)],['u16 BE',format(d[i]<<8|d[i+1])])}
+ if(i+3<d.length)rows.push(['u32 LE',format(((d[i])|(d[i+1]<<8)|(d[i+2]<<16)|(d[i+3]<<24))>>>0)]);
+ el.replaceChildren(...rows.map(([k,v])=>{const s=document.createElement('span');s.append(k+' ');const bb=document.createElement('b');bb.textContent=v;s.append(bb);return s}));
+}
+function renderDiff(){
+ const table=document.createElement('table'),tr=document.createElement('tr');
+ for(const s of['Offset','Original','Modified']){const th=document.createElement('th');th.textContent=s;tr.append(th)}table.append(tr);
+ for(const i of state.changes.slice(0,1000)){const row=document.createElement('tr');row.style.cursor='pointer';row.onclick=()=>moveTo(i,false);for(const s of['0x'+hex(i,6),hex(state.original[i]),hex(state.data[i])]){const td=document.createElement('td');td.textContent=s;row.append(td)}table.append(row)}
+ $('diff').replaceChildren(table);
+ if(state.changes.length>1000){const p=document.createElement('p');p.textContent='Showing the first 1,000 changes.';$('diff').append(p)}
+}
+$('byteForm').onsubmit=e=>{e.preventDefault();if(state.selected===null)return;const s=$('byte').value.trim();if(!/^[0-9a-f]{2}$/i.test(s))return message('Enter a byte from 00 to FF.',true);const r=selRange();setBytes(r[0],Array(r[1]-r[0]+1).fill(parseInt(s,16)),'HEX_EDIT');message('Byte updated. Checksum has not been recalculated.')};
+
+/* ------------------------------------------------------ navigation/search */
+$('go').onclick=()=>{const s=$('offset').value.trim();if(!state.data)return;if(!/^(0x)?[0-9a-f]+$/i.test(s))return message('Enter a hexadecimal offset.',true);const i=parseInt(s.replace(/^0x/i,''),16);if(!Number.isSafeInteger(i)||i>=state.data.length)return message('Offset is outside the file.',true);moveTo(i,false,true)};
+$('offset').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();$('go').click()}};
+$('location').onclick=()=>{const r=state.info?.ranges.find(r=>r.kind==='km');if(r){state.hit={start:r.start,len:r.end-r.start+1};moveTo(r.start,false,true)}else message('No known KM location.',true)};
+function parseQuery(q){q=q.trim();if(!q)return null;const m=q.match(/^"(.*)"$/);if(m)return m[1].length?Array.from(new TextEncoder().encode(m[1])):null;const c=q.replace(/0x/gi,'').replace(/[\s,;:-]+/g,'');return/^[0-9a-f]+$/i.test(c)&&c.length%2===0?c.match(/../g).map(x=>parseInt(x,16)):null}
+function find(dir){
+ if(!state.data)return;const p=parseQuery($('find').value);
+ if(!p)return message('Search HEX like "1F 3A" or text like "ML3T" (with quotes).',true);
+ const d=state.data,n=d.length,from=state.selected===null?(dir>0?-1:n):(dir>0?selRange()[0]:selRange()[1]);
+ for(let step=1;step<=n;step++){
+  const s=((from+dir*step)%n+n)%n;if(s+p.length>n)continue;
+  let ok=true;for(let k=0;k<p.length;k++)if(d[s+k]!==p[k]){ok=false;break}
+  if(ok){state.hit={start:s,len:p.length};state.anchor=s;state.selected=s+p.length-1;state.page=Math.floor(s/PAGE);render();selectByte();message('Found at 0x'+hex(s,6)+'.');return}
+ }
+ state.hit=null;render();message('Pattern not found.',true);
+}
+$('findNext').onclick=()=>find(1);$('findPrev').onclick=()=>find(-1);
+$('find').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();find(e.shiftKey?-1:1)}};
+function jumpChange(dir){
+ if(!state.changes.length)return;const cur=state.selected===null?(dir>0?-1:state.data.length):selRange()[dir>0?1:0];
+ const c=state.changes,t=dir>0?c.find(i=>i>cur)??c[0]:[...c].reverse().find(i=>i<cur)??c[c.length-1];
+ moveTo(t,false,false);
+}
+$('nextChange').onclick=()=>jumpChange(1);$('prevChange').onclick=()=>jumpChange(-1);
+$('undo').onclick=undo;$('redo').onclick=redo;
+document.addEventListener('keydown',e=>{
+ if(!(e.ctrlKey||e.metaKey)||e.altKey||/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName))return;
+ const k=e.key.toLowerCase();
+ if(k==='z'&&!e.shiftKey){e.preventDefault();undo()}else if(k==='y'||(k==='z'&&e.shiftKey)){e.preventDefault();redo()}else if(k==='f'){e.preventDefault();$('find').focus()}
+});
+
+/* ----------------------------------------------------------- open / save */
+let ticket=0;
+async function openFile(file){
+ if(!file)return;const t=++ticket;
+ if(!file.size||file.size>16777216)return message('Choose a non-empty file up to 16 MiB.',true);
+ try{
+  const data=new Uint8Array(await file.arrayBuffer());if(t!==ticket)return;
+  state.original=data.slice();state.data=data.slice();state.name=file.name;state.ctx=profile.detect(data);
+  state.page=0;state.selected=null;state.anchor=null;state.hit=null;state.requestedKm=null;state.undo=[];state.redo=[];pending='';
+  editLog.length=0;editLog.push({time:new Date().toISOString(),operation:'OPEN',details:{file:file.name,size:data.length},changedBytes:0,changes:[]});
+  $('newKm').value='';refresh();
+  if(state.info.currentKm!==null&&state.info.currentKm!==undefined)$('newKm').value=state.info.currentKm;
+  previewTarget();
+  message(state.info.currentKm!==null&&state.info.currentKm!==undefined?'File opened. Enter a target KM value or select a HEX byte.':'File opened, but no valid mileage was found. Manual HEX editing is available.',false);
+ }catch(e){message('Could not open file: '+e.message,true)}
+}
+$('drop').onclick=()=>$('file').click();
+$('drop').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('file').click()}};
+$('file').onchange=e=>{openFile(e.target.files[0]);e.target.value=''};
+for(const ev of['dragover','dragenter'])$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.add('dragover')});
+for(const ev of['dragleave','drop'])$('drop').addEventListener(ev,e=>{e.preventDefault();$('drop').classList.remove('dragover')});
+$('drop').addEventListener('drop',e=>openFile(e.dataTransfer.files[0]));
+
+function previewTarget(){
+ const text=$('newKm').value.trim();
+ if(!state.data||!/^\d+$/.test(text)||!profile.plan||!state.info?.canWrite){$('targetInfo').textContent='';return}
+ try{$('targetInfo').textContent=profile.plan(Number(text),state.ctx)}catch(e){$('targetInfo').textContent=e.message}
+}
+$('newKm').oninput=previewTarget;
+$('apply').onclick=()=>{
+ try{
+  const s=$('newKm').value.trim();
+  if(!/^\d+$/.test(s))throw Error('Enter a non-negative whole number.');
+  const n=Number(s);if(!Number.isSafeInteger(n))throw Error('Mileage is outside the supported range.');
+  const before=state.data,result=profile.encode(before,n,state.ctx);
+  if(result.length!==state.original.length)throw Error('Modified file failed validation.');
+  const entries=diffEntries(before,result);state.data=result;
+  commit('MILEAGE',entries,{targetKm:n},n);previewTarget();message(profile.done(n));
+ }catch(e){message(e.message,true)}
+};
+$('reset').onclick=()=>{const entries=diffEntries(state.data,state.original);state.data=state.original.slice();commit('RESTORE',entries,{});previewTarget();message('Original bytes restored. (Undo brings your edits back.)')};
+$('save').onclick=()=>{
+ if(!state.data)return;
+ if(state.data.length!==state.original.length)return message('File size mismatch. Save cancelled.',true);
+ const name=profile.fileName({name:state.name,original:state.original,data:state.data,ctx:state.ctx,info:state.info,requestedKm:state.requestedKm});
+ const url=URL.createObjectURL(new Blob([state.data],{type:'application/octet-stream'})),link=document.createElement('a');
+ link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+ message('Download requested: '+name.replace(/^DC_[A-Z]+__/,'')+' ('+state.data.length+' bytes).');
+};
+
+/* ------------------------------------------------------------- audit hook */
+const originalAnchorClick=HTMLAnchorElement.prototype.click;
+HTMLAnchorElement.prototype.click=function(){
+ if(this.download&&this.download.endsWith('.bin')&&parent!==window){
+  const entries=editLog.filter(e=>e.operation==='OPEN'||e.changedBytes>0);
+  parent.postMessage({action:'auditSave',name:this.download,entries:entries,price:($('price')?.value||'')},location.origin);
+ }
+ return originalAnchorClick.call(this);
+};
+
+/* ----------------------------------------------------------------- init */
+document.title=profile.title;$('title').textContent=profile.title;
+$('brand').src=LOGOS[new URLSearchParams(location.search).get('profile')==='isuzu'?'isuzu':'ford'];$('brand').alt=profile.vehicle;$('brand').style.width=profile.logoWidth+'px';
+$('page').textContent='—';
+
+</script></body></html>

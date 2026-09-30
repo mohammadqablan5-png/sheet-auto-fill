@@ -15,10 +15,9 @@
     <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="index.html;ford.html;isuzu.html" />
+    <None Remove="index.html;editor.html" />
     <EmbeddedResource Include="index.html" LogicalName="index.html" />
-    <EmbeddedResource Include="ford.html" LogicalName="ford.html" />
-    <EmbeddedResource Include="isuzu.html" LogicalName="isuzu.html" />
+    <EmbeddedResource Include="editor.html" LogicalName="editor.html" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2151.40" />
