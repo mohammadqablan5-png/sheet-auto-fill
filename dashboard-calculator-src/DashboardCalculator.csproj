@@ -23,6 +23,10 @@
     <EmbeddedResource Include="saved.ico" LogicalName="saved.ico" />
     <EmbeddedResource Include="isuzu.ico" LogicalName="isuzu.ico" />
     <EmbeddedResource Include="toyota.ico" LogicalName="toyota.ico" />
+    <EmbeddedResource Include="kia.ico" LogicalName="kia.ico" />
+    <EmbeddedResource Include="hyundai.ico" LogicalName="hyundai.ico" />
+    <EmbeddedResource Include="mazda.ico" LogicalName="mazda.ico" />
+    <EmbeddedResource Include="gmc.ico" LogicalName="gmc.ico" />
     <EmbeddedResource Include="editor.html" LogicalName="editor.html" />
   </ItemGroup>
   <ItemGroup>

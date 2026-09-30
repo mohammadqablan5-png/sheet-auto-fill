@@ -65,6 +65,23 @@ internal class Studio : Form
 		return "";
 	}
 
+	// prefix in the saved file name, folder / display name, editor profile, folder icon resource
+	private static readonly string[][] Vehicles = new string[][]
+	{
+		new string[] { "DC_FORD__", "Ford F150", "ford", "ford.ico" },
+		new string[] { "DC_ISUZU__", "Isuzu D-MAX", "isuzu", "isuzu.ico" },
+		new string[] { "DC_TOYOTA__", "Toyota", "toyota", "toyota.ico" },
+		new string[] { "DC_KIA__", "Kia", "kia", "kia.ico" },
+		new string[] { "DC_HYUNDAI__", "Hyundai", "hyundai", "hyundai.ico" },
+		new string[] { "DC_MAZDA__", "Mazda", "mazda", "mazda.ico" },
+		new string[] { "DC_GMC__", "GMC", "gmc", "gmc.ico" }
+	};
+
+	private static string[] VehicleByFolder(string folderName)
+	{
+		return Vehicles.FirstOrDefault((string[] v) => v[1] == folderName);
+	}
+
 	[System.Runtime.InteropServices.DllImport("shell32.dll")]
 	private static extern void SHChangeNotify(int wEventId, int uFlags, IntPtr dwItem1, IntPtr dwItem2);
 
@@ -534,7 +551,7 @@ internal class Studio : Form
 			{
 				savedFiles.Clear();
 				List<object> list2 = new List<object>();
-				string[] array = new string[3] { "Ford F150", "Isuzu D-MAX", "Toyota" };
+				string[] array = Vehicles.Select((string[] v) => v[1]).ToArray();
 				foreach (string text in array)
 				{
 					string path2 = Path.Combine(root, text);
@@ -586,7 +603,7 @@ internal class Studio : Form
 				{
 					type = "savedFile",
 					name = fileInfo.Name,
-					profile = ((fileInfo.Directory.Name == "Ford F150") ? "ford" : ((fileInfo.Directory.Name == "Toyota") ? "toyota" : "isuzu")),
+					profile = (VehicleByFolder(fileInfo.Directory.Name)?[2] ?? "isuzu"),
 					data = Convert.ToBase64String(File.ReadAllBytes(path))
 				});
 			}
@@ -664,31 +681,18 @@ internal class Studio : Form
 				{
 					string auditKey;
 					string text = (auditKey = Path.GetFileName(e.ResultFilePath));
-					string vehicle;
-					if (text.StartsWith("DC_FORD__", StringComparison.Ordinal))
+					string[] match = Vehicles.FirstOrDefault((string[] v) => text.StartsWith(v[0], StringComparison.Ordinal));
+					if (match == null)
 					{
-						vehicle = "Ford F150";
-						text = text.Substring("DC_FORD__".Length);
+						e.Cancel = true;
+						MessageBox.Show("Vehicle profile is missing. Reopen the file in its vehicle editor.", "Save Dump");
+						return;
 					}
-					else if (text.StartsWith("DC_TOYOTA__", StringComparison.Ordinal))
-					{
-						vehicle = "Toyota";
-						text = text.Substring("DC_TOYOTA__".Length);
-					}
-					else
-					{
-						if (!text.StartsWith("DC_ISUZU__", StringComparison.Ordinal))
-						{
-							e.Cancel = true;
-							MessageBox.Show("Vehicle profile is missing. Reopen the file in its vehicle editor.", "Save Dump");
-							return;
-						}
-						vehicle = "Isuzu D-MAX";
-						text = text.Substring("DC_ISUZU__".Length);
-					}
+					string vehicle = match[1];
+					text = text.Substring(match[0].Length);
 					string text2 = Path.Combine(SaveRoot(), vehicle);
 					Directory.CreateDirectory(text2);
-					ApplyFolderIcon(text2, (vehicle == "Ford F150") ? "ford.ico" : ((vehicle == "Toyota") ? "toyota.ico" : "isuzu.ico"));
+					ApplyFolderIcon(text2, match[3]);
 					SaveFileDialog val = new SaveFileDialog();
 					try
 					{
