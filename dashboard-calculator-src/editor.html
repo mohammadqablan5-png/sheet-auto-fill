@@ -23,11 +23,13 @@ html,body{height:100%;overflow:hidden!important}.dashboard-container{height:calc
 .shared-byte.selected{background:#d9ebf7!important;outline:1px solid #6aa7d1!important}
 .shared-controls button{padding:5px 12px}
 .diff-wrap tr:hover td{background:#eef6f3}
+#variant{width:100%;padding:9px 12px;border:1px solid #cfe0d6;border-radius:8px;background:#fff;color:#182c37;margin:4px 0 14px;font:inherit}
 .hint kbd{font:11px Consolas,monospace;background:#eef2f2;border:1px solid #d5dede;border-radius:4px;padding:0 5px}
 </style>
 </head><body><main class="dashboard-container">
 <img id="brand" class="ford-logo" alt="" height="54"><h2 id="title"></h2><div class="row"><section>
 <div class="file-drop-area" id="drop" role="button" tabindex="0" aria-label="Open EEPROM file"><p>Load EEPROM dump: <span>Browse…</span></p></div><input type="file" id="file" accept=".bin,.eeprom,.flash,.eep,.rom" hidden>
+<label for="variant">Calculator / IC type</label><select id="variant" aria-label="Calculator or IC type"></select>
 <div class="reading"><small>Current Mileage (KM)</small><div id="km">—</div><small id="readState">Open a file to read KM</small></div>
 <label for="newKm">New Mileage (KM)</label><div class="input-group"><input type="number" id="newKm" placeholder="New mileage" min="0" step="1" disabled><span>KM</span></div>
 <label for="price">Price</label><div class="input-group"><input type="number" id="price" placeholder="0.00" min="0" step="0.01"><span><i class="sar" role="img" aria-label="SAR"></i></span></div>
@@ -163,7 +165,29 @@ const Profiles={
  gmc:hexOnly('gmc','GMC',120)
 };
 const PROFILE_KEY=Profiles[new URLSearchParams(location.search).get('profile')]?new URLSearchParams(location.search).get('profile'):'ford';
-const profile=Profiles[PROFILE_KEY];
+/* ------------------------------------------------------------------
+   Calculator / IC types per vehicle.
+   Every vehicle has a list of types (e.g. Isuzu 93C66, Isuzu 93C86). All types
+   share the same screen; only the calculator (inspect / plan / encode / fileName)
+   changes. To add a new type: write an object with those methods (see
+   Profiles.isuzu) and add one line to Variants below. `pending:true` shows the
+   option greyed out as "coming soon".
+------------------------------------------------------------------- */
+const Variants={
+ ford:[{id:'24c64',label:'24C64 · ML3T (F150 2021)',impl:Profiles.ford}],
+ isuzu:[{id:'93c66',label:'93C66 · D-MAX',impl:Profiles.isuzu},{id:'93c86',label:'93C86 · not available yet',pending:true}],
+ toyota:[{id:'hex',label:'HEX editor (no calculator yet)',impl:Profiles.toyota}],
+ kia:[{id:'hex',label:'HEX editor (no calculator yet)',impl:Profiles.kia}],
+ hyundai:[{id:'hex',label:'HEX editor (no calculator yet)',impl:Profiles.hyundai}],
+ mazda:[{id:'hex',label:'HEX editor (no calculator yet)',impl:Profiles.mazda}],
+ gmc:[{id:'hex',label:'HEX editor (no calculator yet)',impl:Profiles.gmc}]
+};
+const vehicleMeta=Profiles[PROFILE_KEY];
+const storeKey='calcType_'+PROFILE_KEY;
+let variantId=(()=>{try{return localStorage.getItem(storeKey)}catch{return null}})();
+let variant=Variants[PROFILE_KEY].find(v=>v.id===variantId&&!v.pending)||Variants[PROFILE_KEY].find(v=>!v.pending);
+// `profile` = vehicle info (name, logo, title) + the methods of the selected calculator type
+const profile=new Proxy({},{get:(_,k)=>['vehicle','title','logoWidth'].includes(k)?vehicleMeta[k]:variant.impl[k]});
 
 /* ---------------------------------------------------------------- state */
 const state={original:null,data:null,ctx:null,info:null,name:'',page:0,anchor:null,selected:null,changes:[],requestedKm:null,undo:[],redo:[],hit:null};
@@ -380,6 +404,9 @@ HTMLAnchorElement.prototype.click=function(){
 };
 
 /* ----------------------------------------------------------------- init */
+(()=>{const sel=$('variant');for(const v of Variants[PROFILE_KEY]){const o=document.createElement('option');o.value=v.id;o.textContent=v.label;o.disabled=!!v.pending;if(v===variant)o.selected=true;sel.append(o)}
+ sel.onchange=()=>{const v=Variants[PROFILE_KEY].find(x=>x.id===sel.value);if(!v||v.pending)return;variant=v;try{localStorage.setItem(storeKey,v.id)}catch{}
+  if(state.data){state.ctx=profile.detect(state.data);state.requestedKm=null;refresh();$('newKm').value=state.info.currentKm??'';previewTarget();message('Calculator type: '+v.label+'.')}}})();
 document.title=profile.title;$('title').textContent=profile.title;
 $('brand').src=LOGOS[PROFILE_KEY];$('brand').alt=profile.vehicle;$('brand').style.width=profile.logoWidth+'px';
 $('page').textContent='—';
