@@ -26,6 +26,8 @@ internal class Studio : Form
 
 	private Dictionary<string, string> auditPrices = new Dictionary<string, string>();
 
+	private Dictionary<string, string> auditCurrencies = new Dictionary<string, string>();
+
 	private Dictionary<string, string> savedFiles;
 
 	private JavaScriptSerializer json;
@@ -191,7 +193,7 @@ internal class Studio : Form
 		return "\"" + (value ?? "").Replace("\"", "\"\"").Replace("\r", " ").Replace("\n", " ") + "\"";
 	}
 
-	private void RecordOperation(string vehicle, string outputPath, string proposedName, string price)
+	private void RecordOperation(string vehicle, string outputPath, string proposedName, string price, string currency)
 	{
 		string path = HistoryPath();
 		Directory.CreateDirectory(Path.GetDirectoryName(path));
@@ -221,7 +223,7 @@ internal class Studio : Form
 				using FileStream inputStream = File.OpenRead(outputPath);
 				text = BitConverter.ToString(sHA.ComputeHash(inputStream)).Replace("-", "");
 			}
-			string[] source = new string[14]
+			string[] source = new string[15]
 			{
 				num.ToString(),
 				vehicle,
@@ -236,15 +238,16 @@ internal class Studio : Form
 				outputPath,
 				new FileInfo(outputPath).Length.ToString(),
 				text,
-				price ?? ""
+				price ?? "",
+				(currency ?? "").Length > 0 ? currency : "SAR"
 			};
-			string contents = "Operation No,Vehicle,Model Year,Date,Time,UTC Offset,Old KM,New KM,Status,File Name,File Path,File Size Bytes,SHA256,Price\r\n";
+			string contents = "Operation No,Vehicle,Model Year,Date,Time,UTC Offset,Old KM,New KM,Status,File Name,File Path,File Size Bytes,SHA256,Price,Currency\r\n";
 			if (File.Exists(path))
 			{
 				string[] existing = File.ReadAllLines(path);
-				if (existing.Length > 0 && !existing[0].EndsWith(",Price"))
+				if (existing.Length > 0 && !existing[0].EndsWith(",Currency"))
 				{
-					existing[0] += ",Price";
+					existing[0] += (existing[0].EndsWith(",Price") ? "" : ",Price") + ",Currency";
 					File.WriteAllLines(path, existing, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
 				}
 			}
@@ -341,7 +344,12 @@ internal class Studio : Form
 					int[] array3 = new int[10] { 0, 1, 2, 3, 4, 6, 7, 13, 8, 9 };
 					foreach (int num in array3)
 					{
-						html.Append("<td>" + Html((num < item2.Length) ? item2[num] : "") + "</td>");
+						string cell = (num < item2.Length) ? item2[num] : "";
+						if (num == 13 && cell.Length > 0)
+						{
+							cell += " " + ((item2.Length > 14 && item2[14].Length > 0) ? item2[14] : "SAR");
+						}
+						html.Append("<td>" + Html(cell) + "</td>");
 					}
 					if (true)
 					{
@@ -468,6 +476,7 @@ internal class Studio : Form
 				auditLogs[(string)raw["name"]] = json.Serialize(raw["entries"]);
 				string priceText = (raw.ContainsKey("price") ? Convert.ToString(raw["price"], CultureInfo.InvariantCulture) : "") ?? "";
 				decimal priceValue;
+				auditCurrencies[(string)raw["name"]] = Regex.IsMatch(Convert.ToString(raw.ContainsKey("currency") ? raw["currency"] : "", CultureInfo.InvariantCulture) ?? "", "^[A-Z]{3}$") ? Convert.ToString(raw["currency"], CultureInfo.InvariantCulture) : "SAR";
 				auditPrices[(string)raw["name"]] = (decimal.TryParse(priceText, NumberStyles.Number, CultureInfo.InvariantCulture, out priceValue) && priceValue >= 0m) ? priceValue.ToString("0.00", CultureInfo.InvariantCulture) : "";
 				return;
 			}
@@ -725,7 +734,7 @@ internal class Studio : Form
 									recorded = true;
 									try
 									{
-										RecordOperation(vehicle, outputPath, auditKey, auditPrices.TryGetValue(auditKey, out var priceForSave) ? priceForSave : "");
+										RecordOperation(vehicle, outputPath, auditKey, auditPrices.TryGetValue(auditKey, out var priceForSave) ? priceForSave : "", auditCurrencies.TryGetValue(auditKey, out var currencyForSave) ? currencyForSave : "SAR");
 									}
 									catch (Exception ex3)
 									{
