@@ -136,8 +136,8 @@ internal class Studio : Form
 		try
 		{
 			Directory.CreateDirectory(text2);
-			ApplyFolderIcon(Path.GetDirectoryName(text2));
-			ApplyFolderIcon(text2);
+			ApplyFolderIcon(Path.GetDirectoryName(text2), "dashboard.ico");
+			ApplyFolderIcon(text2, "saved.ico");
 		}
 		catch (Exception)
 		{

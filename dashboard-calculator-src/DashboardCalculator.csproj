@@ -19,6 +19,8 @@
     <EmbeddedResource Include="index.html" LogicalName="index.html" />
     <EmbeddedResource Include="app.ico" LogicalName="app.ico" />
     <EmbeddedResource Include="ford.ico" LogicalName="ford.ico" />
+    <EmbeddedResource Include="dashboard.ico" LogicalName="dashboard.ico" />
+    <EmbeddedResource Include="saved.ico" LogicalName="saved.ico" />
     <EmbeddedResource Include="isuzu.ico" LogicalName="isuzu.ico" />
     <EmbeddedResource Include="editor.html" LogicalName="editor.html" />
   </ItemGroup>
