@@ -65,6 +65,56 @@ internal class Studio : Form
 		return "";
 	}
 
+	[System.Runtime.InteropServices.DllImport("shell32.dll")]
+	private static extern void SHChangeNotify(int wEventId, int uFlags, IntPtr dwItem1, IntPtr dwItem2);
+
+	// Gives a folder the app icon in Windows Explorer (desktop.ini + a hidden copy of the icon).
+	private static void ApplyFolderIcon(string dir)
+	{
+		try
+		{
+			if (string.IsNullOrEmpty(dir) || !Directory.Exists(dir))
+			{
+				return;
+			}
+			string icon = Path.Combine(dir, "folder.ico");
+			string ini = Path.Combine(dir, "desktop.ini");
+			if (File.Exists(ini) && !File.ReadAllText(ini).Contains("folder.ico"))
+			{
+				return;
+			}
+			if (File.Exists(icon) && File.Exists(ini))
+			{
+				return;
+			}
+			using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("app.ico"))
+			{
+				if (stream == null)
+				{
+					return;
+				}
+				if (File.Exists(icon))
+				{
+					File.SetAttributes(icon, FileAttributes.Normal);
+				}
+				using FileStream output = File.Create(icon);
+				stream.CopyTo(output);
+			}
+			File.SetAttributes(icon, FileAttributes.Hidden | FileAttributes.System);
+			if (File.Exists(ini))
+			{
+				File.SetAttributes(ini, FileAttributes.Normal);
+			}
+			File.WriteAllText(ini, "[.ShellClassInfo]\r\nIconResource=folder.ico,0\r\nIconFile=folder.ico\r\nIconIndex=0\r\n", Encoding.Unicode);
+			File.SetAttributes(ini, FileAttributes.Hidden | FileAttributes.System);
+			File.SetAttributes(dir, File.GetAttributes(dir) | FileAttributes.ReadOnly);
+			SHChangeNotify(0x08000000, 0, IntPtr.Zero, IntPtr.Zero);
+		}
+		catch (Exception)
+		{
+		}
+	}
+
 	private string SaveRoot()
 	{
 		string text = ConfiguredSaveFolder();
@@ -79,7 +129,17 @@ internal class Studio : Form
 			{
 			}
 		}
-		return DefaultSaveRoot();
+		string text2 = DefaultSaveRoot();
+		try
+		{
+			Directory.CreateDirectory(text2);
+			ApplyFolderIcon(Path.GetDirectoryName(text2));
+			ApplyFolderIcon(text2);
+		}
+		catch (Exception)
+		{
+		}
+		return text2;
 	}
 
 	private void StoreSaveFolder(string path)
@@ -620,6 +680,7 @@ internal class Studio : Form
 					}
 					string text2 = Path.Combine(SaveRoot(), vehicle);
 					Directory.CreateDirectory(text2);
+					ApplyFolderIcon(text2);
 					SaveFileDialog val = new SaveFileDialog();
 					try
 					{
