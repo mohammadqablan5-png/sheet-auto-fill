@@ -69,7 +69,7 @@ internal class Studio : Form
 	private static extern void SHChangeNotify(int wEventId, int uFlags, IntPtr dwItem1, IntPtr dwItem2);
 
 	// Gives a folder the app icon in Windows Explorer (desktop.ini + a hidden copy of the icon).
-	private static void ApplyFolderIcon(string dir)
+	private static void ApplyFolderIcon(string dir, string resource = "app.ico")
 	{
 		try
 		{
@@ -83,23 +83,26 @@ internal class Studio : Form
 			{
 				return;
 			}
-			if (File.Exists(icon) && File.Exists(ini))
-			{
-				return;
-			}
-			using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("app.ico"))
+			byte[] bytes;
+			using (Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(resource))
 			{
 				if (stream == null)
 				{
 					return;
 				}
-				if (File.Exists(icon))
-				{
-					File.SetAttributes(icon, FileAttributes.Normal);
-				}
-				using FileStream output = File.Create(icon);
-				stream.CopyTo(output);
+				using MemoryStream memory = new MemoryStream();
+				stream.CopyTo(memory);
+				bytes = memory.ToArray();
 			}
+			if (File.Exists(icon) && File.Exists(ini) && new FileInfo(icon).Length == bytes.Length)
+			{
+				return;
+			}
+			if (File.Exists(icon))
+			{
+				File.SetAttributes(icon, FileAttributes.Normal);
+			}
+			File.WriteAllBytes(icon, bytes);
 			File.SetAttributes(icon, FileAttributes.Hidden | FileAttributes.System);
 			if (File.Exists(ini))
 			{
@@ -680,7 +683,7 @@ internal class Studio : Form
 					}
 					string text2 = Path.Combine(SaveRoot(), vehicle);
 					Directory.CreateDirectory(text2);
-					ApplyFolderIcon(text2);
+					ApplyFolderIcon(text2, (vehicle == "Ford F150") ? "ford.ico" : "isuzu.ico");
 					SaveFileDialog val = new SaveFileDialog();
 					try
 					{

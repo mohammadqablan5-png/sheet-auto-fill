@@ -18,6 +18,8 @@
     <None Remove="index.html;editor.html" />
     <EmbeddedResource Include="index.html" LogicalName="index.html" />
     <EmbeddedResource Include="app.ico" LogicalName="app.ico" />
+    <EmbeddedResource Include="ford.ico" LogicalName="ford.ico" />
+    <EmbeddedResource Include="isuzu.ico" LogicalName="isuzu.ico" />
     <EmbeddedResource Include="editor.html" LogicalName="editor.html" />
   </ItemGroup>
   <ItemGroup>
