@@ -617,7 +617,7 @@ internal class Studio : Form
 		val2.MaxJsonLength = 25000000;
 		json = val2;
 		test = selftest;
-		((Control)this).Text = "Dashboard Calculator | Ford F150 + Isuzu D-MAX";
+		((Control)this).Text = "Dashboard Calculator | Design by Abu Talal";
 		((Control)this).Width = 1440;
 		((Control)this).Height = 950;
 		((Control)this).MinimumSize = new Size(900, 650);
