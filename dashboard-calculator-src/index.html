@@ -41,7 +41,7 @@ function renderSavedCards(){
   const section=document.createElement('section');section.className='saved-group';
   const heading=document.createElement('div');heading.className='saved-group-title';
   const logo=document.createElement('img');const source=document.querySelectorAll('aside .vehicle img')[vehicle==='Ford F150'?0:1];if(source)logo.src=source.src;logo.alt=vehicle;
-  const title=document.createElement('strong');title.textContent=vehicle;const count=document.createElement('span');count.textContent=files.length+' files';const addNew=document.createElement('button');addNew.className='group-new';addNew.textContent='+ New';addNew.title='New blank '+vehicle+' editor';addNew.onclick=()=>addEditor(vehicle==='Ford F150'?'ford':'isuzu');heading.append(logo,title,count,addNew);section.append(heading);
+  const title=document.createElement('strong');title.textContent=vehicle;const count=document.createElement('span');count.textContent=files.length+' files';const addNew=document.createElement('button');addNew.className='group-new';addNew.textContent='+ New / blank';addNew.title='New blank '+vehicle+' editor';addNew.onclick=()=>addEditor(vehicle==='Ford F150'?'ford':'isuzu');heading.append(logo,title,count,addNew);section.append(heading);
   const grid=document.createElement('div');grid.className='saved-grid';
   for(const file of files){const card=document.createElement('button');card.className='dump-card';card.title='Open '+file.name;card.onclick=()=>window.chrome.webview.postMessage({action:'openSaved',id:file.id});
    const badge=document.createElement('span');badge.className='dump-badge';badge.textContent='BIN';
