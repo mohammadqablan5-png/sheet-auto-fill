@@ -118,6 +118,14 @@ dialog#writeConfirm .cd{padding:22px 24px 6px}dialog#writeConfirm h3{margin:0 0 
 dialog#writeConfirm .ca{display:flex;justify-content:flex-end;gap:10px;padding:12px 24px 20px}
 dialog#writeConfirm button{padding:9px 18px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:700;cursor:pointer}
 dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger);color:#fff}
+/* wiring diagram */
+.diagram{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(220px,1fr);gap:14px;align-items:start;margin-bottom:14px}
+.diagram svg{width:100%;height:auto;background:#fbfdfc;border:1px solid var(--line);border-radius:12px}
+#progTable{background:#fbfdfc;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px}
+#progTable table{width:100%;border-collapse:collapse}#progTable td{padding:4px 6px;border-bottom:1px solid #edf2f1}#progTable tr:last-child td{border:0}
+#progTable .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+#progTable h4{margin:0 0 6px;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+@media(max-width:900px){.diagram{grid-template-columns:1fr}}
 /* bottom action bar */
 .bar{display:flex;align-items:center;gap:14px;padding:12px 22px 16px;border-top:1px solid var(--line);background:#f9fcfb}
 #messageArea{flex:1;min-width:0;padding:8px 14px;border-radius:12px;background:#e7f3f0;color:#17695d;font-weight:600;font-size:13px}
@@ -161,6 +169,7 @@ dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger
     <div><label for="progSpeed">Speed</label><select id="progSpeed"><option value="fast">Fast</option><option value="normal" selected>Normal</option><option value="slow">Slow (long wires)</option><option value="veryslow">Very slow</option></select></div>
    </div>
    <div class="wire" id="progWire"></div>
+   <div class="diagram"><div id="progDiagram"></div><div id="progTable"></div></div>
    <div class="progbtns"><button class="go" id="progRead" type="button">Read chip → editor</button><button id="progWrite" type="button">Write editor → chip</button><button id="progVerify" type="button">Verify</button><button class="danger" id="progCancel" type="button" hidden>Cancel</button></div>
    <div class="bar2"><div id="progBar"></div></div>
    <div id="progLog"></div>
@@ -555,16 +564,54 @@ const WIRING={
  I:'<b>24Cxx (I2C)</b> — FT232H <code>D0</code>→SCL · <code>D1</code>→SDA · 4.7 kΩ pull-ups from SCL and SDA to VCC · <code>GND</code>→GND · <code>3.3V</code>→VCC. A0–A2 and WP to GND.',
  S:'<b>95xxx (SPI)</b> — FT232H <code>D0</code>→SCK · <code>D1</code>→MOSI (SI) · <code>D2</code>→MISO (SO) · <code>D3</code>→CS · /W and /HOLD to VCC · <code>GND</code>→GND · <code>3.3V</code>→VCC.'};
 const WARN='<div class="warn">The FT232H works at 3.3 V. Power the chip from the adapter (3.3 V), keep the cluster disconnected from the car, and if you read the chip on the board make sure the cluster microcontroller is not driving the same lines. Writing a wrong dump can stop the cluster from working, so keep the automatic backup.</div>';
+/* ------------------------------------------------------- wiring diagram */
+const PIN_NAMES={M:['CS','CLK (SK)','DI','DO','GND','ORG','PE / NC','VCC'],I:['A0','A1','A2','GND','SDA','SCL','WP','VCC'],S:['/CS','SO','/W','GND','SI','SCK','/HOLD','VCC']};
+const WIRE_COLORS={D0:'#2f7cf0',D1:'#1fb89a',D2:'#ff8a1f',D3:'#8a5cf0','3V3':'#d93a3a',GND:'#1b2f3d'};
+function wiringSpec(fam,x16){
+ if(fam==='M')return{sig:[['D3',1],['D0',2],['D1',3],['D2',4],['GND',5],['3V3',8]],tags:[[6,x16?'3V3':'GND',x16?'ORG = VCC (x16)':'ORG = GND (x8)'],[7,'3V3','PE / NC to VCC']],pull:[]};
+ if(fam==='I')return{sig:[['D1',5],['D0',6],['GND',4],['3V3',8]],tags:[[1,'GND','A0'],[2,'GND','A1'],[3,'GND','A2'],[7,'GND','WP']],pull:[5,6]};
+ return{sig:[['D3',1],['D2',2],['D1',5],['D0',6],['GND',4],['3V3',8]],tags:[[3,'3V3','/W'],[7,'3V3','/HOLD']],pull:[]};
+}
+function drawWiring(){
+ const chip=$('progChip').value,fam=CHIP_FAMILIES[chip],x16=$('progOrg').value==='16',spec=wiringSpec(fam,x16),names=PIN_NAMES[fam];
+ const ftY={D0:76,D1:108,D2:140,D3:172,'3V3':228,GND:268},chipY={1:92,2:150,3:208,4:266,8:92,7:150,6:208,5:266},LX=400,RX=520;
+ let svg='<svg viewBox="0 0 700 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wiring diagram">';
+ svg+='<rect x="18" y="44" width="150" height="262" rx="10" fill="#14232e"/><text x="93" y="66" fill="#8fd9cd" font-size="12" font-weight="700" text-anchor="middle" font-family="Segoe UI,Arial">FT232H</text>';
+ for(const k of Object.keys(ftY)){svg+='<circle cx="168" cy="'+ftY[k]+'" r="4.5" fill="'+WIRE_COLORS[k]+'" stroke="#fff" stroke-width="1.5"/><text x="156" y="'+(ftY[k]+4)+'" fill="#fff" font-size="12" font-weight="700" text-anchor="end" font-family="Consolas,monospace">'+k+'</text>'}
+ svg+='<rect x="'+LX+'" y="60" width="'+(RX-LX)+'" height="236" rx="8" fill="#e8f1ef" stroke="#14232e" stroke-width="2"/><path d="M'+(LX+(RX-LX)/2-14)+' 60 a14 14 0 0 0 28 0" fill="#fbfdfc" stroke="#14232e" stroke-width="2"/><text x="'+((LX+RX)/2)+'" y="186" fill="#14232e" font-size="15" font-weight="800" text-anchor="middle" font-family="Segoe UI,Arial">'+chip+'</text><text x="'+((LX+RX)/2)+'" y="204" fill="#647f89" font-size="11" text-anchor="middle" font-family="Segoe UI,Arial">8-pin, top view</text>';
+ for(let n=1;n<=8;n++){const left=n<=4,x=left?LX:RX,y=chipY[n],dir=left?-1:1;svg+='<line x1="'+x+'" y1="'+y+'" x2="'+(x+dir*14)+'" y2="'+y+'" stroke="#14232e" stroke-width="3"/><text x="'+(x-dir*8)+'" y="'+(y-6)+'" font-size="10" fill="#647f89" text-anchor="'+(left?'start':'end')+'" font-family="Consolas,monospace">'+n+'</text><text x="'+(x-dir*8)+'" y="'+(y+13)+'" font-size="11" font-weight="700" fill="#14232e" text-anchor="'+(left?'start':'end')+'" font-family="Segoe UI,Arial">'+names[n-1]+'</text>'}
+ let i=0,wires='';const pulls=[];
+ for(const [from,pin] of spec.sig){
+  const col=WIRE_COLORS[from],fy=ftY[from],ty=chipY[pin],left=pin<=4,xc=196+i*24;let d;
+  if(left){d='M168 '+fy+' H'+xc+' V'+ty+' H'+(LX-14)}
+  else{const top=24+i*6,xr=RX+84+i*22;d='M168 '+fy+' H'+xc+' V'+top+' H'+xr+' V'+ty+' H'+(RX+14)}
+  wires+='<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';
+  if(!left&&spec.pull.includes(pin)){pulls.push({xr:RX+84+i*22,ty:ty,top:24+i*6})}
+  i++;
+ }
+ if(pulls.length){const railY=Math.max(...pulls.map(q=>q.top))+34,xs=pulls.map(q=>q.xr),x1=Math.min(...xs)-6,x2=Math.max(...xs)+6;wires+='<line x1="'+x1+'" y1="'+railY+'" x2="'+x2+'" y2="'+railY+'" stroke="'+WIRE_COLORS['3V3']+'" stroke-width="3"/><text x="'+(x2+6)+'" y="'+(railY+4)+'" font-size="11" font-weight="800" fill="'+WIRE_COLORS['3V3']+'" font-family="Segoe UI,Arial">3V3</text>';for(const q of pulls){wires+='<line x1="'+q.xr+'" y1="'+railY+'" x2="'+q.xr+'" y2="'+(railY+16)+'" stroke="'+WIRE_COLORS['3V3']+'" stroke-width="2.4"/><rect x="'+(q.xr-5)+'" y="'+(railY+16)+'" width="10" height="24" rx="2" fill="#fff" stroke="#14232e" stroke-width="1.6"/>'}}
+ svg+=wires;
+ for(const [pin,net,label] of spec.tags){const left=pin<=4,x=left?LX-14:RX+14,y=chipY[pin],dir=left?-1:1,col=WIRE_COLORS[net];svg+='<line x1="'+x+'" y1="'+y+'" x2="'+(x+dir*22)+'" y2="'+y+'" stroke="'+col+'" stroke-width="3" stroke-dasharray="5 3"/><text x="'+(x+dir*28)+'" y="'+(y+4)+'" font-size="11" font-weight="800" fill="'+col+'" text-anchor="'+(left?'end':'start')+'" font-family="Segoe UI,Arial">'+(net==='GND'?'GND':'3V3')+'</text>'}
+ svg+='</svg>';
+ $('progDiagram').innerHTML=svg;
+ let rows='<h4>Connections</h4><table>';
+ for(const [from,pin] of spec.sig)rows+='<tr><td><span class="sw" style="background:'+WIRE_COLORS[from]+'"></span><b>'+from+'</b></td><td>→ pin '+pin+' · '+names[pin-1]+'</td></tr>';
+ for(const [pin,net,label] of spec.tags)rows+='<tr><td><span class="sw" style="background:'+WIRE_COLORS[net]+'"></span><b>'+net+'</b></td><td>→ pin '+pin+' · '+label+'</td></tr>';
+ if(spec.pull.length)rows+='<tr><td colspan="2" style="color:#647f89">4.7 kΩ pull-up resistors from SDA and SCL to 3V3.</td></tr>';
+ $('progTable').innerHTML=rows+'</table>';
+}
+
 function progLog(t,cls){const el=$('progLog');const d=document.createElement('div');if(cls)d.className=cls;d.textContent=t;el.append(d);el.scrollTop=el.scrollHeight}
 function progBusy(b){for(const id of ['progRead','progWrite','progVerify','progDetect'])$(id).disabled=b;$('progCancel').hidden=!b;if(!b)$('progBar').style.width='0'}
 function bytesToBase64(u8){let s='';for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s)}
 function base64ToBytes(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}
 function progParams(extra){const chip=$('progChip').value;return Object.assign({action:'prog',chip,x16:$('progOrg').value==='16',swap:$('progSwap').value==='1',speed:$('progSpeed').value},extra)}
 function showView(v){document.getElementById('app').dataset.view=v;for(const x of document.querySelectorAll('.tabs button'))x.classList.toggle('on',x.dataset.view===v)}
-function progChanged(){const chip=$('progChip').value,fam=CHIP_FAMILIES[chip];$('progWire').innerHTML=WIRING[fam]+WARN;$('orgBox').hidden=fam!=='M';$('swapBox').hidden=fam!=='M'||$('progOrg').value!=='16';try{localStorage.setItem('progChip_'+PROFILE_KEY,chip)}catch(e){}}
+function progChanged(){const chip=$('progChip').value,fam=CHIP_FAMILIES[chip];$('progWire').innerHTML=WIRING[fam]+WARN;$('orgBox').hidden=fam!=='M';$('swapBox').hidden=fam!=='M'||$('progOrg').value!=='16';drawWiring();try{localStorage.setItem('progChip_'+PROFILE_KEY,chip)}catch(e){}}
 (()=>{const sel=$('progChip');for(const n of Object.keys(CHIP_FAMILIES)){const o=document.createElement('option');o.value=n;o.textContent=n+' ('+(CHIP_SIZE[n]>=1024?CHIP_SIZE[n]/1024+' KB':CHIP_SIZE[n]+' B')+')';sel.append(o)}
  let want=null;try{want=localStorage.getItem('progChip_'+PROFILE_KEY)}catch(e){}if(!want)want=PROFILE_KEY==='ford'?'24C64':'93C66';sel.value=CHIP_FAMILIES[want]?want:'93C66';
  sel.onchange=progChanged;$('progOrg').onchange=progChanged;progChanged()})();
+
 $('progDetect').onclick=()=>{progLog('Looking for an FT232H…');parent.postMessage({action:'prog',cmd:'detect'},location.origin)};
 $('progRead').onclick=()=>{progBusy(true);progLog('Reading '+$('progChip').value+'…');parent.postMessage(progParams({cmd:'read'}),location.origin)};
 $('progVerify').onclick=()=>{if(!state.data){progLog('Open a file in the editor first (or read a chip).','err');return}progBusy(true);progLog('Verifying…');parent.postMessage(progParams({cmd:'verify',data:bytesToBase64(state.data)}),location.origin)};
