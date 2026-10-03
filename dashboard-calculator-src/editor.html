@@ -111,6 +111,24 @@ body.has-file #dropWrap{display:none}
 #chipGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:9px}
 .cp{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border:1px solid var(--line);background:#fff;border-radius:10px;font-weight:800;font-size:12.5px;color:var(--text)}
 .cp small{font-weight:600;color:var(--muted);font-size:11px}.cp:hover{border-color:var(--teal)}.cp.on{background:var(--navy);border-color:var(--navy);color:#fff}.cp.on small{color:#9fc9c2}
+
+.smartbox{display:flex;flex-direction:column;gap:9px;padding:10px}
+.smart{display:flex;align-items:center;gap:13px;width:100%;text-align:left;padding:14px 15px;border:0;border-radius:16px;color:#fff;background:linear-gradient(135deg,var(--teal),#1b6b61);box-shadow:0 10px 24px #23877940;transition:.15s;cursor:pointer}
+.smart:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 14px 28px #23877955}
+.smart:disabled{opacity:.55;cursor:wait;transform:none}
+.smart .si{width:38px;height:38px;border-radius:12px;background:#ffffff26;display:grid;place-items:center;flex:none}
+.smart .si svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.smart b{display:block;font-size:16px}.smart small{display:block;font-size:11.5px;opacity:.85;margin-top:2px}
+.smart.w{background:linear-gradient(135deg,#d0505a,#a5303a);box-shadow:0 10px 24px #b3363f40}
+.smart.c{background:linear-gradient(135deg,#6b7f86,#4d5f66);box-shadow:none}
+.smartrow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.mini{padding:6px 0;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:12.5px;font-weight:600;color:var(--ink,#22343a);cursor:pointer}
+.mini:hover:not(:disabled){border-color:var(--teal)}.mini.warn:hover:not(:disabled){border-color:var(--danger)}.mini:disabled{opacity:.4;cursor:not-allowed}
+.adv{background:#fff;border:1px solid var(--line);border-radius:14px;padding:0}
+.adv>summary{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;cursor:pointer;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);list-style:none}
+.adv>summary::-webkit-details-marker{display:none}.adv>summary em{font-style:normal;text-transform:none;letter-spacing:0;color:var(--teal);font-size:13px}
+.adv[open]>summary{border-bottom:1px solid var(--line)}
+.adv .blk{border:0;box-shadow:none;background:none;border-radius:0}
 .opts3{display:flex;flex-direction:column;gap:10px}
 .ops3{display:flex;flex-direction:column;gap:8px;padding:10px}
 .op{display:flex;align-items:center;gap:12px;text-align:left;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;transition:.15s}
@@ -178,6 +196,11 @@ dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger
  <section class="view view-prog">
   <div class="pg3">
    <aside class="col col-left">
+    <div class="blk smartbox">
+     <button class="smart" id="smartBtn" type="button"><span class="si" id="smartIco"></span><span class="st"><b id="smartTitle">Read chip</b><small id="smartSub"></small></span></button>
+     <div class="smartrow"><button class="mini" id="progRead" type="button">Read</button><button class="mini warn" id="progWrite" type="button">Write</button><button class="mini" id="progVerify" type="button">Verify</button></div>
+    </div>
+    <details class="adv" id="adv"><summary><span>Chip &amp; settings</span><em id="advSum">Auto</em></summary>
     <div class="blk"><div class="cap2">Chip</div>
      <div class="seg wide" id="famSeg"></div>
      <div id="chipGrid"></div><select id="progChip" hidden></select></div>
@@ -186,11 +209,7 @@ dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger
      <div id="swapBox"><div class="cap2">Bytes in each word</div><div class="seg wide" id="segSwap"></div><select id="progSwap" hidden><option value="0">High byte first</option><option value="1">Low byte first</option></select></div>
      <div><div class="cap2">Speed</div><div class="seg wide" id="segSpeed"></div><select id="progSpeed" hidden><option value="fast">Fast</option><option value="normal" selected>Normal</option><option value="slow">Slow</option><option value="veryslow">Slowest</option></select></div>
     </div>
-    <div class="blk ops3">
-     <button class="op" id="progRead" type="button"><svg viewBox="0 0 24 24"><path d="M12 4v11m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg><div><b>Read chip</b><small>Chip → editor</small></div></button>
-     <button class="op warn" id="progWrite" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V8m0 0 4 4m-4-4-4 4"/><path d="M5 5h14"/></svg><div><b>Write chip</b><small>Editor → chip · backup first</small></div></button>
-     <button class="op" id="progVerify" type="button"><svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></svg><div><b>Verify</b><small>Compare chip with editor</small></div></button>
-    </div>
+    </details>
    </aside>
    <section class="col col-mid">
     <div class="midhead"><div><b id="midChip">—</b><span id="midInfo"></span></div><span class="legend3">FT232H → chip</span></div>
@@ -526,7 +545,7 @@ document.addEventListener('keydown',e=>{
 
 /* ----------------------------------------------------------- open / save */
 let ticket=0;
-async function openFile(file){
+async function openFile(file){window.progFromChip=false;
  if(!file)return;const t=++ticket;
  if(!file.size||file.size>16777216)return message('Choose a non-empty file up to 16 MiB.',true);
  try{
@@ -656,7 +675,7 @@ $('progCancel').onclick=()=>{progLog('Cancelling…');parent.postMessage({action
 window.addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||e.data.type!=='prog')return;const m=e.data;
  if(m.stage==='progress'){const pc=Math.max(0,Math.min(100,m.percent));setRing(pc);$('progPhase').textContent=m.message}
  else if(m.stage==='detect'){const ok=m.devices&&m.devices.length>0;$('progStatus').className='pill '+(ok?'ok':'bad');$('progStatusText').textContent=ok?m.devices[0]:'No FT232H found';progLog(m.message,ok?'good':'err')}
- else if(m.stage==='done'){progBusy(false);$('progPhase').textContent='Done';progLog(m.message,'good');$('progStatus').className='pill ok';if(m.op==='read'&&m.data){if($('progChip').value==='auto'&&m.chip){$('progChip').value=m.chip;if(m.x16!==undefined)$('progOrg').value=m.x16?'16':'8';progChanged()}const bytes=base64ToBytes(m.data);const stamp=new Date().toISOString().replace(/[-:T]/g,'').slice(0,12);openFile(new File([bytes],m.chip+'_read_'+stamp+'.bin',{type:'application/octet-stream'}));showView('mileage')}}
+ else if(m.stage==='done'){progBusy(false);$('progPhase').textContent='Done';progLog(m.message,'good');$('progStatus').className='pill ok';if(m.op==='read'&&m.data){if($('progChip').value==='auto'&&m.chip){$('progChip').value=m.chip;if(m.x16!==undefined)$('progOrg').value=m.x16?'16':'8';progChanged()}const bytes=base64ToBytes(m.data);const stamp=new Date().toISOString().replace(/[-:T]/g,'').slice(0,12);openFile(new File([bytes],m.chip+'_read_'+stamp+'.bin',{type:'application/octet-stream'}));window.progFromChip=true;showView('mileage')}}
  else if(m.stage==='error'){progBusy(false);$('progPhase').textContent='Stopped';progLog(m.message,'err')}});
 
 /* ----------------------------------------------------- redesign helpers */
@@ -672,6 +691,25 @@ function setOdo(el,text){
 function setGauge(km){const f=Math.max(0,Math.min(1,(Number(km)||0)/999999));const arc=$('gaugeArc');if(arc)arc.style.strokeDashoffset=String(1-f)}
 for(const b of document.querySelectorAll('.tabs button'))b.onclick=()=>{document.getElementById('app').dataset.view=b.dataset.view;for(const x of document.querySelectorAll('.tabs button'))x.classList.toggle('on',x===b)};
 $('openBtn').onclick=()=>$('file').click();
+
+(function(){const ICO={read:'<svg viewBox="0 0 24 24"><path d="M12 4v11m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg>',write:'<svg viewBox="0 0 24 24"><path d="M12 19V8m0 0 4 4m-4-4-4 4"/><path d="M5 5h14"/></svg>',link:'<svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>',ok:'<svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></svg>',stop:'<svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>'};
+ let mode='';window.progFromChip=false;
+ function pick(){const busy=$('progCancel').hidden===false,linked=$('progStatus').classList.contains('ok'),has=!!state.data,chip=$('progChip').value,auto=chip==='auto';
+  if(busy)return['stop','c','Working…','Press Cancel to stop'];
+  if(!linked)return['link','','Connect FT232H','Plug in the adapter · I will look for it'];
+  if(has&&!auto&&(dirty||!window.progFromChip))return['write','w','Write to '+chip,dirty?'Your edits → chip · backup first':'File → chip · backup first'];
+  if(has&&auto&&!window.progFromChip)return['write','w','Write to chip','Pick the chip in settings first'];
+  if(has&&!dirty&&window.progFromChip)return['read','','Read again','Chip read · edit the mileage in the editor'];
+  return['read','',auto?'Read chip':'Read '+chip,auto?'Identifies the chip by itself':'Chip → editor'];}
+ window.smartUpdate=function(){const [ic,cl,t,sub]=pick();mode=ic;$('smartIco').innerHTML=ICO[ic];$('smartBtn').className='smart '+cl;$('smartTitle').textContent=t;$('smartSub').textContent=sub;$('smartBtn').disabled=ic==='stop';
+  const chip=$('progChip').value;$('advSum').textContent=chip==='auto'?'Auto':chip+' · '+(CHIP_FAMILIES[chip]==='M'?'x'+$('progOrg').value:'');
+  const busy=$('progCancel').hidden===false;$('progWrite').disabled=busy||!state.data;$('progVerify').disabled=busy||!state.data};
+ $('smartBtn').onclick=()=>{if(mode==='link')$('progDetect').click();else if(mode==='write')$('progWrite').click();else if(mode==='read')$('progRead').click()};
+ setInterval(window.smartUpdate,400);window.smartUpdate();
+ // open the details when something needs a manual choice
+ const _w=$('progWrite').onclick;$('progWrite').onclick=function(){if($('progChip').value==='auto')$('adv').open=true;return _w.apply(this,arguments)};
+ // find the adapter automatically when the Programmer tab opens
+})();
 $('dropRead').onclick=()=>{showView('prog');if(!$('progRead').disabled)$('progRead').click()};
 let detectedOnce=false;
 for(const b of document.querySelectorAll('.tabs button'))b.addEventListener('click',()=>{if(b.dataset.view==='prog'&&!detectedOnce){detectedOnce=true;$('progDetect').click()}});
