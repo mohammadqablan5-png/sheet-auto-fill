@@ -164,6 +164,45 @@ body.has-file #dropWrap{display:none}
 .wb-log{width:100%;flex:1;min-height:60px;background:#f3f7f6;border-radius:14px;padding:10px 12px;display:flex;overflow:hidden}
 .wb-wire #progDiagram{flex:1}
 @media(max-width:1050px){.wb{grid-template-columns:1fr;height:auto}}
+
+/* ---- Programmer (pro tool look) ---- */
+.pf{display:flex;flex-direction:column;gap:10px;height:100%;min-height:440px}
+.pf-tool{display:flex;align-items:center;gap:6px;background:linear-gradient(#fff,#f1f6f5);border:1px solid var(--line);border-radius:16px;padding:8px 12px;box-shadow:0 4px 16px #1b2f3d0a}
+.pf-tool .sep{width:1px;height:42px;background:var(--line);margin:0 8px}.pf-tool .grow{flex:1}
+.pf-tool .smart{width:auto;min-width:230px;padding:9px 16px;border-radius:14px}
+.pf-tool .smart .si{width:34px;height:34px;border-radius:10px}
+.pf-tool .smart b{font-size:15px}.pf-tool .smart small{font-size:11px}
+.tb{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:68px;padding:7px 10px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--text);font-size:12px;font-weight:700;cursor:pointer;transition:.12s}
+.tb svg{width:26px;height:26px;fill:none;stroke:var(--teal);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tb:hover:not(:disabled){background:#fff;border-color:var(--teal);box-shadow:0 4px 14px #23877922}
+.tb.warn svg{stroke:var(--danger)}.tb.warn:hover:not(:disabled){border-color:var(--danger);box-shadow:0 4px 14px #b3363f22}
+.tb.stop{color:var(--danger)}.tb.stop svg{stroke:var(--danger)}.tb:disabled{opacity:.4;cursor:not-allowed}.tb[hidden]{display:none}
+.pf-body{display:grid;grid-template-columns:292px minmax(0,1fr);gap:10px;flex:1;min-height:0}
+.pf-side{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:9px;overflow:auto;min-height:0}
+.pf-h{display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-top:2px}.pf-h b{color:var(--teal);letter-spacing:0;text-transform:none;font-size:13px}
+.pf-side #chipGrid{margin-top:0}.pf-side .cap2{margin-bottom:5px}
+.pf-info{margin-top:auto;border-top:1px solid var(--line);padding-top:9px;display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:12px}
+.pf-info div{display:flex;flex-direction:column}.pf-info span{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.07em}.pf-info b{font-family:Consolas,monospace;font-size:12.5px}
+.pf-main{background:var(--navy);border-radius:16px;display:flex;flex-direction:column;min-height:0;overflow:hidden;color:#cfe3e0}
+.pf-tabs{display:flex;align-items:center;gap:4px;padding:8px 12px;border-bottom:1px solid #ffffff14}
+.pf-tabs button{border:0;background:transparent;color:#8fb0ab;font-weight:700;font-size:12.5px;padding:6px 14px;border-radius:8px;cursor:pointer}.pf-tabs button.on{background:#ffffff1c;color:#fff}
+.pf-tabs .grow{flex:1}#midInfo{font-size:11.5px;color:#8fb0ab}
+.pf-hex{display:flex;flex-direction:column;flex:1;min-height:0;position:relative;font:12.5px/20px Consolas,"Courier New",monospace}
+.pf-hex .hh{display:flex;gap:0;padding:4px 14px;color:#5f8a85;border-bottom:1px solid #ffffff10;white-space:pre}
+.pf-hex .hs{flex:1;overflow:auto;position:relative}
+#pfSpacer{position:relative}#pfRows{position:absolute;left:0;right:0}
+.pf-hex .r{white-space:pre;padding:0 14px;height:20px}.pf-hex .r .o{color:#5f8a85}.pf-hex .r .z{color:#4a6a66}.pf-hex .r .a{color:#7fb7ae}
+.pf-hex .he{position:absolute;inset:34px 0 0;display:grid;place-items:center;color:#8fb0ab;font:14px system-ui,sans-serif;pointer-events:none}.pf-hex.has .he{display:none}
+.pf-wire{display:none;flex:1;min-height:0;padding:12px 18px;background:#fff;color:var(--text);flex-direction:column}
+.pf-main[data-tab=wire] .pf-hex{display:none}.pf-main[data-tab=wire] .pf-wire{display:flex}
+.pf-wire #progDiagram{flex:1}
+.pf-foot{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:10px;height:84px}
+.pf-prog{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 16px;display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;gap:6px 12px;align-content:center}
+.pf-prog .pbar{grid-column:1/-1;height:12px;background:#e3ecea;border-radius:99px;overflow:hidden}
+#progRing{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--glow));border-radius:99px;transition:width .25s}
+.pf-prog b{font-size:18px}.pf-prog #progPhase{color:var(--muted);font-size:13px;align-self:center}
+.pf-log{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px 12px;display:flex;overflow:hidden}
+@media(max-width:1000px){.pf-body{grid-template-columns:1fr}.pf-foot{grid-template-columns:1fr;height:auto}}
 .opts3{display:flex;flex-direction:column;gap:10px}
 .ops3{display:flex;flex-direction:column;gap:8px;padding:10px}
 .op{display:flex;align-items:center;gap:12px;text-align:left;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;transition:.15s}
@@ -229,34 +268,39 @@ dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger
   <div class="facts"><div id="fileInfo">—</div><div id="writeState"></div></div>
  </section>
  <section class="view view-prog">
-  <div class="wb">
-   <div class="wb-main">
-    <div class="wb-top">
-     <div class="wb-card"><span class="pill" id="progStatus"><i></i><span id="progStatusText">FT232H not checked</span></span><button class="ghost sm" id="progDetect" type="button">Detect</button></div>
-     <details class="wb-card wb-chip" id="adv"><summary><span class="k">Chip</span><b id="advSum">Auto</b><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></summary>
-      <div class="wb-pop">
-       <div class="seg wide" id="famSeg"></div>
-       <div id="chipGrid"></div><select id="progChip" hidden></select>
-       <div class="wb-opts">
-        <div id="orgBox"><div class="cap2">Organization</div><div class="seg wide" id="segOrg"></div><select id="progOrg" hidden><option value="16">x16 (ORG to VCC)</option><option value="8">x8 (ORG to GND)</option></select></div>
-        <div id="swapBox"><div class="cap2">Bytes in each word</div><div class="seg wide" id="segSwap"></div><select id="progSwap" hidden><option value="0">High byte first</option><option value="1">Low byte first</option></select></div>
-        <div><div class="cap2">Speed</div><div class="seg wide" id="segSpeed"></div><select id="progSpeed" hidden><option value="fast">Fast</option><option value="normal" selected>Normal</option><option value="slow">Slow</option><option value="veryslow">Slowest</option></select></div>
-       </div>
-      </div></details>
-    </div>
-    <div class="wb-dial">
-     <svg class="wb-ring" viewBox="0 0 120 120"><circle class="rb" cx="60" cy="60" r="56"/><circle class="rf" id="progRing" cx="60" cy="60" r="56" pathLength="100"/></svg>
-     <button class="smart" id="smartBtn" type="button"><span class="si" id="smartIco"></span><b id="smartTitle">Read chip</b><small id="smartSub"></small></button>
-    </div>
-    <div class="wb-phase"><b id="progPct">0%</b><span id="progPhase">Ready</span></div>
-    <div class="wb-row"><button class="mini" id="progRead" type="button">Read</button><button class="mini warn" id="progWrite" type="button">Write</button><button class="mini" id="progVerify" type="button">Verify</button><button class="mini stop" id="progCancel" type="button" hidden>Cancel</button></div>
-    <div class="wb-log"><div id="progLog"></div></div>
+  <div class="pf">
+   <div class="pf-tool">
+    <button class="smart" id="smartBtn" type="button"><span class="si" id="smartIco"></span><span class="st"><b id="smartTitle">Read chip</b><small id="smartSub"></small></span></button>
+    <i class="sep"></i>
+    <button class="tb" id="progDetect" type="button"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m16 16 4 4"/></svg><span>Detect</span></button>
+    <button class="tb" id="progRead" type="button"><svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 4v3M14 4v3M10 17v3M14 17v3M4 10h3M4 14h3M17 10h3M17 14h3"/><path d="M12 9.5v5m0 0-1.8-1.8M12 14.5l1.8-1.8"/></svg><span>Read</span></button>
+    <button class="tb warn" id="progWrite" type="button"><svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 4v3M14 4v3M10 17v3M14 17v3M4 10h3M4 14h3M17 10h3M17 14h3"/><path d="M12 14.5v-5m0 0-1.8 1.8M12 9.5l1.8 1.8"/></svg><span>Write</span></button>
+    <button class="tb" id="progVerify" type="button"><svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 4v3M14 4v3M10 17v3M14 17v3M4 10h3M4 14h3M17 10h3M17 14h3"/><path d="m10 12 1.5 1.5L14.5 10.5"/></svg><span>Verify</span></button>
+    <button class="tb stop" id="progCancel" type="button" hidden><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span>Stop</span></button>
+    <span class="grow"></span>
+    <span class="pill" id="progStatus"><i></i><span id="progStatusText">FT232H not checked</span></span>
    </div>
-   <aside class="wb-wire">
-    <div class="midhead"><div><b id="midChip">—</b><span id="midInfo"></span></div><span class="legend3">FT232H → chip</span></div>
-    <div id="progDiagram"></div>
-    <div class="tip"><svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01"/><path d="M10.3 3.9 2.4 17.6A2 2 0 0 0 4.1 20.6h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span><b>3.3 V logic.</b> Pin 1 is next to the notch. Power the chip from the adapter, cluster off the car.</span></div>
-   </aside>
+   <div class="pf-body">
+    <aside class="pf-side">
+     <div class="pf-h">Chip <b id="advSum">Auto</b></div>
+     <div class="seg wide" id="famSeg"></div>
+     <div id="chipGrid"></div><select id="progChip" hidden></select>
+     <div class="pf-h">Settings</div>
+     <div id="orgBox"><div class="cap2">Organization</div><div class="seg wide" id="segOrg"></div><select id="progOrg" hidden><option value="16">x16 (ORG to VCC)</option><option value="8">x8 (ORG to GND)</option></select></div>
+     <div id="swapBox"><div class="cap2">Bytes in each word</div><div class="seg wide" id="segSwap"></div><select id="progSwap" hidden><option value="0">High byte first</option><option value="1">Low byte first</option></select></div>
+     <div><div class="cap2">Speed</div><div class="seg wide" id="segSpeed"></div><select id="progSpeed" hidden><option value="fast">Fast</option><option value="normal" selected>Normal</option><option value="slow">Slow</option><option value="veryslow">Slowest</option></select></div>
+     <div class="pf-info"><div><span>Size</span><b id="pfSize">—</b></div><div><span>Voltage</span><b>3.3 V</b></div><div><span>Buffer</span><b id="pfBuf">empty</b></div><div><span>Checksum</span><b id="pfSum">—</b></div></div>
+    </aside>
+    <section class="pf-main" id="pfMain" data-tab="buf">
+     <div class="pf-tabs"><button data-t="buf" class="on" type="button">Buffer</button><button data-t="wire" type="button">Wiring</button><span id="midChip" hidden></span><span class="grow"></span><span id="midInfo"></span></div>
+     <div class="pf-hex" id="pfHex"><div class="hh" id="pfHead"></div><div class="hs" id="pfScroll"><div id="pfSpacer"><div id="pfRows"></div></div></div><div class="he" id="pfEmpty">No data yet — press <b>Read</b> to load the chip, or open a file.</div></div>
+     <div class="pf-wire"><div id="progDiagram"></div><div class="tip"><svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01"/><path d="M10.3 3.9 2.4 17.6A2 2 0 0 0 4.1 20.6h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span><b>3.3 V logic.</b> Pin 1 is next to the notch. Power the chip from the adapter, cluster off the car.</span></div></div>
+    </section>
+   </div>
+   <div class="pf-foot">
+    <div class="pf-prog"><div class="pbar"><div id="progRing"></div></div><b id="progPct">0%</b><span id="progPhase">Ready</span></div>
+    <div class="pf-log" id="progLogBox"><div id="progLog"></div></div>
+   </div>
   </div>
  </section>
  <section class="view view-hex">
@@ -682,7 +726,7 @@ let famNow='M';
 function renderGrid(){const grid=$('chipGrid');grid.replaceChildren();if(famNow==='A'){grid.innerHTML='<div class="autoinfo"><b>Automatic</b><span>The program identifies the chip by itself: the size of an I²C chip, or the organization of a Microwire chip for the vehicle you opened. Press Read and the file opens in the editor.</span></div>';for(const b of $('famSeg').children)b.classList.toggle('on',b.dataset.v==='A');return}const fam=FAMILIES.find(x=>x[0]===famNow);for(const n of fam[3]){const b=document.createElement('button');b.type='button';b.className='cp'+(n===$('progChip').value?' on':'');b.dataset.chip=n;b.innerHTML='<span>'+n+'</span><small>'+sizeLabel(n)+'</small>';b.onclick=()=>{$('progChip').value=n;progChanged()};grid.append(b)}
  for(const b of $('famSeg').children)b.classList.toggle('on',b.dataset.v===famNow)}
 function progLog(t,cls){const el=$('progLog');const d=document.createElement('div');if(cls)d.className=cls;d.textContent=t;el.append(d);el.scrollTop=el.scrollHeight}
-function setRing(pc){$('progRing').style.strokeDashoffset=String(100-pc);$('progPct').textContent=pc+'%'}
+function setRing(pc){$('progRing').style.width=pc+'%';$('progPct').textContent=pc+'%'}
 function progBusy(b){for(const id of ['progRead','progWrite','progVerify','progDetect'])$(id).disabled=b;$('progCancel').hidden=!b;if(!b){setRing(0)}else{$('progPhase').textContent='Starting…';setRing(0)}}
 function bytesToBase64(u8){let s='';for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s)}
 function base64ToBytes(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}
@@ -739,9 +783,23 @@ $('openBtn').onclick=()=>$('file').click();
  $('smartBtn').onclick=()=>{if(mode==='link')$('progDetect').click();else if(mode==='write')$('progWrite').click();else if(mode==='read')$('progRead').click()};
  setInterval(window.smartUpdate,400);window.smartUpdate();
  // open the details when something needs a manual choice
- const _w=$('progWrite').onclick;$('progWrite').onclick=function(){if($('progChip').value==='auto')$('adv').open=true;return _w.apply(this,arguments)};
+ const _w=$('progWrite').onclick;$('progWrite').onclick=function(){if($('progChip').value==='auto'){const f=$('famSeg');f.animate([{outline:'3px solid #23877966'},{outline:'3px solid transparent'}],{duration:1200})}return _w.apply(this,arguments)};
  // find the adapter automatically when the Programmer tab opens
 })();
+
+(function(){const main=$('pfMain'),sc=$('pfScroll'),rows=$('pfRows'),sp=$('pfSpacer'),RH=20;let key='';
+ for(const b of main.querySelectorAll('.pf-tabs button'))b.onclick=()=>{main.dataset.tab=b.dataset.t;for(const x of main.querySelectorAll('.pf-tabs button'))x.classList.toggle('on',x===b);if(b.dataset.t==='buf')draw()};
+ $('pfHead').innerHTML='<span class="o">Offset  </span>'+Array.from({length:16},(_,i)=>i.toString(16).toUpperCase().padStart(2,'0')).join(' ')+'   ASCII';
+ function draw(){const d=state.data;$('pfHex').classList.toggle('has',!!d);if(!d){rows.innerHTML='';sp.style.height='0';return}
+  const n=Math.ceil(d.length/16);sp.style.height=n*RH+'px';const top=Math.max(0,Math.floor(sc.scrollTop/RH)-2),bot=Math.min(n,top+Math.ceil(sc.clientHeight/RH)+5);let h='';
+  for(let r=top;r<bot;r++){let hx='',as='';for(let i=0;i<16;i++){const v=d[r*16+i];if(v===undefined){hx+='   ';as+=' ';continue}const t=v.toString(16).toUpperCase().padStart(2,'0');hx+=(v===0?'<span class="z">'+t+'</span>':t)+' ';as+=v>31&&v<127?String.fromCharCode(v).replace('&','&amp;').replace('<','&lt;'):'·'}
+   h+='<div class="r"><span class="o">'+(r*16).toString(16).toUpperCase().padStart(6,'0')+'  </span>'+hx+' <span class="a">'+as+'</span></div>'}
+  rows.style.top=top*RH+'px';rows.innerHTML=h}
+ sc.addEventListener('scroll',draw);
+ setInterval(()=>{const d=state.data;let sum=0;if(d)for(let i=0;i<d.length;i++)sum=(sum+d[i])&0xFFFF;const k=d?d.length+':'+sum:'';
+  $('pfBuf').textContent=d?d.length.toLocaleString('en-US')+' B':'empty';$('pfSum').textContent=d?'0x'+sum.toString(16).toUpperCase().padStart(4,'0'):'—';
+  const c=$('progChip').value;$('pfSize').textContent=c==='auto'?'auto':sizeLabel(c);
+  if(k!==key){key=k;draw()}},400);window.pfDraw=draw})();
 $('dropRead').onclick=()=>{showView('prog');if(!$('progRead').disabled)$('progRead').click()};
 let detectedOnce=false;
 for(const b of document.querySelectorAll('.tabs button'))b.addEventListener('click',()=>{if(b.dataset.view==='prog'&&!detectedOnce){detectedOnce=true;$('progDetect').click()}});
