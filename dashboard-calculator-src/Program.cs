@@ -18,7 +18,7 @@ internal static class Program
 		//IL_01df: Unknown result type (might be due to invalid IL or missing references)
 		try
 		{
-			Root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Dashboard Calculator", "app-22.0.0");
+			Root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DASHVORA", "app-22.0.0");
 			if (args.Length > 0 && args[0] == "--self-test")
 			{
 				Root = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "../work/desktop/test-runtime");

@@ -302,9 +302,32 @@ internal class Studio : Form
 		web.CoreWebView2.PostWebMessageAsJson(json.Serialize(value));
 	}
 
+	// Documents\DASHVORA; a folder left by the earlier "Dashboard Calculator" version is renamed so saved dumps and history carry over.
+	private static string DocsDir()
+	{
+		string docs = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+		string now = Path.Combine(docs, "DASHVORA");
+		string old = Path.Combine(docs, "Dashboard Calculator");
+		try
+		{
+			if (!Directory.Exists(now) && Directory.Exists(old))
+			{
+				Directory.Move(old, now);
+			}
+		}
+		catch
+		{
+			if (Directory.Exists(old) && !Directory.Exists(now))
+			{
+				return old;
+			}
+		}
+		return now;
+	}
+
 	private static string DefaultSaveRoot()
 	{
-		return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Dashboard Calculator", "Saved Dumps");
+		return Path.Combine(DocsDir(), "Saved Dumps");
 	}
 
 	private static string SettingsPath()
@@ -476,7 +499,7 @@ internal class Studio : Form
 
 	private static string HistoryPath()
 	{
-		return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Dashboard Calculator", "Operation History.csv");
+		return Path.Combine(DocsDir(), "Operation History.csv");
 	}
 
 	private static string Csv(string value)
