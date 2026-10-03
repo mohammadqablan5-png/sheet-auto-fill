@@ -94,43 +94,45 @@ body.has-file #dropWrap{display:none}
 .shared-controls button:disabled{opacity:.4}
 #inspector{display:flex;flex-wrap:wrap;gap:6px 22px;background:#f4f9f8;border:1px solid var(--line);border-radius:10px;padding:8px 14px;font:12px Consolas,monospace;color:#4a625c;margin-top:8px}
 #inspector[hidden]{display:none}#inspector b{color:var(--text)}
-/* programmer */
-.pg{display:flex;flex-direction:column;gap:14px}
-.pg-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
-.pg-head h3{margin:0;font-size:20px;letter-spacing:-.01em}.pg-head p{margin:2px 0 0;color:var(--muted);font-size:13px}
-.pg-dev{display:flex;align-items:center;gap:10px}
-.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:#eef3f2;font-weight:600;font-size:13px;color:var(--muted)}
-.pill i{width:9px;height:9px;border-radius:50%;background:#b8c6c3;display:inline-block}.pill.ok{background:#e1f4ee;color:#17695d}.pill.ok i{background:#1fb89a;box-shadow:0 0 0 3px #1fb89a33}.pill.bad{background:#fbe9ea;color:var(--danger)}.pill.bad i{background:var(--danger)}
-.pg-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 20px 18px;box-shadow:0 6px 24px #1b2f3d0d}
-.step{display:flex;align-items:center;gap:10px;font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
-.step b{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;align-items:center;justify-content:center;font-size:12px;letter-spacing:0}
-#chipPicker{display:flex;flex-direction:column;gap:8px}
-.fam{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.fam>span{width:156px;flex:none;font-size:12px;color:var(--muted);font-weight:700}.fam>span em{font-style:normal;color:var(--text)}
-.cp{padding:5px 12px;border:1px solid var(--line);background:#fff;border-radius:999px;font-weight:700;font-size:13px;color:var(--text)}
-.cp small{font-weight:600;color:var(--muted);margin-left:5px}
-.cp:hover{border-color:var(--teal)}.cp.on{background:var(--navy);border-color:var(--navy);color:#fff}.cp.on small{color:#9fc9c2}
-.opts{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
-.opts label{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:5px}
-.seg{display:inline-flex;background:#e8f0ee;border-radius:999px;padding:3px}
-.seg button{border:0;background:transparent;padding:5px 14px;border-radius:999px;font-weight:700;font-size:12.5px;color:var(--muted)}
+/* programmer (single screen) */
+#app[data-view=prog] main{display:flex;flex-direction:column;overflow:auto}
+#app[data-view=prog] .view-prog{display:block;flex:1;min-height:0}
+.pg3{display:grid;grid-template-columns:300px minmax(0,1fr) 262px;gap:14px;height:100%;min-height:440px}
+.col{display:flex;flex-direction:column;gap:12px;min-height:0}
+.col-mid{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px;box-shadow:0 6px 24px #1b2f3d0d}
+.blk{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;box-shadow:0 4px 16px #1b2f3d0a}
+.blk.grow{flex:1;min-height:0;display:flex;flex-direction:column}
+.blk.center{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px}
+.cap2{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:7px}
+.seg{display:inline-flex;background:#e8f0ee;border-radius:999px;padding:3px}.seg.wide{display:flex}.seg.wide button{flex:1}
+.seg button{border:0;background:transparent;padding:5px 10px;border-radius:999px;font-weight:700;font-size:12px;color:var(--muted)}
 .seg button.on{background:#fff;color:var(--text);box-shadow:0 1px 4px #1b2f3d22}
-#progDiagram svg{width:100%;height:auto;display:block}
-.notes{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:6px;font-size:12.5px;color:#4f6670}
-.notes li{position:relative;padding-left:18px}.notes li::before{content:"";position:absolute;left:3px;top:7px;width:6px;height:6px;border-radius:50%;background:var(--teal)}
-.ops{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
-.op{display:flex;align-items:center;gap:14px;text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;transition:.15s}
-.op svg{width:30px;height:30px;flex:none;fill:none;stroke:var(--teal);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;background:#e6f3f0;border-radius:10px;padding:6px;box-sizing:content-box}
-.op b{display:block;font-size:15px}.op small{color:var(--muted);font-size:12px}
-.op:hover:not(:disabled){border-color:var(--teal);box-shadow:0 8px 22px #23877922;transform:translateY(-1px)}
-.op.warn svg{stroke:var(--danger);background:#fbe9ea}.op.warn:hover:not(:disabled){border-color:var(--danger);box-shadow:0 8px 22px #b3363f22}
-.op.stop{border-color:#e3b3b7}.op.stop svg{stroke:var(--danger);background:#fbe9ea}
-.op:disabled{opacity:.45;cursor:not-allowed}
-.op[hidden]{display:none}
-.prog{margin-top:14px}.bar2{height:10px;background:#e3ecea;border-radius:999px;overflow:hidden}.bar2>div{height:100%;width:0;background:linear-gradient(90deg,var(--teal),#4fe3cb);transition:width .2s}
-.pmeta{display:flex;justify-content:space-between;margin-top:6px;font-size:12.5px;color:var(--muted)}.pmeta b{color:var(--text)}
-#progLog{margin-top:8px;font:12.5px Consolas,monospace;color:#3d5560;max-height:130px;overflow:auto;white-space:pre-wrap}
-#progLog .err{color:var(--danger)}#progLog .good{color:#17695d}#progLog:empty{display:none}
+#chipGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:9px}
+.cp{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border:1px solid var(--line);background:#fff;border-radius:10px;font-weight:800;font-size:12.5px;color:var(--text)}
+.cp small{font-weight:600;color:var(--muted);font-size:11px}.cp:hover{border-color:var(--teal)}.cp.on{background:var(--navy);border-color:var(--navy);color:#fff}.cp.on small{color:#9fc9c2}
+.opts3{display:flex;flex-direction:column;gap:10px}
+.ops3{display:flex;flex-direction:column;gap:8px;padding:10px}
+.op{display:flex;align-items:center;gap:12px;text-align:left;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;transition:.15s}
+.op svg{width:22px;height:22px;flex:none;fill:none;stroke:var(--teal);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;background:#e6f3f0;border-radius:9px;padding:5px;box-sizing:content-box}
+.op b{display:block;font-size:14px}.op small{color:var(--muted);font-size:11.5px}
+.op:hover:not(:disabled){border-color:var(--teal);box-shadow:0 6px 18px #23877922}
+.op.warn svg{stroke:var(--danger);background:#fbe9ea}.op.warn:hover:not(:disabled){border-color:var(--danger);box-shadow:0 6px 18px #b3363f22}
+.op.stop{border-color:#e3b3b7;color:var(--danger);justify-content:center;font-weight:700}.op.slim{padding:6px 18px;border-radius:999px}.op:disabled{opacity:.45;cursor:not-allowed}.op[hidden]{display:none}
+.midhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}.midhead b{font-size:17px;margin-right:10px}.midhead span{color:var(--muted);font-size:12.5px}.legend3{font-size:10.5px!important;letter-spacing:.09em;text-transform:uppercase;font-weight:800}
+#progDiagram{flex:1;min-height:0;display:flex;align-items:center}#progDiagram svg{width:100%;height:auto;max-height:100%;display:block}
+.tip{display:flex;gap:10px;align-items:flex-start;background:#fff4d6;color:#7a5200;border-radius:10px;padding:8px 12px;font-size:12px}
+.tip svg{width:18px;height:18px;flex:none;fill:none;stroke:#b07300;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;margin-top:1px}
+.devrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:#eef3f2;font-weight:600;font-size:12.5px;color:var(--muted);min-width:0}
+.pill i{width:9px;height:9px;border-radius:50%;background:#b8c6c3;display:inline-block;flex:none}.pill.ok{background:#e1f4ee;color:#17695d}.pill.ok i{background:#1fb89a;box-shadow:0 0 0 3px #1fb89a33}.pill.bad{background:#fbe9ea;color:var(--danger)}.pill.bad i{background:var(--danger)}
+.ghost.sm{padding:5px 12px;font-size:12px}
+.ring{position:relative;width:118px;height:118px}.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:9}.rb{stroke:#e3ecea}.rf{stroke:var(--teal);stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset .25s}
+.rp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}.rp b{font-size:24px;letter-spacing:-.02em}
+#progPhase{font-size:12.5px;color:var(--muted);text-align:center;min-height:18px}
+#progLog{flex:1;min-height:0;overflow:auto;font:12px Consolas,monospace;color:#3d5560;white-space:pre-wrap}
+#progLog .err{color:var(--danger)}#progLog .good{color:#17695d}
+@media(max-width:1000px){.pg3{grid-template-columns:1fr;height:auto}}
 dialog#writeConfirm{border:0;border-radius:16px;padding:0;width:min(92vw,460px);box-shadow:0 24px 70px #0007}
 dialog#writeConfirm::backdrop{background:#0f1c26b3}
 dialog#writeConfirm .cd{padding:22px 24px 6px}dialog#writeConfirm h3{margin:0 0 6px;font-size:18px}dialog#writeConfirm p{margin:0 0 8px;color:#4f6670}
@@ -171,30 +173,36 @@ dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger
   <div class="facts"><div id="fileInfo">—</div><div id="writeState"></div></div>
  </section>
  <section class="view view-prog">
-  <div class="pg">
-   <div class="pg-head"><div><h3>Chip programmer</h3><p>Read and write EEPROM chips with an FT232H adapter</p></div><div class="pg-dev"><span class="pill" id="progStatus"><i></i><span id="progStatusText">FT232H not checked</span></span><button class="ghost" id="progDetect" type="button">Detect</button></div></div>
-   <div class="pg-card"><div class="step"><b>1</b><span>Choose the chip</span></div>
-    <div id="chipPicker"></div><select id="progChip" hidden></select>
-    <div class="opts">
-     <div id="orgBox"><label>Organization (ORG pin)</label><div class="seg" id="segOrg"></div><select id="progOrg" hidden><option value="16">x16 (ORG to VCC)</option><option value="8">x8 (ORG to GND)</option></select></div>
-     <div id="swapBox"><label>Bytes in each word</label><div class="seg" id="segSwap"></div><select id="progSwap" hidden><option value="0">High byte first</option><option value="1">Low byte first</option></select></div>
-     <div><label>Speed</label><div class="seg" id="segSpeed"></div><select id="progSpeed" hidden><option value="fast">Fast</option><option value="normal" selected>Normal</option><option value="slow">Slow</option><option value="veryslow">Very slow</option></select></div>
+  <div class="pg3">
+   <aside class="col col-left">
+    <div class="blk"><div class="cap2">Chip</div>
+     <div class="seg wide" id="famSeg"></div>
+     <div id="chipGrid"></div><select id="progChip" hidden></select></div>
+    <div class="blk opts3">
+     <div id="orgBox"><div class="cap2">Organization</div><div class="seg wide" id="segOrg"></div><select id="progOrg" hidden><option value="16">x16 (ORG to VCC)</option><option value="8">x8 (ORG to GND)</option></select></div>
+     <div id="swapBox"><div class="cap2">Bytes in each word</div><div class="seg wide" id="segSwap"></div><select id="progSwap" hidden><option value="0">High byte first</option><option value="1">Low byte first</option></select></div>
+     <div><div class="cap2">Speed</div><div class="seg wide" id="segSpeed"></div><select id="progSpeed" hidden><option value="fast">Fast</option><option value="normal" selected>Normal</option><option value="slow">Slow</option><option value="veryslow">Slowest</option></select></div>
     </div>
-   </div>
-   <div class="pg-card"><div class="step"><b>2</b><span>Connect the FT232H</span></div>
-    <div id="progDiagram"></div>
-    <ul class="notes"><li>Pin 1 is next to the notch or dot on the chip.</li><li>The FT232H works at <b>3.3 V</b>. Power the chip from the adapter and keep the cluster disconnected from the car.</li><li>If you read the chip on the board, make sure the cluster microcontroller is not driving the same lines.</li></ul>
-   </div>
-   <div class="pg-card"><div class="step"><b>3</b><span>Read or write</span></div>
-    <div class="ops">
+    <div class="blk ops3">
      <button class="op" id="progRead" type="button"><svg viewBox="0 0 24 24"><path d="M12 4v11m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg><div><b>Read chip</b><small>Chip → editor</small></div></button>
      <button class="op warn" id="progWrite" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V8m0 0 4 4m-4-4-4 4"/><path d="M5 5h14"/></svg><div><b>Write chip</b><small>Editor → chip · backup first</small></div></button>
      <button class="op" id="progVerify" type="button"><svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></svg><div><b>Verify</b><small>Compare chip with editor</small></div></button>
-     <button class="op stop" id="progCancel" type="button" hidden><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg><div><b>Cancel</b><small>Stop the operation</small></div></button>
     </div>
-    <div class="prog"><div class="bar2"><div id="progBar"></div></div><div class="pmeta"><span id="progPhase">Ready</span><b id="progPct"></b></div></div>
-    <div id="progLog"></div>
-   </div>
+   </aside>
+   <section class="col col-mid">
+    <div class="midhead"><div><b id="midChip">—</b><span id="midInfo"></span></div><span class="legend3">FT232H → chip</span></div>
+    <div id="progDiagram"></div>
+    <div class="tip"><svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01"/><path d="M10.3 3.9 2.4 17.6A2 2 0 0 0 4.1 20.6h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span><b>3.3 V logic.</b> Pin 1 is next to the notch. Power the chip from the adapter, cluster off the car.</span></div>
+   </section>
+   <aside class="col col-right">
+    <div class="blk"><div class="devrow"><span class="pill" id="progStatus"><i></i><span id="progStatusText">FT232H not checked</span></span><button class="ghost sm" id="progDetect" type="button">Detect</button></div></div>
+    <div class="blk center">
+     <div class="ring"><svg viewBox="0 0 120 120"><circle class="rb" cx="60" cy="60" r="52"/><circle class="rf" id="progRing" cx="60" cy="60" r="52" pathLength="100"/></svg><div class="rp"><b id="progPct">0%</b></div></div>
+     <div id="progPhase">Ready</div>
+     <button class="op stop slim" id="progCancel" type="button" hidden>Cancel</button>
+    </div>
+    <div class="blk grow"><div class="cap2">Activity</div><div id="progLog"></div></div>
+   </aside>
   </div>
  </section>
  <section class="view view-hex">
@@ -592,40 +600,42 @@ function pinRows(fam,x16){
 }
 function drawWiring(){
  const chip=$('progChip').value,fam=CHIP_FAMILIES[chip],rows=pinRows(fam,$('progOrg').value==='16');
- const rowH=38,top=64,W=760,H=top+8*rowH+30,navy='#14232e',f='font-family="Segoe UI,Arial,sans-serif"';
+ const rowH=34,top=46,W=600,H=top+8*rowH+12,navy='#14232e',f='font-family="Segoe UI,Arial,sans-serif"';
  let o='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wiring diagram for '+chip+'">';
- o+='<text x="20" y="30" font-size="11" font-weight="800" letter-spacing="1.2" fill="#647f89" '+f+'>FT232H</text><text x="352" y="30" font-size="11" font-weight="800" letter-spacing="1.2" fill="#647f89" '+f+'>'+chip+' · 8-PIN</text><text x="560" y="30" font-size="11" font-weight="800" letter-spacing="1.2" fill="#647f89" '+f+'>TOP VIEW</text>';
- o+='<rect x="352" y="'+(top-2)+'" width="170" height="'+(8*rowH+4)+'" rx="10" fill="#eef4f2" stroke="'+navy+'" stroke-width="2"/>';
+ const hd=(x,t)=>'<text x="'+x+'" y="22" font-size="11.5" font-weight="800" letter-spacing="1.2" fill="#647f89" '+f+'>'+t+'</text>';
+ o+=hd(14,'FT232H')+hd(274,chip+' · 8-PIN')+hd(468,'TOP VIEW');
+ o+='<rect x="274" y="'+(top-3)+'" width="142" height="'+(8*rowH+6)+'" rx="10" fill="#eef4f2" stroke="'+navy+'" stroke-width="2"/>';
  rows.forEach((r,i)=>{
   const y=top+i*rowH+rowH/2,c=COLORS[r.t],dash=r.opt?' stroke-dasharray="6 5"':'';
-  o+='<line x1="138" y1="'+y+'" x2="330" y2="'+y+'" stroke="'+c+'" stroke-width="3.2" stroke-linecap="round"'+dash+'/>';
-  o+='<rect x="20" y="'+(y-14)+'" width="118" height="28" rx="14" fill="'+c+'"/><text x="79" y="'+(y+5)+'" font-size="13" font-weight="800" fill="#fff" text-anchor="middle" '+f+'>'+r.t+'</text>';
-  if(r.pull)o+='<rect x="190" y="'+(y-12)+'" width="96" height="24" rx="12" fill="#fff" stroke="'+COLORS['3V3']+'" stroke-width="1.6"/><text x="238" y="'+(y+4)+'" font-size="10.5" font-weight="700" fill="'+COLORS['3V3']+'" text-anchor="middle" '+f+'>4.7 kΩ ↑ 3V3</text>';
-  o+='<circle cx="340" cy="'+y+'" r="11" fill="#fff" stroke="'+navy+'" stroke-width="2"/><text x="340" y="'+(y+4)+'" font-size="11.5" font-weight="800" fill="'+navy+'" text-anchor="middle" '+f+'>'+(i+1)+'</text>';
-  o+='<text x="368" y="'+(y+5)+'" font-size="14" font-weight="800" fill="'+navy+'" '+f+'>'+r.l+'</text>';
-  if(r.tag)o+='<text x="508" y="'+(y+5)+'" font-size="11.5" font-weight="700" fill="#647f89" text-anchor="end" '+f+'>'+r.tag+'</text>';
-  if(r.opt)o+='<text x="508" y="'+(y+5)+'" font-size="11" font-weight="600" fill="#647f89" text-anchor="end" '+f+'>optional</text>';
+  o+='<line x1="110" y1="'+y+'" x2="252" y2="'+y+'" stroke="'+c+'" stroke-width="3.4" stroke-linecap="round"'+dash+'/>';
+  o+='<rect x="14" y="'+(y-14)+'" width="96" height="28" rx="14" fill="'+c+'"/><text x="62" y="'+(y+5)+'" font-size="14" font-weight="800" fill="#fff" text-anchor="middle" '+f+'>'+r.t+'</text>';
+  if(r.pull)o+='<rect x="140" y="'+(y-12)+'" width="92" height="24" rx="12" fill="#fff" stroke="'+COLORS['3V3']+'" stroke-width="1.6"/><text x="186" y="'+(y+4)+'" font-size="11" font-weight="700" fill="'+COLORS['3V3']+'" text-anchor="middle" '+f+'>4.7 kΩ ↑ 3V3</text>';
+  o+='<circle cx="263" cy="'+y+'" r="11.5" fill="#fff" stroke="'+navy+'" stroke-width="2"/><text x="263" y="'+(y+4.5)+'" font-size="12" font-weight="800" fill="'+navy+'" text-anchor="middle" '+f+'>'+(i+1)+'</text>';
+  o+='<text x="290" y="'+(y+5)+'" font-size="15" font-weight="800" fill="'+navy+'" '+f+'>'+r.l+'</text>';
+  if(r.tag)o+='<text x="406" y="'+(y+5)+'" font-size="12" font-weight="700" fill="#647f89" text-anchor="end" '+f+'>'+r.tag+'</text>';
+  if(r.opt)o+='<text x="406" y="'+(y+5)+'" font-size="11.5" font-weight="600" fill="#647f89" text-anchor="end" '+f+'>optional</text>';
  });
- /* physical top view */
- const bx=600,by=top+34,bw=76,bh=4*34+14;
- o+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" rx="6" fill="#eef4f2" stroke="'+navy+'" stroke-width="2"/><path d="M'+(bx+bw/2-9)+' '+by+' a9 9 0 0 0 18 0" fill="#fbfdfc" stroke="'+navy+'" stroke-width="2"/><circle cx="'+(bx+12)+'" cy="'+(by+16)+'" r="3.4" fill="'+navy+'"/>';
- for(let n=1;n<=8;n++){const left=n<=4,idx=left?n-1:8-n,py=by+22+idx*34,px=left?bx-14:bx+bw;o+='<line x1="'+px+'" y1="'+py+'" x2="'+(px+14)+'" y2="'+py+'" stroke="'+navy+'" stroke-width="3.4" stroke-linecap="round"/><text x="'+(left?bx-22:bx+bw+22)+'" y="'+(py+4)+'" font-size="11" font-weight="800" fill="#647f89" text-anchor="'+(left?'end':'start')+'" '+f+'>'+n+'</text>'}
- o+='<text x="'+(bx+bw/2)+'" y="'+(by+bh/2+4)+'" font-size="11" font-weight="700" fill="#647f89" text-anchor="middle" '+f+'>'+chip+'</text>';
- o+='</svg>';
+ const bx=500,by=top+26,bw=62,bh=4*34+10;
+ o+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" rx="6" fill="#eef4f2" stroke="'+navy+'" stroke-width="2"/><path d="M'+(bx+bw/2-9)+' '+by+' a9 9 0 0 0 18 0" fill="#fbfdfc" stroke="'+navy+'" stroke-width="2"/><circle cx="'+(bx+11)+'" cy="'+(by+16)+'" r="3.4" fill="'+navy+'"/>';
+ for(let n=1;n<=8;n++){const left=n<=4,idx=left?n-1:8-n,py=by+22+idx*34,px=left?bx-14:bx+bw;o+='<line x1="'+px+'" y1="'+py+'" x2="'+(px+14)+'" y2="'+py+'" stroke="'+navy+'" stroke-width="3.4" stroke-linecap="round"/><text x="'+(left?bx-21:bx+bw+21)+'" y="'+(py+4)+'" font-size="12" font-weight="800" fill="#647f89" text-anchor="'+(left?'end':'start')+'" '+f+'>'+n+'</text>'}
+ o+='<text x="'+(bx+bw/2)+'" y="'+(by+bh/2+4)+'" font-size="11.5" font-weight="700" fill="#647f89" text-anchor="middle" '+f+'>'+chip+'</text></svg>';
  $('progDiagram').innerHTML=o;
 }
 function paintSeg(sel,box){for(const b of box.children)b.classList.toggle('on',b.dataset.v===sel.value)}
 function makeSeg(selId,boxId){const sel=$(selId),box=$(boxId);box.replaceChildren();for(const o of sel.options){const b=document.createElement('button');b.type='button';b.textContent=o.textContent.replace(/\s*\(.*\)/,'');b.dataset.v=o.value;b.onclick=()=>{sel.value=o.value;sel.dispatchEvent(new Event('change'))};box.append(b)}paintSeg(sel,box)}
-function paintPicker(){for(const b of document.querySelectorAll('#chipPicker .cp'))b.classList.toggle('on',b.dataset.chip===$('progChip').value)}
+let famNow='M';
+function renderGrid(){const grid=$('chipGrid');grid.replaceChildren();const fam=FAMILIES.find(x=>x[0]===famNow);for(const n of fam[3]){const b=document.createElement('button');b.type='button';b.className='cp'+(n===$('progChip').value?' on':'');b.dataset.chip=n;b.innerHTML='<span>'+n+'</span><small>'+sizeLabel(n)+'</small>';b.onclick=()=>{$('progChip').value=n;progChanged()};grid.append(b)}
+ for(const b of $('famSeg').children)b.classList.toggle('on',b.dataset.v===famNow)}
 function progLog(t,cls){const el=$('progLog');const d=document.createElement('div');if(cls)d.className=cls;d.textContent=t;el.append(d);el.scrollTop=el.scrollHeight}
-function progBusy(b){for(const id of ['progRead','progWrite','progVerify','progDetect'])$(id).disabled=b;$('progCancel').hidden=!b;if(!b){$('progBar').style.width='0';$('progPct').textContent=''}else{$('progPhase').textContent='Starting…'}}
+function setRing(pc){$('progRing').style.strokeDashoffset=String(100-pc);$('progPct').textContent=pc+'%'}
+function progBusy(b){for(const id of ['progRead','progWrite','progVerify','progDetect'])$(id).disabled=b;$('progCancel').hidden=!b;if(!b){setRing(0)}else{$('progPhase').textContent='Starting…';setRing(0)}}
 function bytesToBase64(u8){let s='';for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s)}
 function base64ToBytes(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}
 function progParams(extra){const chip=$('progChip').value;return Object.assign({action:'prog',chip,x16:$('progOrg').value==='16',swap:$('progSwap').value==='1',speed:$('progSpeed').value},extra)}
 function showView(v){document.getElementById('app').dataset.view=v;for(const x of document.querySelectorAll('.tabs button'))x.classList.toggle('on',x.dataset.view===v)}
-function progChanged(){const chip=$('progChip').value,fam=CHIP_FAMILIES[chip];$('orgBox').hidden=fam!=='M';$('swapBox').hidden=fam!=='M'||$('progOrg').value!=='16';paintPicker();for(const [sid,bid] of [['progOrg','segOrg'],['progSwap','segSwap'],['progSpeed','segSpeed']])paintSeg($(sid),$(bid));drawWiring();try{localStorage.setItem('progChip_'+PROFILE_KEY,chip)}catch(e){}}
-(()=>{const sel=$('progChip'),pick=$('chipPicker');
- for(const [f,name,series,list] of FAMILIES){const row=document.createElement('div');row.className='fam';row.innerHTML='<span><em>'+name+'</em> · '+series+'</span>';for(const n of list){const o=document.createElement('option');o.value=n;o.textContent=n;sel.append(o);const b=document.createElement('button');b.type='button';b.className='cp';b.dataset.chip=n;b.innerHTML=n.replace(/^(93C|24C)/,'$1')+'<small>'+sizeLabel(n)+'</small>';b.onclick=()=>{sel.value=n;progChanged()};row.append(b)}pick.append(row)}
+function progChanged(){const chip=$('progChip').value,fam=CHIP_FAMILIES[chip];famNow=fam;$('orgBox').hidden=fam!=='M';$('swapBox').hidden=fam!=='M'||$('progOrg').value!=='16';renderGrid();$('midChip').textContent=chip;$('midInfo').textContent=sizeLabel(chip)+' · '+FAMILIES.find(x=>x[0]===fam)[1]+' ('+FAMILIES.find(x=>x[0]===fam)[2]+')';for(const [sid,bid] of [['progOrg','segOrg'],['progSwap','segSwap'],['progSpeed','segSpeed']])paintSeg($(sid),$(bid));drawWiring();try{localStorage.setItem('progChip_'+PROFILE_KEY,chip)}catch(e){}}
+(()=>{const sel=$('progChip');
+ for(const [f,name,series,list] of FAMILIES){for(const n of list){const o=document.createElement('option');o.value=n;o.textContent=n;sel.append(o)}const b=document.createElement('button');b.type='button';b.textContent=series;b.dataset.v=f;b.onclick=()=>{famNow=f;sel.value=({M:'93C66',I:'24C64',S:'95128'})[f];progChanged()};$('famSeg').append(b)}
  let want=null;try{want=localStorage.getItem('progChip_'+PROFILE_KEY)}catch(e){}if(!want)want=PROFILE_KEY==='ford'?'24C64':'93C66';sel.value=CHIP_FAMILIES[want]?want:'93C66';
  makeSeg('progOrg','segOrg');makeSeg('progSwap','segSwap');makeSeg('progSpeed','segSpeed');
  for(const id of ['progOrg','progSwap','progSpeed'])$(id).onchange=progChanged;progChanged()})();
@@ -639,7 +649,7 @@ $('wcNo').onclick=()=>$('writeConfirm').close();
 $('wcYes').onclick=()=>{$('writeConfirm').close();progBusy(true);progLog('Backing up the chip, then writing…');parent.postMessage(progParams({cmd:'write',data:bytesToBase64(state.data)}),location.origin)};
 $('progCancel').onclick=()=>{progLog('Cancelling…');parent.postMessage({action:'prog',cmd:'cancel'},location.origin)};
 window.addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||e.data.type!=='prog')return;const m=e.data;
- if(m.stage==='progress'){const pc=Math.max(0,Math.min(100,m.percent));$('progBar').style.width=pc+'%';$('progPct').textContent=pc+'%';$('progPhase').textContent=m.message}
+ if(m.stage==='progress'){const pc=Math.max(0,Math.min(100,m.percent));setRing(pc);$('progPhase').textContent=m.message}
  else if(m.stage==='detect'){const ok=m.devices&&m.devices.length>0;$('progStatus').className='pill '+(ok?'ok':'bad');$('progStatusText').textContent=ok?m.devices[0]:'No FT232H found';progLog(m.message,ok?'good':'err')}
  else if(m.stage==='done'){progBusy(false);$('progPhase').textContent='Done';progLog(m.message,'good');$('progStatus').className='pill ok';if(m.op==='read'&&m.data){const bytes=base64ToBytes(m.data);const stamp=new Date().toISOString().replace(/[-:T]/g,'').slice(0,12);openFile(new File([bytes],m.chip+'_read_'+stamp+'.bin',{type:'application/octet-stream'}));showView('mileage')}}
  else if(m.stage==='error'){progBusy(false);$('progPhase').textContent='Stopped';progLog(m.message,'err')}});
