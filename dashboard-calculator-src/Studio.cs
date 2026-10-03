@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
+using DashForgeProgrammer;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
@@ -28,6 +29,203 @@ internal class Studio : Form
 	private bool closeConfirmed;
 
 	private System.Windows.Forms.Timer closeTimer;
+
+	// ---------------- FT232H programmer (read / write EEPROM chips) ----------------
+	private volatile bool progCancel;
+
+	private bool progBusy;
+
+	private void ProgSend(object payload)
+	{
+		try
+		{
+			if (!IsDisposed)
+			{
+				BeginInvoke((Action)delegate
+				{
+					Send(payload);
+				});
+			}
+		}
+		catch (Exception)
+		{
+		}
+	}
+
+	private static string ProgText(Dictionary<string, object> raw, string key, string fallback)
+	{
+		return (raw.ContainsKey(key) && raw[key] != null) ? Convert.ToString(raw[key], CultureInfo.InvariantCulture) : fallback;
+	}
+
+	private static int RepeatForSpeed(string speed)
+	{
+		switch (speed)
+		{
+		case "fast":
+			return 2;
+		case "slow":
+			return 16;
+		case "veryslow":
+			return 40;
+		default:
+			return 6;
+		}
+	}
+
+	private void HandleProg(Dictionary<string, object> raw)
+	{
+		string cmd = ProgText(raw, "cmd", "");
+		if (cmd == "cancel")
+		{
+			progCancel = true;
+			return;
+		}
+		if (progBusy)
+		{
+			ProgSend(new { type = "prog", stage = "error", message = "Another chip operation is still running." });
+			return;
+		}
+		string chipName = ProgText(raw, "chip", "");
+		bool x16 = ProgText(raw, "x16", "true") == "True" || ProgText(raw, "x16", "true") == "true";
+		bool swap = ProgText(raw, "swap", "false") == "True" || ProgText(raw, "swap", "false") == "true";
+		int repeat = RepeatForSpeed(ProgText(raw, "speed", "normal"));
+		string dataText = ProgText(raw, "data", "");
+		progBusy = true;
+		progCancel = false;
+		Task.Run(delegate
+		{
+			try
+			{
+				ProgRun(cmd, chipName, x16, swap, repeat, dataText);
+			}
+			catch (ProgrammerException ex)
+			{
+				ProgSend(new { type = "prog", stage = "error", message = ex.Message });
+			}
+			catch (Exception ex2)
+			{
+				ProgSend(new { type = "prog", stage = "error", message = "Unexpected error: " + ex2.Message });
+			}
+			finally
+			{
+				progBusy = false;
+			}
+		});
+	}
+
+	private void ProgRun(string cmd, string chipName, bool x16, bool swap, int repeat, string dataText)
+	{
+		List<FtdiDeviceInfo> devices = D2xxPort.Enumerate();
+		if (cmd == "detect")
+		{
+			ProgSend(new
+			{
+				type = "prog",
+				stage = "detect",
+				devices = devices.Select((FtdiDeviceInfo d) => d.ToString()).ToArray(),
+				message = (devices.Count > 0) ? (devices.Count + " FT232H found.") : "No FT232H found. Plug it in and install the FTDI D2XX driver."
+			});
+			return;
+		}
+		ChipInfo chip = Chips.Find(chipName);
+		if (chip == null)
+		{
+			throw new ProgrammerException("Choose the chip type first.");
+		}
+		if (devices.Count == 0)
+		{
+			throw new ProgrammerException("No FT232H found. Plug it in and install the FTDI D2XX driver.");
+		}
+		ProgramOptions options = new ProgramOptions
+		{
+			X16 = x16,
+			SwapBytes = swap,
+			Repeat = repeat
+		};
+		byte[] data = null;
+		if (cmd == "write" || cmd == "verify")
+		{
+			data = Convert.FromBase64String(dataText);
+			if (data.Length != chip.Size)
+			{
+				throw new ProgrammerException("The editor holds " + data.Length + " bytes but " + chip.Name + " holds " + chip.Size + " bytes. Choose the matching chip or file.");
+			}
+		}
+		using (D2xxPort port = new D2xxPort(devices[0].Index))
+		{
+			int lo = 0;
+			int hi = 100;
+			Action<string, int> report = delegate(string text, int percent)
+			{
+				ProgSend(new
+				{
+					type = "prog",
+					stage = "progress",
+					percent = lo + percent * (hi - lo) / 100,
+					message = text
+				});
+			};
+			Func<bool> cancelled = () => progCancel;
+			if (cmd == "read")
+			{
+				byte[] bytes = new EepromProgrammer(port, chip, options, report, cancelled).Read();
+				ProgSend(new
+				{
+					type = "prog",
+					stage = "done",
+					op = "read",
+					chip = chip.Name,
+					data = Convert.ToBase64String(bytes),
+					message = "Read " + bytes.Length.ToString("N0", CultureInfo.InvariantCulture) + " bytes from " + chip.Name + "."
+				});
+				return;
+			}
+			if (cmd == "verify")
+			{
+				byte[] onChip = new EepromProgrammer(port, chip, options, report, cancelled).Read();
+				int diff = EepromProgrammer.FirstDifference(data, onChip);
+				ProgSend(new
+				{
+					type = "prog",
+					stage = (diff < 0) ? "done" : "error",
+					op = "verify",
+					message = (diff < 0) ? ("The chip matches the editor (" + chip.Name + ", " + data.Length + " bytes).") : ("The chip differs from the editor. First difference at 0x" + diff.ToString("X") + ".")
+				});
+				return;
+			}
+			if (cmd == "write")
+			{
+				lo = 0;
+				hi = 25;
+				byte[] backup = new EepromProgrammer(port, chip, options, report, cancelled).Read();
+				string folder = Path.Combine(SaveRoot(), "Backups");
+				Directory.CreateDirectory(folder);
+				string backupPath = Path.Combine(folder, chip.Name + "_backup_" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".bin");
+				File.WriteAllBytes(backupPath, backup);
+				lo = 25;
+				hi = 75;
+				new EepromProgrammer(port, chip, options, report, cancelled).Write(data, backup);
+				lo = 75;
+				hi = 100;
+				byte[] after = new EepromProgrammer(port, chip, options, report, cancelled).Read();
+				int diff2 = EepromProgrammer.FirstDifference(data, after);
+				if (diff2 >= 0)
+				{
+					throw new ProgrammerException("Verification failed: the chip differs at 0x" + diff2.ToString("X") + " after writing. The original content is saved in " + backupPath);
+				}
+				ProgSend(new
+				{
+					type = "prog",
+					stage = "done",
+					op = "write",
+					chip = chip.Name,
+					message = "Written and verified (" + data.Length.ToString("N0", CultureInfo.InvariantCulture) + " bytes). The original content was saved to " + backupPath
+				});
+				return;
+			}
+			throw new ProgrammerException("Unknown programmer command.");
+		}
+	}
 
 	// Shows a message inside the app (toast) instead of a Windows message box.
 	private void Notify(string level, string title, string text)
@@ -511,6 +709,11 @@ internal class Studio : Form
 		try
 		{
 			Dictionary<string, object> raw = json.Deserialize<Dictionary<string, object>>(e.WebMessageAsJson);
+			if ((string)raw["action"] == "prog")
+			{
+				HandleProg(raw);
+				return;
+			}
 			if ((string)raw["action"] == "auditSave")
 			{
 				auditLogs[(string)raw["name"]] = json.Serialize(raw["entries"]);
