@@ -137,6 +137,26 @@ internal class Studio : Form
 		}
 	}
 
+	// The folder chosen in Settings gets a "DashForge" folder inside it; the vehicle folders (with their icons) live in that folder.
+	// A folder already named DashForge, or one that already holds saved dumps in vehicle sub-folders (older layout), is used as is.
+	private static string ResolveChosenRoot(string chosen)
+	{
+		string trimmed = chosen.TrimEnd('\\', '/');
+		if (string.Equals(Path.GetFileName(trimmed), "DashForge", StringComparison.OrdinalIgnoreCase))
+		{
+			return trimmed;
+		}
+		foreach (string[] vehicle in Vehicles)
+		{
+			string folder = Path.Combine(trimmed, vehicle[1]);
+			if (Directory.Exists(folder) && Directory.GetFiles(folder, "*.bin").Length > 0)
+			{
+				return trimmed;
+			}
+		}
+		return Path.Combine(trimmed, "DashForge");
+	}
+
 	private string SaveRoot()
 	{
 		string text = ConfiguredSaveFolder();
@@ -144,8 +164,13 @@ internal class Studio : Form
 		{
 			try
 			{
-				Directory.CreateDirectory(text);
-				return text;
+				string resolved = ResolveChosenRoot(text);
+				Directory.CreateDirectory(resolved);
+				if (!string.Equals(resolved, text.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase))
+				{
+					ApplyFolderIcon(resolved, "dashboard.ico");
+				}
+				return resolved;
 			}
 			catch (Exception)
 			{
