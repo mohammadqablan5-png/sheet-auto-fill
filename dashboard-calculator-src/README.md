@@ -1,4 +1,4 @@
-# Dashboard Calculator v21 (مُستخرج من الـ exe)
+# DashForge (سابقاً Dashboard Calculator) — مُستخرج من الـ exe
 
 سورس مُفكَّك (decompiled) من `Dashboard-Calculator-v21.exe` — تطبيق WinForms + WebView2.
 
