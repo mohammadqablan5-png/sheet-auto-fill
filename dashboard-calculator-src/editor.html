@@ -95,37 +95,48 @@ body.has-file #dropWrap{display:none}
 #inspector{display:flex;flex-wrap:wrap;gap:6px 22px;background:#f4f9f8;border:1px solid var(--line);border-radius:10px;padding:8px 14px;font:12px Consolas,monospace;color:#4a625c;margin-top:8px}
 #inspector[hidden]{display:none}#inspector b{color:var(--text)}
 /* programmer */
-.progcard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 20px;box-shadow:0 6px 24px #1b2f3d10}
-.progtop{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.pg{display:flex;flex-direction:column;gap:14px}
+.pg-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.pg-head h3{margin:0;font-size:20px;letter-spacing:-.01em}.pg-head p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.pg-dev{display:flex;align-items:center;gap:10px}
 .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:#eef3f2;font-weight:600;font-size:13px;color:var(--muted)}
-.pill i{width:9px;height:9px;border-radius:50%;background:#b8c6c3;display:inline-block}.pill.ok{background:#e1f4ee;color:#17695d}.pill.ok i{background:#1fb89a}.pill.bad{background:#fbe9ea;color:var(--danger)}.pill.bad i{background:var(--danger)}
-.progform{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 16px;margin-bottom:14px}
-.progform label{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:4px}
-.progform select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:600}
-.wire{background:#f5faf9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#3d5560}
-.wire b{color:var(--text)}.wire code{background:#e3efec;border-radius:5px;padding:1px 6px;font:12px Consolas,monospace}
-.wire .warn{margin-top:8px;color:#8a5a00;background:#fff4d6;border-radius:8px;padding:8px 10px}
-.progbtns{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.progbtns button{padding:10px 20px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:700}
-.progbtns button.go{background:var(--navy);border-color:var(--navy);color:#fff}.progbtns button.danger{border-color:#e3b3b7;color:var(--danger)}
-.progbtns button:disabled{opacity:.4;cursor:not-allowed}.progbtns button:hover:not(:disabled){filter:brightness(1.06)}
-.bar2{height:10px;background:#e3ecea;border-radius:999px;overflow:hidden}.bar2>div{height:100%;width:0;background:linear-gradient(90deg,var(--teal),#4fe3cb);transition:width .2s}
-#progLog{margin-top:10px;font:12.5px Consolas,monospace;color:#3d5560;max-height:130px;overflow:auto;white-space:pre-wrap}
-#progLog .err{color:var(--danger)}#progLog .good{color:#17695d}
+.pill i{width:9px;height:9px;border-radius:50%;background:#b8c6c3;display:inline-block}.pill.ok{background:#e1f4ee;color:#17695d}.pill.ok i{background:#1fb89a;box-shadow:0 0 0 3px #1fb89a33}.pill.bad{background:#fbe9ea;color:var(--danger)}.pill.bad i{background:var(--danger)}
+.pg-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 20px 18px;box-shadow:0 6px 24px #1b2f3d0d}
+.step{display:flex;align-items:center;gap:10px;font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.step b{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--navy);color:#fff;align-items:center;justify-content:center;font-size:12px;letter-spacing:0}
+#chipPicker{display:flex;flex-direction:column;gap:8px}
+.fam{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.fam>span{width:156px;flex:none;font-size:12px;color:var(--muted);font-weight:700}.fam>span em{font-style:normal;color:var(--text)}
+.cp{padding:5px 12px;border:1px solid var(--line);background:#fff;border-radius:999px;font-weight:700;font-size:13px;color:var(--text)}
+.cp small{font-weight:600;color:var(--muted);margin-left:5px}
+.cp:hover{border-color:var(--teal)}.cp.on{background:var(--navy);border-color:var(--navy);color:#fff}.cp.on small{color:#9fc9c2}
+.opts{display:flex;gap:22px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+.opts label{display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:5px}
+.seg{display:inline-flex;background:#e8f0ee;border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;padding:5px 14px;border-radius:999px;font-weight:700;font-size:12.5px;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--text);box-shadow:0 1px 4px #1b2f3d22}
+#progDiagram svg{width:100%;height:auto;display:block}
+.notes{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:6px;font-size:12.5px;color:#4f6670}
+.notes li{position:relative;padding-left:18px}.notes li::before{content:"";position:absolute;left:3px;top:7px;width:6px;height:6px;border-radius:50%;background:var(--teal)}
+.ops{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.op{display:flex;align-items:center;gap:14px;text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;transition:.15s}
+.op svg{width:30px;height:30px;flex:none;fill:none;stroke:var(--teal);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;background:#e6f3f0;border-radius:10px;padding:6px;box-sizing:content-box}
+.op b{display:block;font-size:15px}.op small{color:var(--muted);font-size:12px}
+.op:hover:not(:disabled){border-color:var(--teal);box-shadow:0 8px 22px #23877922;transform:translateY(-1px)}
+.op.warn svg{stroke:var(--danger);background:#fbe9ea}.op.warn:hover:not(:disabled){border-color:var(--danger);box-shadow:0 8px 22px #b3363f22}
+.op.stop{border-color:#e3b3b7}.op.stop svg{stroke:var(--danger);background:#fbe9ea}
+.op:disabled{opacity:.45;cursor:not-allowed}
+.op[hidden]{display:none}
+.prog{margin-top:14px}.bar2{height:10px;background:#e3ecea;border-radius:999px;overflow:hidden}.bar2>div{height:100%;width:0;background:linear-gradient(90deg,var(--teal),#4fe3cb);transition:width .2s}
+.pmeta{display:flex;justify-content:space-between;margin-top:6px;font-size:12.5px;color:var(--muted)}.pmeta b{color:var(--text)}
+#progLog{margin-top:8px;font:12.5px Consolas,monospace;color:#3d5560;max-height:130px;overflow:auto;white-space:pre-wrap}
+#progLog .err{color:var(--danger)}#progLog .good{color:#17695d}#progLog:empty{display:none}
 dialog#writeConfirm{border:0;border-radius:16px;padding:0;width:min(92vw,460px);box-shadow:0 24px 70px #0007}
 dialog#writeConfirm::backdrop{background:#0f1c26b3}
 dialog#writeConfirm .cd{padding:22px 24px 6px}dialog#writeConfirm h3{margin:0 0 6px;font-size:18px}dialog#writeConfirm p{margin:0 0 8px;color:#4f6670}
 dialog#writeConfirm .ca{display:flex;justify-content:flex-end;gap:10px;padding:12px 24px 20px}
 dialog#writeConfirm button{padding:9px 18px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:700;cursor:pointer}
 dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger);color:#fff}
-/* wiring diagram */
-.diagram{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(220px,1fr);gap:14px;align-items:start;margin-bottom:14px}
-.diagram svg{width:100%;height:auto;background:#fbfdfc;border:1px solid var(--line);border-radius:12px}
-#progTable{background:#fbfdfc;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px}
-#progTable table{width:100%;border-collapse:collapse}#progTable td{padding:4px 6px;border-bottom:1px solid #edf2f1}#progTable tr:last-child td{border:0}
-#progTable .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-#progTable h4{margin:0 0 6px;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-@media(max-width:900px){.diagram{grid-template-columns:1fr}}
 /* bottom action bar */
 .bar{display:flex;align-items:center;gap:14px;padding:12px 22px 16px;border-top:1px solid var(--line);background:#f9fcfb}
 #messageArea{flex:1;min-width:0;padding:8px 14px;border-radius:12px;background:#e7f3f0;color:#17695d;font-weight:600;font-size:13px}
@@ -160,19 +171,30 @@ dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger
   <div class="facts"><div id="fileInfo">—</div><div id="writeState"></div></div>
  </section>
  <section class="view view-prog">
-  <div class="progcard">
-   <div class="progtop"><span class="pill" id="progStatus"><i></i><span id="progStatusText">FT232H not checked</span></span><button class="ghost" id="progDetect" type="button">Detect FT232H</button></div>
-   <div class="progform">
-    <div><label for="progChip">Chip</label><select id="progChip"></select></div>
-    <div id="orgBox"><label for="progOrg">Organization (ORG pin)</label><select id="progOrg"><option value="16">x16 (ORG = VCC)</option><option value="8">x8 (ORG = GND)</option></select></div>
-    <div id="swapBox"><label for="progSwap">Bytes in each word</label><select id="progSwap"><option value="0">High byte first</option><option value="1">Low byte first (swapped)</option></select></div>
-    <div><label for="progSpeed">Speed</label><select id="progSpeed"><option value="fast">Fast</option><option value="normal" selected>Normal</option><option value="slow">Slow (long wires)</option><option value="veryslow">Very slow</option></select></div>
+  <div class="pg">
+   <div class="pg-head"><div><h3>Chip programmer</h3><p>Read and write EEPROM chips with an FT232H adapter</p></div><div class="pg-dev"><span class="pill" id="progStatus"><i></i><span id="progStatusText">FT232H not checked</span></span><button class="ghost" id="progDetect" type="button">Detect</button></div></div>
+   <div class="pg-card"><div class="step"><b>1</b><span>Choose the chip</span></div>
+    <div id="chipPicker"></div><select id="progChip" hidden></select>
+    <div class="opts">
+     <div id="orgBox"><label>Organization (ORG pin)</label><div class="seg" id="segOrg"></div><select id="progOrg" hidden><option value="16">x16 (ORG to VCC)</option><option value="8">x8 (ORG to GND)</option></select></div>
+     <div id="swapBox"><label>Bytes in each word</label><div class="seg" id="segSwap"></div><select id="progSwap" hidden><option value="0">High byte first</option><option value="1">Low byte first</option></select></div>
+     <div><label>Speed</label><div class="seg" id="segSpeed"></div><select id="progSpeed" hidden><option value="fast">Fast</option><option value="normal" selected>Normal</option><option value="slow">Slow</option><option value="veryslow">Very slow</option></select></div>
+    </div>
    </div>
-   <div class="wire" id="progWire"></div>
-   <div class="diagram"><div id="progDiagram"></div><div id="progTable"></div></div>
-   <div class="progbtns"><button class="go" id="progRead" type="button">Read chip → editor</button><button id="progWrite" type="button">Write editor → chip</button><button id="progVerify" type="button">Verify</button><button class="danger" id="progCancel" type="button" hidden>Cancel</button></div>
-   <div class="bar2"><div id="progBar"></div></div>
-   <div id="progLog"></div>
+   <div class="pg-card"><div class="step"><b>2</b><span>Connect the FT232H</span></div>
+    <div id="progDiagram"></div>
+    <ul class="notes"><li>Pin 1 is next to the notch or dot on the chip.</li><li>The FT232H works at <b>3.3 V</b>. Power the chip from the adapter and keep the cluster disconnected from the car.</li><li>If you read the chip on the board, make sure the cluster microcontroller is not driving the same lines.</li></ul>
+   </div>
+   <div class="pg-card"><div class="step"><b>3</b><span>Read or write</span></div>
+    <div class="ops">
+     <button class="op" id="progRead" type="button"><svg viewBox="0 0 24 24"><path d="M12 4v11m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg><div><b>Read chip</b><small>Chip → editor</small></div></button>
+     <button class="op warn" id="progWrite" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V8m0 0 4 4m-4-4-4 4"/><path d="M5 5h14"/></svg><div><b>Write chip</b><small>Editor → chip · backup first</small></div></button>
+     <button class="op" id="progVerify" type="button"><svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></svg><div><b>Verify</b><small>Compare chip with editor</small></div></button>
+     <button class="op stop" id="progCancel" type="button" hidden><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg><div><b>Cancel</b><small>Stop the operation</small></div></button>
+    </div>
+    <div class="prog"><div class="bar2"><div id="progBar"></div></div><div class="pmeta"><span id="progPhase">Ready</span><b id="progPct"></b></div></div>
+    <div id="progLog"></div>
+   </div>
   </div>
  </section>
  <section class="view view-hex">
@@ -557,61 +579,56 @@ HTMLAnchorElement.prototype.click=function(){
  sel.onchange=()=>{const v=Variants[PROFILE_KEY].find(x=>x.id===sel.value);if(!v||v.pending)return;variant=v;try{localStorage.setItem(storeKey,v.id)}catch{}
   if(state.data){state.ctx=profile.detect(state.data);state.requestedKm=null;refresh();$('newKm').value=state.info.currentKm??'';previewTarget();message('Calculator type: '+v.label+'.')}}})();
 /* ------------------------------------------------------------ FT232H programmer */
-const CHIP_FAMILIES={'93C46':'M','93C56':'M','93C66':'M','93C76':'M','93C86':'M','24C04':'I','24C08':'I','24C16':'I','24C32':'I','24C64':'I','24C128':'I','24C256':'I','24C512':'I','95128':'S','95256':'S'};
+const FAMILIES=[['M','Microwire','93Cxx',['93C46','93C56','93C66','93C76','93C86']],['I','I²C','24Cxx',['24C04','24C08','24C16','24C32','24C64','24C128','24C256','24C512']],['S','SPI','95xxx',['95128','95256']]];
 const CHIP_SIZE={'93C46':128,'93C56':256,'93C66':512,'93C76':1024,'93C86':2048,'24C04':512,'24C08':1024,'24C16':2048,'24C32':4096,'24C64':8192,'24C128':16384,'24C256':32768,'24C512':65536,'95128':16384,'95256':32768};
-const WIRING={
- M:'<b>93Cxx (Microwire)</b> — FT232H <code>D0</code>→CLK (SK) · <code>D1</code>→DI · <code>D2</code>→DO · <code>D3</code>→CS · <code>GND</code>→GND · <code>3.3V</code>→VCC. Tie the <b>ORG</b> pin like the chip is wired (GND = x8, VCC = x16) and pick the same organization here. PE/PRE high if present.',
- I:'<b>24Cxx (I2C)</b> — FT232H <code>D0</code>→SCL · <code>D1</code>→SDA · 4.7 kΩ pull-ups from SCL and SDA to VCC · <code>GND</code>→GND · <code>3.3V</code>→VCC. A0–A2 and WP to GND.',
- S:'<b>95xxx (SPI)</b> — FT232H <code>D0</code>→SCK · <code>D1</code>→MOSI (SI) · <code>D2</code>→MISO (SO) · <code>D3</code>→CS · /W and /HOLD to VCC · <code>GND</code>→GND · <code>3.3V</code>→VCC.'};
-const WARN='<div class="warn">The FT232H works at 3.3 V. Power the chip from the adapter (3.3 V), keep the cluster disconnected from the car, and if you read the chip on the board make sure the cluster microcontroller is not driving the same lines. Writing a wrong dump can stop the cluster from working, so keep the automatic backup.</div>';
-/* ------------------------------------------------------- wiring diagram */
-const PIN_NAMES={M:['CS','CLK (SK)','DI','DO','GND','ORG','PE / NC','VCC'],I:['A0','A1','A2','GND','SDA','SCL','WP','VCC'],S:['/CS','SO','/W','GND','SI','SCK','/HOLD','VCC']};
-const WIRE_COLORS={D0:'#2f7cf0',D1:'#1fb89a',D2:'#ff8a1f',D3:'#8a5cf0','3V3':'#d93a3a',GND:'#1b2f3d'};
-function wiringSpec(fam,x16){
- if(fam==='M')return{sig:[['D3',1],['D0',2],['D1',3],['D2',4],['GND',5],['3V3',8]],tags:[[6,x16?'3V3':'GND',x16?'ORG = VCC (x16)':'ORG = GND (x8)'],[7,'3V3','PE / NC to VCC']],pull:[]};
- if(fam==='I')return{sig:[['D1',5],['D0',6],['GND',4],['3V3',8]],tags:[[1,'GND','A0'],[2,'GND','A1'],[3,'GND','A2'],[7,'GND','WP']],pull:[5,6]};
- return{sig:[['D3',1],['D2',2],['D1',5],['D0',6],['GND',4],['3V3',8]],tags:[[3,'3V3','/W'],[7,'3V3','/HOLD']],pull:[]};
+const CHIP_FAMILIES={};for(const [f,,,list] of FAMILIES)for(const n of list)CHIP_FAMILIES[n]=f;
+const sizeLabel=n=>CHIP_SIZE[n]>=1024?(CHIP_SIZE[n]/1024)+' KB':CHIP_SIZE[n]+' B';
+const COLORS={D0:'#2f7cf0',D1:'#1fb89a',D2:'#f08a24',D3:'#8a5cf0','3V3':'#d93a3a',GND:'#3b4f5c'};
+/* the 8 pins of each chip family and where each one goes on the FT232H */
+function pinRows(fam,x16){
+ if(fam==='M')return[{t:'D3',l:'CS'},{t:'D0',l:'CLK'},{t:'D1',l:'DI'},{t:'D2',l:'DO'},{t:'GND',l:'GND'},{t:x16?'3V3':'GND',l:'ORG',tag:x16?'x16':'x8'},{t:'3V3',l:'PE / NC',opt:true},{t:'3V3',l:'VCC'}];
+ if(fam==='I')return[{t:'GND',l:'A0'},{t:'GND',l:'A1'},{t:'GND',l:'A2'},{t:'GND',l:'GND'},{t:'D1',l:'SDA',pull:true},{t:'D0',l:'SCL',pull:true},{t:'GND',l:'WP'},{t:'3V3',l:'VCC'}];
+ return[{t:'D3',l:'/CS'},{t:'D2',l:'SO'},{t:'3V3',l:'/W'},{t:'GND',l:'GND'},{t:'D1',l:'SI'},{t:'D0',l:'SCK'},{t:'3V3',l:'/HOLD'},{t:'3V3',l:'VCC'}];
 }
 function drawWiring(){
- const chip=$('progChip').value,fam=CHIP_FAMILIES[chip],x16=$('progOrg').value==='16',spec=wiringSpec(fam,x16),names=PIN_NAMES[fam];
- const ftY={D0:76,D1:108,D2:140,D3:172,'3V3':228,GND:268},chipY={1:92,2:150,3:208,4:266,8:92,7:150,6:208,5:266},LX=400,RX=520;
- let svg='<svg viewBox="0 0 700 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wiring diagram">';
- svg+='<rect x="18" y="44" width="150" height="262" rx="10" fill="#14232e"/><text x="93" y="66" fill="#8fd9cd" font-size="12" font-weight="700" text-anchor="middle" font-family="Segoe UI,Arial">FT232H</text>';
- for(const k of Object.keys(ftY)){svg+='<circle cx="168" cy="'+ftY[k]+'" r="4.5" fill="'+WIRE_COLORS[k]+'" stroke="#fff" stroke-width="1.5"/><text x="156" y="'+(ftY[k]+4)+'" fill="#fff" font-size="12" font-weight="700" text-anchor="end" font-family="Consolas,monospace">'+k+'</text>'}
- svg+='<rect x="'+LX+'" y="60" width="'+(RX-LX)+'" height="236" rx="8" fill="#e8f1ef" stroke="#14232e" stroke-width="2"/><path d="M'+(LX+(RX-LX)/2-14)+' 60 a14 14 0 0 0 28 0" fill="#fbfdfc" stroke="#14232e" stroke-width="2"/><text x="'+((LX+RX)/2)+'" y="186" fill="#14232e" font-size="15" font-weight="800" text-anchor="middle" font-family="Segoe UI,Arial">'+chip+'</text><text x="'+((LX+RX)/2)+'" y="204" fill="#647f89" font-size="11" text-anchor="middle" font-family="Segoe UI,Arial">8-pin, top view</text>';
- for(let n=1;n<=8;n++){const left=n<=4,x=left?LX:RX,y=chipY[n],dir=left?-1:1;svg+='<line x1="'+x+'" y1="'+y+'" x2="'+(x+dir*14)+'" y2="'+y+'" stroke="#14232e" stroke-width="3"/><text x="'+(x-dir*8)+'" y="'+(y-6)+'" font-size="10" fill="#647f89" text-anchor="'+(left?'start':'end')+'" font-family="Consolas,monospace">'+n+'</text><text x="'+(x-dir*8)+'" y="'+(y+13)+'" font-size="11" font-weight="700" fill="#14232e" text-anchor="'+(left?'start':'end')+'" font-family="Segoe UI,Arial">'+names[n-1]+'</text>'}
- let i=0,wires='';const pulls=[];
- for(const [from,pin] of spec.sig){
-  const col=WIRE_COLORS[from],fy=ftY[from],ty=chipY[pin],left=pin<=4,xc=196+i*24;let d;
-  if(left){d='M168 '+fy+' H'+xc+' V'+ty+' H'+(LX-14)}
-  else{const top=24+i*6,xr=RX+84+i*22;d='M168 '+fy+' H'+xc+' V'+top+' H'+xr+' V'+ty+' H'+(RX+14)}
-  wires+='<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>';
-  if(!left&&spec.pull.includes(pin)){pulls.push({xr:RX+84+i*22,ty:ty,top:24+i*6})}
-  i++;
- }
- if(pulls.length){const railY=Math.max(...pulls.map(q=>q.top))+34,xs=pulls.map(q=>q.xr),x1=Math.min(...xs)-6,x2=Math.max(...xs)+6;wires+='<line x1="'+x1+'" y1="'+railY+'" x2="'+x2+'" y2="'+railY+'" stroke="'+WIRE_COLORS['3V3']+'" stroke-width="3"/><text x="'+(x2+6)+'" y="'+(railY+4)+'" font-size="11" font-weight="800" fill="'+WIRE_COLORS['3V3']+'" font-family="Segoe UI,Arial">3V3</text>';for(const q of pulls){wires+='<line x1="'+q.xr+'" y1="'+railY+'" x2="'+q.xr+'" y2="'+(railY+16)+'" stroke="'+WIRE_COLORS['3V3']+'" stroke-width="2.4"/><rect x="'+(q.xr-5)+'" y="'+(railY+16)+'" width="10" height="24" rx="2" fill="#fff" stroke="#14232e" stroke-width="1.6"/>'}}
- svg+=wires;
- for(const [pin,net,label] of spec.tags){const left=pin<=4,x=left?LX-14:RX+14,y=chipY[pin],dir=left?-1:1,col=WIRE_COLORS[net];svg+='<line x1="'+x+'" y1="'+y+'" x2="'+(x+dir*22)+'" y2="'+y+'" stroke="'+col+'" stroke-width="3" stroke-dasharray="5 3"/><text x="'+(x+dir*28)+'" y="'+(y+4)+'" font-size="11" font-weight="800" fill="'+col+'" text-anchor="'+(left?'end':'start')+'" font-family="Segoe UI,Arial">'+(net==='GND'?'GND':'3V3')+'</text>'}
- svg+='</svg>';
- $('progDiagram').innerHTML=svg;
- let rows='<h4>Connections</h4><table>';
- for(const [from,pin] of spec.sig)rows+='<tr><td><span class="sw" style="background:'+WIRE_COLORS[from]+'"></span><b>'+from+'</b></td><td>→ pin '+pin+' · '+names[pin-1]+'</td></tr>';
- for(const [pin,net,label] of spec.tags)rows+='<tr><td><span class="sw" style="background:'+WIRE_COLORS[net]+'"></span><b>'+net+'</b></td><td>→ pin '+pin+' · '+label+'</td></tr>';
- if(spec.pull.length)rows+='<tr><td colspan="2" style="color:#647f89">4.7 kΩ pull-up resistors from SDA and SCL to 3V3.</td></tr>';
- $('progTable').innerHTML=rows+'</table>';
+ const chip=$('progChip').value,fam=CHIP_FAMILIES[chip],rows=pinRows(fam,$('progOrg').value==='16');
+ const rowH=38,top=64,W=760,H=top+8*rowH+30,navy='#14232e',f='font-family="Segoe UI,Arial,sans-serif"';
+ let o='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wiring diagram for '+chip+'">';
+ o+='<text x="20" y="30" font-size="11" font-weight="800" letter-spacing="1.2" fill="#647f89" '+f+'>FT232H</text><text x="352" y="30" font-size="11" font-weight="800" letter-spacing="1.2" fill="#647f89" '+f+'>'+chip+' · 8-PIN</text><text x="560" y="30" font-size="11" font-weight="800" letter-spacing="1.2" fill="#647f89" '+f+'>TOP VIEW</text>';
+ o+='<rect x="352" y="'+(top-2)+'" width="170" height="'+(8*rowH+4)+'" rx="10" fill="#eef4f2" stroke="'+navy+'" stroke-width="2"/>';
+ rows.forEach((r,i)=>{
+  const y=top+i*rowH+rowH/2,c=COLORS[r.t],dash=r.opt?' stroke-dasharray="6 5"':'';
+  o+='<line x1="138" y1="'+y+'" x2="330" y2="'+y+'" stroke="'+c+'" stroke-width="3.2" stroke-linecap="round"'+dash+'/>';
+  o+='<rect x="20" y="'+(y-14)+'" width="118" height="28" rx="14" fill="'+c+'"/><text x="79" y="'+(y+5)+'" font-size="13" font-weight="800" fill="#fff" text-anchor="middle" '+f+'>'+r.t+'</text>';
+  if(r.pull)o+='<rect x="190" y="'+(y-12)+'" width="96" height="24" rx="12" fill="#fff" stroke="'+COLORS['3V3']+'" stroke-width="1.6"/><text x="238" y="'+(y+4)+'" font-size="10.5" font-weight="700" fill="'+COLORS['3V3']+'" text-anchor="middle" '+f+'>4.7 kΩ ↑ 3V3</text>';
+  o+='<circle cx="340" cy="'+y+'" r="11" fill="#fff" stroke="'+navy+'" stroke-width="2"/><text x="340" y="'+(y+4)+'" font-size="11.5" font-weight="800" fill="'+navy+'" text-anchor="middle" '+f+'>'+(i+1)+'</text>';
+  o+='<text x="368" y="'+(y+5)+'" font-size="14" font-weight="800" fill="'+navy+'" '+f+'>'+r.l+'</text>';
+  if(r.tag)o+='<text x="508" y="'+(y+5)+'" font-size="11.5" font-weight="700" fill="#647f89" text-anchor="end" '+f+'>'+r.tag+'</text>';
+  if(r.opt)o+='<text x="508" y="'+(y+5)+'" font-size="11" font-weight="600" fill="#647f89" text-anchor="end" '+f+'>optional</text>';
+ });
+ /* physical top view */
+ const bx=600,by=top+34,bw=76,bh=4*34+14;
+ o+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" rx="6" fill="#eef4f2" stroke="'+navy+'" stroke-width="2"/><path d="M'+(bx+bw/2-9)+' '+by+' a9 9 0 0 0 18 0" fill="#fbfdfc" stroke="'+navy+'" stroke-width="2"/><circle cx="'+(bx+12)+'" cy="'+(by+16)+'" r="3.4" fill="'+navy+'"/>';
+ for(let n=1;n<=8;n++){const left=n<=4,idx=left?n-1:8-n,py=by+22+idx*34,px=left?bx-14:bx+bw;o+='<line x1="'+px+'" y1="'+py+'" x2="'+(px+14)+'" y2="'+py+'" stroke="'+navy+'" stroke-width="3.4" stroke-linecap="round"/><text x="'+(left?bx-22:bx+bw+22)+'" y="'+(py+4)+'" font-size="11" font-weight="800" fill="#647f89" text-anchor="'+(left?'end':'start')+'" '+f+'>'+n+'</text>'}
+ o+='<text x="'+(bx+bw/2)+'" y="'+(by+bh/2+4)+'" font-size="11" font-weight="700" fill="#647f89" text-anchor="middle" '+f+'>'+chip+'</text>';
+ o+='</svg>';
+ $('progDiagram').innerHTML=o;
 }
-
+function paintSeg(sel,box){for(const b of box.children)b.classList.toggle('on',b.dataset.v===sel.value)}
+function makeSeg(selId,boxId){const sel=$(selId),box=$(boxId);box.replaceChildren();for(const o of sel.options){const b=document.createElement('button');b.type='button';b.textContent=o.textContent.replace(/\s*\(.*\)/,'');b.dataset.v=o.value;b.onclick=()=>{sel.value=o.value;sel.dispatchEvent(new Event('change'))};box.append(b)}paintSeg(sel,box)}
+function paintPicker(){for(const b of document.querySelectorAll('#chipPicker .cp'))b.classList.toggle('on',b.dataset.chip===$('progChip').value)}
 function progLog(t,cls){const el=$('progLog');const d=document.createElement('div');if(cls)d.className=cls;d.textContent=t;el.append(d);el.scrollTop=el.scrollHeight}
-function progBusy(b){for(const id of ['progRead','progWrite','progVerify','progDetect'])$(id).disabled=b;$('progCancel').hidden=!b;if(!b)$('progBar').style.width='0'}
+function progBusy(b){for(const id of ['progRead','progWrite','progVerify','progDetect'])$(id).disabled=b;$('progCancel').hidden=!b;if(!b){$('progBar').style.width='0';$('progPct').textContent=''}else{$('progPhase').textContent='Starting…'}}
 function bytesToBase64(u8){let s='';for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s)}
 function base64ToBytes(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}
 function progParams(extra){const chip=$('progChip').value;return Object.assign({action:'prog',chip,x16:$('progOrg').value==='16',swap:$('progSwap').value==='1',speed:$('progSpeed').value},extra)}
 function showView(v){document.getElementById('app').dataset.view=v;for(const x of document.querySelectorAll('.tabs button'))x.classList.toggle('on',x.dataset.view===v)}
-function progChanged(){const chip=$('progChip').value,fam=CHIP_FAMILIES[chip];$('progWire').innerHTML=WIRING[fam]+WARN;$('orgBox').hidden=fam!=='M';$('swapBox').hidden=fam!=='M'||$('progOrg').value!=='16';drawWiring();try{localStorage.setItem('progChip_'+PROFILE_KEY,chip)}catch(e){}}
-(()=>{const sel=$('progChip');for(const n of Object.keys(CHIP_FAMILIES)){const o=document.createElement('option');o.value=n;o.textContent=n+' ('+(CHIP_SIZE[n]>=1024?CHIP_SIZE[n]/1024+' KB':CHIP_SIZE[n]+' B')+')';sel.append(o)}
+function progChanged(){const chip=$('progChip').value,fam=CHIP_FAMILIES[chip];$('orgBox').hidden=fam!=='M';$('swapBox').hidden=fam!=='M'||$('progOrg').value!=='16';paintPicker();for(const [sid,bid] of [['progOrg','segOrg'],['progSwap','segSwap'],['progSpeed','segSpeed']])paintSeg($(sid),$(bid));drawWiring();try{localStorage.setItem('progChip_'+PROFILE_KEY,chip)}catch(e){}}
+(()=>{const sel=$('progChip'),pick=$('chipPicker');
+ for(const [f,name,series,list] of FAMILIES){const row=document.createElement('div');row.className='fam';row.innerHTML='<span><em>'+name+'</em> · '+series+'</span>';for(const n of list){const o=document.createElement('option');o.value=n;o.textContent=n;sel.append(o);const b=document.createElement('button');b.type='button';b.className='cp';b.dataset.chip=n;b.innerHTML=n.replace(/^(93C|24C)/,'$1')+'<small>'+sizeLabel(n)+'</small>';b.onclick=()=>{sel.value=n;progChanged()};row.append(b)}pick.append(row)}
  let want=null;try{want=localStorage.getItem('progChip_'+PROFILE_KEY)}catch(e){}if(!want)want=PROFILE_KEY==='ford'?'24C64':'93C66';sel.value=CHIP_FAMILIES[want]?want:'93C66';
- sel.onchange=progChanged;$('progOrg').onchange=progChanged;progChanged()})();
-
+ makeSeg('progOrg','segOrg');makeSeg('progSwap','segSwap');makeSeg('progSpeed','segSpeed');
+ for(const id of ['progOrg','progSwap','progSpeed'])$(id).onchange=progChanged;progChanged()})();
 $('progDetect').onclick=()=>{progLog('Looking for an FT232H…');parent.postMessage({action:'prog',cmd:'detect'},location.origin)};
 $('progRead').onclick=()=>{progBusy(true);progLog('Reading '+$('progChip').value+'…');parent.postMessage(progParams({cmd:'read'}),location.origin)};
 $('progVerify').onclick=()=>{if(!state.data){progLog('Open a file in the editor first (or read a chip).','err');return}progBusy(true);progLog('Verifying…');parent.postMessage(progParams({cmd:'verify',data:bytesToBase64(state.data)}),location.origin)};
@@ -622,10 +639,10 @@ $('wcNo').onclick=()=>$('writeConfirm').close();
 $('wcYes').onclick=()=>{$('writeConfirm').close();progBusy(true);progLog('Backing up the chip, then writing…');parent.postMessage(progParams({cmd:'write',data:bytesToBase64(state.data)}),location.origin)};
 $('progCancel').onclick=()=>{progLog('Cancelling…');parent.postMessage({action:'prog',cmd:'cancel'},location.origin)};
 window.addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||e.data.type!=='prog')return;const m=e.data;
- if(m.stage==='progress'){$('progBar').style.width=Math.max(0,Math.min(100,m.percent))+'%'}
+ if(m.stage==='progress'){const pc=Math.max(0,Math.min(100,m.percent));$('progBar').style.width=pc+'%';$('progPct').textContent=pc+'%';$('progPhase').textContent=m.message}
  else if(m.stage==='detect'){const ok=m.devices&&m.devices.length>0;$('progStatus').className='pill '+(ok?'ok':'bad');$('progStatusText').textContent=ok?m.devices[0]:'No FT232H found';progLog(m.message,ok?'good':'err')}
- else if(m.stage==='done'){progBusy(false);progLog(m.message,'good');$('progStatus').className='pill ok';if(m.op==='read'&&m.data){const bytes=base64ToBytes(m.data);const stamp=new Date().toISOString().replace(/[-:T]/g,'').slice(0,12);openFile(new File([bytes],m.chip+'_read_'+stamp+'.bin',{type:'application/octet-stream'}));showView('mileage')}}
- else if(m.stage==='error'){progBusy(false);progLog(m.message,'err')}});
+ else if(m.stage==='done'){progBusy(false);$('progPhase').textContent='Done';progLog(m.message,'good');$('progStatus').className='pill ok';if(m.op==='read'&&m.data){const bytes=base64ToBytes(m.data);const stamp=new Date().toISOString().replace(/[-:T]/g,'').slice(0,12);openFile(new File([bytes],m.chip+'_read_'+stamp+'.bin',{type:'application/octet-stream'}));showView('mileage')}}
+ else if(m.stage==='error'){progBusy(false);$('progPhase').textContent='Stopped';progLog(m.message,'err')}});
 
 /* ----------------------------------------------------- redesign helpers */
 const SEG_STYLE={isuzu:1,hyundai:1,gm:1,kia:1};   // 7-segment LCD look; the others use a flat digital font
