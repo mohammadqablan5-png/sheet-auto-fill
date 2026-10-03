@@ -137,12 +137,13 @@ internal class Studio : Form
 		}
 	}
 
-	// The folder chosen in Settings gets a "DashForge" folder inside it; the vehicle folders (with their icons) live in that folder.
-	// A folder already named DashForge, or one that already holds saved dumps in vehicle sub-folders (older layout), is used as is.
+	// The folder chosen in Settings gets a "DashForge Files" folder inside it; the vehicle folders (with their icons) live in that folder.
+	// A folder already named DashForge, or one named DashForge from the previous version, or one that already holds saved dumps in vehicle sub-folders (older layout), is used as is.
 	private static string ResolveChosenRoot(string chosen)
 	{
 		string trimmed = chosen.TrimEnd('\\', '/');
-		if (string.Equals(Path.GetFileName(trimmed), "DashForge", StringComparison.OrdinalIgnoreCase))
+		string leaf = Path.GetFileName(trimmed);
+		if (string.Equals(leaf, "DashForge Files", StringComparison.OrdinalIgnoreCase) || string.Equals(leaf, "DashForge", StringComparison.OrdinalIgnoreCase))
 		{
 			return trimmed;
 		}
@@ -154,7 +155,7 @@ internal class Studio : Form
 				return trimmed;
 			}
 		}
-		return Path.Combine(trimmed, "DashForge");
+		return Path.Combine(trimmed, "DashForge Files");
 	}
 
 	private string SaveRoot()
