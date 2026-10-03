@@ -294,8 +294,8 @@ dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger
      <div><div class="cap2">Speed</div><div class="seg wide" id="segSpeed"></div><select id="progSpeed" hidden><option value="fast">Fast</option><option value="normal" selected>Normal</option><option value="slow">Slow</option><option value="veryslow">Slowest</option></select></div>
      <div class="pf-info"><div><span>Size</span><b id="pfSize">—</b></div><div><span>Voltage</span><b>3.3 V</b></div><div><span>Buffer</span><b id="pfBuf">empty</b></div><div><span>Checksum</span><b id="pfSum">—</b></div></div>
     </aside>
-    <section class="pf-main" id="pfMain" data-tab="buf">
-     <div class="pf-tabs"><button data-t="buf" class="on" type="button">Buffer</button><button data-t="wire" type="button">Wiring</button><span id="midChip" hidden></span><span class="grow"></span><span id="midInfo"></span></div>
+    <section class="pf-main" id="pfMain" data-tab="wire">
+     <div class="pf-tabs"><button data-t="wire" class="on" type="button">Wiring</button><button data-t="buf" type="button">Buffer</button><span id="midChip" hidden></span><span class="grow"></span><span id="midInfo"></span></div>
      <div class="pf-hex" id="pfHex"><div class="hh" id="pfHead"></div><div class="hs" id="pfScroll"><div id="pfSpacer"><div id="pfRows"></div></div></div><div class="he" id="pfEmpty">No data yet — press <b>Read</b> to load the chip, or open a file.</div></div>
      <div class="pf-wire"><div id="progDiagram"></div><div class="tip"><svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01"/><path d="M10.3 3.9 2.4 17.6A2 2 0 0 0 4.1 20.6h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span><b>3.3 V logic.</b> Pin 1 is next to the notch. Power the chip from the adapter, cluster off the car.</span></div></div>
     </section>
