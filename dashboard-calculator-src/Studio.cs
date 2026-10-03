@@ -90,13 +90,14 @@ internal class Studio : Form
 		bool swap = ProgText(raw, "swap", "false") == "True" || ProgText(raw, "swap", "false") == "true";
 		int repeat = RepeatForSpeed(ProgText(raw, "speed", "normal"));
 		string dataText = ProgText(raw, "data", "");
+		string vehicleKey = ProgText(raw, "vehicle", "");
 		progBusy = true;
 		progCancel = false;
 		Task.Run(delegate
 		{
 			try
 			{
-				ProgRun(cmd, chipName, x16, swap, repeat, dataText);
+				ProgRun(cmd, chipName, x16, swap, repeat, dataText, vehicleKey);
 			}
 			catch (ProgrammerException ex)
 			{
@@ -113,7 +114,7 @@ internal class Studio : Form
 		});
 	}
 
-	private void ProgRun(string cmd, string chipName, bool x16, bool swap, int repeat, string dataText)
+	private void ProgRun(string cmd, string chipName, bool x16, bool swap, int repeat, string dataText, string vehicleKey)
 	{
 		List<FtdiDeviceInfo> devices = D2xxPort.Enumerate();
 		if (cmd == "detect")
@@ -126,6 +127,42 @@ internal class Studio : Form
 				message = (devices.Count > 0) ? (devices.Count + " FT232H found.") : "No FT232H found. Plug it in and install the FTDI D2XX driver."
 			});
 			return;
+		}
+		if (chipName == "auto")
+		{
+			if (cmd != "read")
+			{
+				throw new ProgrammerException("Automatic mode only reads. Press Read once (the detected chip is then selected), or choose the chip, to write or verify.");
+			}
+			if (devices.Count == 0)
+			{
+				throw new ProgrammerException("No FT232H found. Plug it in and install the FTDI D2XX driver.");
+			}
+			using (D2xxPort autoPort = new D2xxPort(devices[0].Index))
+			{
+				Action<string, int> autoReport = delegate(string text, int percent)
+				{
+					ProgSend(new { type = "prog", stage = "progress", percent = percent, message = text });
+				};
+				ProgramOptions autoOptions = new ProgramOptions
+				{
+					X16 = x16,
+					SwapBytes = swap,
+					Repeat = repeat
+				};
+				AutoResult found = AutoReader.Read(autoPort, vehicleKey, autoOptions, autoReport, () => progCancel);
+				ProgSend(new
+				{
+					type = "prog",
+					stage = "done",
+					op = "read",
+					chip = found.Chip.Name,
+					x16 = found.X16,
+					data = Convert.ToBase64String(found.Data),
+					message = "Read " + found.Data.Length.ToString("N0", CultureInfo.InvariantCulture) + " bytes. " + found.Note
+				});
+				return;
+			}
 		}
 		ChipInfo chip = Chips.Find(chipName);
 		if (chip == null)

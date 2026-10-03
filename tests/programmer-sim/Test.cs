@@ -304,6 +304,33 @@ static class Program
 			try { new EepromProgrammer(port, chip, new ProgramOptions { Repeat = 1 }, null, null).Write(new byte[100], null); Check(false, "size: should throw"); }
 			catch (ProgrammerException e) { Check(e.Message.Contains("holds"), "wrong data size rejected"); }
 		}
+		// ---- automatic chip detection ("press Read") ----
+		foreach (string name in new[] { "24C32", "24C64", "24C128", "24C256", "24C512" })
+		{
+			var chip = Chips.Find(name); var (port, sim) = Make(chip, true); var i2 = (I2cSim)sim;
+			rnd.NextBytes(i2.Mem);
+			var res = AutoReader.Read(port, "ford", new ProgramOptions { Repeat = 1 }, (t, p) => { }, null);
+			Check(res.Chip.Name == name && EepromProgrammer.FirstDifference(res.Data, i2.Mem) == -1, "auto: detects " + name + " and reads it");
+		}
+		{
+			var chip = Chips.Find("24C256"); var (port, sim) = Make(chip, true);   // blank
+			var res = AutoReader.Read(port, "ford", new ProgramOptions { Repeat = 1 }, (t, p) => { }, null);
+			Check(res.Note.Contains("blank"), "auto: blank I2C chip -> warns that size is unknown");
+		}
+		foreach (bool x16 in new[] { true, false })
+		{
+			var chip = Chips.Find("93C66"); var (port, sim) = Make(chip, x16); var mw = (MwSim)sim;
+			var pattern = new byte[512]; for (int i = 0; i < 512; i++) pattern[i] = 0xFF;
+			for (int i = 0; i < 50; i++) { pattern[i * 2] = 0x10; pattern[i * 2 + 1] = 0x05; }
+			if (x16) { for (int w = 0; w < 256; w++) mw.Words[w] = (ushort)((pattern[w * 2] << 8) | pattern[w * 2 + 1]); }
+			else { for (int i = 0; i < 512; i++) mw.Bytes[i] = pattern[i]; }
+			var res = AutoReader.Read(port, "isuzu", new ProgramOptions { Repeat = 1 }, (t, p) => { }, null);
+			Check(res.Chip.Name == "93C66" && res.X16 == x16 && EepromProgrammer.FirstDifference(res.Data, pattern) == -1, "auto: Isuzu 93C66 wired " + (x16 ? "x16" : "x8") + " identified");
+		}
+		{
+			try { AutoReader.Read(new FakeFtdi(null), "isuzu", new ProgramOptions { Repeat = 1 }, (t, p) => { }, null); Check(false, "auto: nothing connected should fail"); }
+			catch (ProgrammerException e) { Check(e.Message.Contains("Could not identify"), "auto: nothing connected -> friendly error"); }
+		}
 		Console.WriteLine(fails == 0 ? "ALL PASSED" : fails + " FAILURES");
 		Environment.Exit(fails == 0 ? 0 : 1);
 	}

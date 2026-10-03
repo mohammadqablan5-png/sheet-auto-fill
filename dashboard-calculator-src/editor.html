@@ -39,7 +39,8 @@ body:not(.has-file) .view-mileage,body:not(.has-file) .view-hex{display:none!imp
 #app[data-view=prog] #dropWrap{display:none}
 body.has-file #dropWrap{display:none}
 /* empty state */
-#dropWrap{display:flex;align-items:center;justify-content:center;height:100%;min-height:360px}
+#dropWrap{display:flex;flex-direction:column;gap:18px;align-items:center;justify-content:center;height:100%;min-height:360px}
+.dropread{display:inline-flex;align-items:center;gap:10px;padding:12px 24px;border-radius:999px;border:0;background:var(--navy);color:#fff;font-weight:800;font-size:14px;box-shadow:0 10px 26px #14232e33}.dropread:hover{background:var(--navy2)}.dropread svg{width:20px;height:20px;fill:none;stroke:#4fe3cb;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .drop{width:min(640px,100%);padding:54px 28px;text-align:center;border:2px dashed #a9cfc7;border-radius:22px;background:#f7fbfa;cursor:pointer;transition:.15s}
 .drop:hover,.drop.dragover{border-color:var(--teal);background:#fff;box-shadow:0 14px 40px #23877922}
 .drop .big{font-size:22px;font-weight:700;margin-bottom:6px}.drop p{margin:0;color:var(--muted)}.drop span{color:var(--teal);text-decoration:underline}
@@ -148,6 +149,8 @@ dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger
 .bar .save{padding:11px 28px;border-radius:999px;border:0;background:var(--navy);color:#fff;font-weight:800}
 .bar .save:hover:not(:disabled){background:var(--navy2)}.bar .save:disabled{opacity:.35;cursor:not-allowed}
 @media(max-width:900px){.row2{grid-template-columns:1fr;margin-top:70px}.arrow{display:none}.top{flex-wrap:wrap}}
+
+.autoinfo{grid-column:1/-1;background:#eef6f4;border:1px dashed #a9cfc7;border-radius:12px;padding:12px 14px;font-size:12.5px;color:#3d5560;display:flex;flex-direction:column;gap:4px}.autoinfo b{color:var(--text);font-size:13.5px}
 </style></head>
 <body>
 <div class="app" id="app" data-view="mileage">
@@ -158,7 +161,7 @@ dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger
  <button class="ghost" id="openBtn" type="button">Open dump…</button>
 </header>
 <main>
- <div id="dropWrap"><div class="drop" id="drop" role="button" tabindex="0" aria-label="Open EEPROM file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0 4 4m-4-4L8 8"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg><div class="big">Drop the EEPROM dump here</div><p>or <span>browse</span> a .bin file (up to 16 MiB)</p></div></div>
+ <div id="dropWrap"><div class="drop" id="drop" role="button" tabindex="0" aria-label="Open EEPROM file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0 4 4m-4-4L8 8"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg><div class="big">Drop the EEPROM dump here</div><p>or <span>browse</span> a .bin file (up to 16 MiB)</p></div><button class="dropread" id="dropRead" type="button"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 3v3m6-3v3M9 18v3m6-3v3M3 9h3m-3 6h3m12-6h3m-3 6h3"/></svg>Read it from the chip (FT232H)</button></div>
  <input type="file" id="file" accept=".bin,.eeprom,.flash,.eep,.rom" hidden>
  <section class="view view-mileage">
   <div class="cluster">
@@ -589,7 +592,8 @@ HTMLAnchorElement.prototype.click=function(){
 /* ------------------------------------------------------------ FT232H programmer */
 const FAMILIES=[['M','Microwire','93Cxx',['93C46','93C56','93C66','93C76','93C86']],['I','I²C','24Cxx',['24C04','24C08','24C16','24C32','24C64','24C128','24C256','24C512']],['S','SPI','95xxx',['95128','95256']]];
 const CHIP_SIZE={'93C46':128,'93C56':256,'93C66':512,'93C76':1024,'93C86':2048,'24C04':512,'24C08':1024,'24C16':2048,'24C32':4096,'24C64':8192,'24C128':16384,'24C256':32768,'24C512':65536,'95128':16384,'95256':32768};
-const CHIP_FAMILIES={};for(const [f,,,list] of FAMILIES)for(const n of list)CHIP_FAMILIES[n]=f;
+const CHIP_FAMILIES={auto:'A'};for(const [f,,,list] of FAMILIES)for(const n of list)CHIP_FAMILIES[n]=f;
+const diagramChip=()=>$('progChip').value!=='auto'?$('progChip').value:(PROFILE_KEY==='ford'?'24C64':'93C66');
 const sizeLabel=n=>CHIP_SIZE[n]>=1024?(CHIP_SIZE[n]/1024)+' KB':CHIP_SIZE[n]+' B';
 const COLORS={D0:'#2f7cf0',D1:'#1fb89a',D2:'#f08a24',D3:'#8a5cf0','3V3':'#d93a3a',GND:'#3b4f5c'};
 /* the 8 pins of each chip family and where each one goes on the FT232H */
@@ -599,7 +603,7 @@ function pinRows(fam,x16){
  return[{t:'D3',l:'/CS'},{t:'D2',l:'SO'},{t:'3V3',l:'/W'},{t:'GND',l:'GND'},{t:'D1',l:'SI'},{t:'D0',l:'SCK'},{t:'3V3',l:'/HOLD'},{t:'3V3',l:'VCC'}];
 }
 function drawWiring(){
- const chip=$('progChip').value,fam=CHIP_FAMILIES[chip],rows=pinRows(fam,$('progOrg').value==='16');
+ const chip=diagramChip(),fam=CHIP_FAMILIES[chip],rows=pinRows(fam,$('progOrg').value==='16');
  const rowH=34,top=46,W=600,H=top+8*rowH+12,navy='#14232e',f='font-family="Segoe UI,Arial,sans-serif"';
  let o='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wiring diagram for '+chip+'">';
  const hd=(x,t)=>'<text x="'+x+'" y="22" font-size="11.5" font-weight="800" letter-spacing="1.2" fill="#647f89" '+f+'>'+t+'</text>';
@@ -624,25 +628,26 @@ function drawWiring(){
 function paintSeg(sel,box){for(const b of box.children)b.classList.toggle('on',b.dataset.v===sel.value)}
 function makeSeg(selId,boxId){const sel=$(selId),box=$(boxId);box.replaceChildren();for(const o of sel.options){const b=document.createElement('button');b.type='button';b.textContent=o.textContent.replace(/\s*\(.*\)/,'');b.dataset.v=o.value;b.onclick=()=>{sel.value=o.value;sel.dispatchEvent(new Event('change'))};box.append(b)}paintSeg(sel,box)}
 let famNow='M';
-function renderGrid(){const grid=$('chipGrid');grid.replaceChildren();const fam=FAMILIES.find(x=>x[0]===famNow);for(const n of fam[3]){const b=document.createElement('button');b.type='button';b.className='cp'+(n===$('progChip').value?' on':'');b.dataset.chip=n;b.innerHTML='<span>'+n+'</span><small>'+sizeLabel(n)+'</small>';b.onclick=()=>{$('progChip').value=n;progChanged()};grid.append(b)}
+function renderGrid(){const grid=$('chipGrid');grid.replaceChildren();if(famNow==='A'){grid.innerHTML='<div class="autoinfo"><b>Automatic</b><span>The program identifies the chip by itself: the size of an I²C chip, or the organization of a Microwire chip for the vehicle you opened. Press Read and the file opens in the editor.</span></div>';for(const b of $('famSeg').children)b.classList.toggle('on',b.dataset.v==='A');return}const fam=FAMILIES.find(x=>x[0]===famNow);for(const n of fam[3]){const b=document.createElement('button');b.type='button';b.className='cp'+(n===$('progChip').value?' on':'');b.dataset.chip=n;b.innerHTML='<span>'+n+'</span><small>'+sizeLabel(n)+'</small>';b.onclick=()=>{$('progChip').value=n;progChanged()};grid.append(b)}
  for(const b of $('famSeg').children)b.classList.toggle('on',b.dataset.v===famNow)}
 function progLog(t,cls){const el=$('progLog');const d=document.createElement('div');if(cls)d.className=cls;d.textContent=t;el.append(d);el.scrollTop=el.scrollHeight}
 function setRing(pc){$('progRing').style.strokeDashoffset=String(100-pc);$('progPct').textContent=pc+'%'}
 function progBusy(b){for(const id of ['progRead','progWrite','progVerify','progDetect'])$(id).disabled=b;$('progCancel').hidden=!b;if(!b){setRing(0)}else{$('progPhase').textContent='Starting…';setRing(0)}}
 function bytesToBase64(u8){let s='';for(let i=0;i<u8.length;i+=8192)s+=String.fromCharCode.apply(null,u8.subarray(i,i+8192));return btoa(s)}
 function base64ToBytes(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}
-function progParams(extra){const chip=$('progChip').value;return Object.assign({action:'prog',chip,x16:$('progOrg').value==='16',swap:$('progSwap').value==='1',speed:$('progSpeed').value},extra)}
+function progParams(extra){const chip=$('progChip').value;return Object.assign({action:'prog',vehicle:PROFILE_KEY,chip,x16:$('progOrg').value==='16',swap:$('progSwap').value==='1',speed:$('progSpeed').value},extra)}
 function showView(v){document.getElementById('app').dataset.view=v;for(const x of document.querySelectorAll('.tabs button'))x.classList.toggle('on',x.dataset.view===v)}
-function progChanged(){const chip=$('progChip').value,fam=CHIP_FAMILIES[chip];famNow=fam;$('orgBox').hidden=fam!=='M';$('swapBox').hidden=fam!=='M'||$('progOrg').value!=='16';renderGrid();$('midChip').textContent=chip;$('midInfo').textContent=sizeLabel(chip)+' · '+FAMILIES.find(x=>x[0]===fam)[1]+' ('+FAMILIES.find(x=>x[0]===fam)[2]+')';for(const [sid,bid] of [['progOrg','segOrg'],['progSwap','segSwap'],['progSpeed','segSpeed']])paintSeg($(sid),$(bid));drawWiring();try{localStorage.setItem('progChip_'+PROFILE_KEY,chip)}catch(e){}}
+function progChanged(){const chip=$('progChip').value,fam=CHIP_FAMILIES[chip];famNow=fam;$('orgBox').hidden=!(fam==='M'||fam==='A');$('swapBox').hidden=!(fam==='M'||fam==='A')||$('progOrg').value!=='16';renderGrid();if(fam==='A'){$('midChip').textContent='Auto';$('midInfo').textContent='Identifies the chip by itself · diagram shows the usual '+diagramChip()}else{$('midChip').textContent=chip;$('midInfo').textContent=sizeLabel(chip)+' · '+FAMILIES.find(x=>x[0]===fam)[1]+' ('+FAMILIES.find(x=>x[0]===fam)[2]+')'}for(const [sid,bid] of [['progOrg','segOrg'],['progSwap','segSwap'],['progSpeed','segSpeed']])paintSeg($(sid),$(bid));drawWiring();try{localStorage.setItem('progChip_'+PROFILE_KEY,chip)}catch(e){}}
 (()=>{const sel=$('progChip');
+ {const oa=document.createElement('option');oa.value='auto';oa.textContent='Auto';sel.append(oa);const ab=document.createElement('button');ab.type='button';ab.textContent='Auto';ab.dataset.v='A';ab.onclick=()=>{sel.value='auto';progChanged()};$('famSeg').append(ab)}
  for(const [f,name,series,list] of FAMILIES){for(const n of list){const o=document.createElement('option');o.value=n;o.textContent=n;sel.append(o)}const b=document.createElement('button');b.type='button';b.textContent=series;b.dataset.v=f;b.onclick=()=>{famNow=f;sel.value=({M:'93C66',I:'24C64',S:'95128'})[f];progChanged()};$('famSeg').append(b)}
- let want=null;try{want=localStorage.getItem('progChip_'+PROFILE_KEY)}catch(e){}if(!want)want=PROFILE_KEY==='ford'?'24C64':'93C66';sel.value=CHIP_FAMILIES[want]?want:'93C66';
+ let want=null;try{want=localStorage.getItem('progChip_'+PROFILE_KEY)}catch(e){}if(!want)want='auto';sel.value=CHIP_FAMILIES[want]?want:'auto';
  makeSeg('progOrg','segOrg');makeSeg('progSwap','segSwap');makeSeg('progSpeed','segSpeed');
  for(const id of ['progOrg','progSwap','progSpeed'])$(id).onchange=progChanged;progChanged()})();
 $('progDetect').onclick=()=>{progLog('Looking for an FT232H…');parent.postMessage({action:'prog',cmd:'detect'},location.origin)};
-$('progRead').onclick=()=>{progBusy(true);progLog('Reading '+$('progChip').value+'…');parent.postMessage(progParams({cmd:'read'}),location.origin)};
-$('progVerify').onclick=()=>{if(!state.data){progLog('Open a file in the editor first (or read a chip).','err');return}progBusy(true);progLog('Verifying…');parent.postMessage(progParams({cmd:'verify',data:bytesToBase64(state.data)}),location.origin)};
-$('progWrite').onclick=()=>{const chip=$('progChip').value;if(!state.data){progLog('Open a file in the editor first (or read a chip).','err');return}
+$('progRead').onclick=()=>{progBusy(true);progLog($('progChip').value==='auto'?'Identifying the chip and reading…':'Reading '+$('progChip').value+'…');parent.postMessage(progParams({cmd:'read'}),location.origin)};
+$('progVerify').onclick=()=>{if($('progChip').value==='auto'){progLog('Choose the chip first, or press Read once: the detected chip is then selected for you.','err');return}if(!state.data){progLog('Open a file in the editor first (or read a chip).','err');return}progBusy(true);progLog('Verifying…');parent.postMessage(progParams({cmd:'verify',data:bytesToBase64(state.data)}),location.origin)};
+$('progWrite').onclick=()=>{const chip=$('progChip').value;if(chip==='auto'){progLog('Choose the chip first, or press Read once: the detected chip is then selected for you.','err');return}if(!state.data){progLog('Open a file in the editor first (or read a chip).','err');return}
  if(state.data.length!==CHIP_SIZE[chip]){progLog('The editor holds '+state.data.length+' bytes but '+chip+' holds '+CHIP_SIZE[chip]+'. Choose the matching chip.','err');return}
  $('wcTitle').textContent='Write to '+chip+'?';$('wcText').textContent='You are about to write '+state.data.length.toLocaleString('en-US')+' bytes from "'+state.name+'" to the chip connected to the FT232H.';$('writeConfirm').showModal()};
 $('wcNo').onclick=()=>$('writeConfirm').close();
@@ -651,7 +656,7 @@ $('progCancel').onclick=()=>{progLog('Cancelling…');parent.postMessage({action
 window.addEventListener('message',e=>{if(e.origin!==location.origin||!e.data||e.data.type!=='prog')return;const m=e.data;
  if(m.stage==='progress'){const pc=Math.max(0,Math.min(100,m.percent));setRing(pc);$('progPhase').textContent=m.message}
  else if(m.stage==='detect'){const ok=m.devices&&m.devices.length>0;$('progStatus').className='pill '+(ok?'ok':'bad');$('progStatusText').textContent=ok?m.devices[0]:'No FT232H found';progLog(m.message,ok?'good':'err')}
- else if(m.stage==='done'){progBusy(false);$('progPhase').textContent='Done';progLog(m.message,'good');$('progStatus').className='pill ok';if(m.op==='read'&&m.data){const bytes=base64ToBytes(m.data);const stamp=new Date().toISOString().replace(/[-:T]/g,'').slice(0,12);openFile(new File([bytes],m.chip+'_read_'+stamp+'.bin',{type:'application/octet-stream'}));showView('mileage')}}
+ else if(m.stage==='done'){progBusy(false);$('progPhase').textContent='Done';progLog(m.message,'good');$('progStatus').className='pill ok';if(m.op==='read'&&m.data){if($('progChip').value==='auto'&&m.chip){$('progChip').value=m.chip;if(m.x16!==undefined)$('progOrg').value=m.x16?'16':'8';progChanged()}const bytes=base64ToBytes(m.data);const stamp=new Date().toISOString().replace(/[-:T]/g,'').slice(0,12);openFile(new File([bytes],m.chip+'_read_'+stamp+'.bin',{type:'application/octet-stream'}));showView('mileage')}}
  else if(m.stage==='error'){progBusy(false);$('progPhase').textContent='Stopped';progLog(m.message,'err')}});
 
 /* ----------------------------------------------------- redesign helpers */
@@ -667,6 +672,9 @@ function setOdo(el,text){
 function setGauge(km){const f=Math.max(0,Math.min(1,(Number(km)||0)/999999));const arc=$('gaugeArc');if(arc)arc.style.strokeDashoffset=String(1-f)}
 for(const b of document.querySelectorAll('.tabs button'))b.onclick=()=>{document.getElementById('app').dataset.view=b.dataset.view;for(const x of document.querySelectorAll('.tabs button'))x.classList.toggle('on',x===b)};
 $('openBtn').onclick=()=>$('file').click();
+$('dropRead').onclick=()=>{showView('prog');if(!$('progRead').disabled)$('progRead').click()};
+let detectedOnce=false;
+for(const b of document.querySelectorAll('.tabs button'))b.addEventListener('click',()=>{if(b.dataset.view==='prog'&&!detectedOnce){detectedOnce=true;$('progDetect').click()}});
 document.body.dataset.skin=PROFILE_KEY;
 $('gaugeLogo').src=LOGOS[PROFILE_KEY];
 document.title=profile.title;$('title').textContent=profile.title;

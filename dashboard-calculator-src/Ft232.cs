@@ -753,6 +753,47 @@ namespace DashForgeProgrammer
 			return (chip.Family == "I2C1") ? 1 : 2;
 		}
 
+		private byte[] I2cReadBlock(int offset, int length)
+		{
+			byte[] data = new byte[length];
+			I2cStart();
+			I2cWriteByte(I2cControl(offset, read: false));
+			I2cAddress(offset);
+			I2cLines(scl: false, sda: true);
+			I2cLines(scl: true, sda: true);
+			I2cLines(scl: true, sda: false);
+			I2cLines(scl: false, sda: false);
+			I2cWriteByte(I2cControl(offset, read: true));
+			for (int i = 0; i < length; i++)
+			{
+				for (int bit = 0; bit < 8; bit++)
+				{
+					I2cReadBit();
+				}
+				I2cWriteBit(i == length - 1);
+			}
+			I2cStop();
+			byte[] pins = gpio.Take();
+			int headerAcks = 2 + I2cAddressBytes();
+			for (int h = 0; h < headerAcks; h++)
+			{
+				if (!Acked(pins[h]))
+				{
+					throw new ProgrammerException("No response from the EEPROM. Check wiring, power, the SDA/SCL pull-up resistors and the A0-A2 pins.");
+				}
+			}
+			for (int j = 0; j < length; j++)
+			{
+				int value = 0;
+				for (int k = 0; k < 8; k++)
+				{
+					value = (value << 1) | (((pins[headerAcks + j * 8 + k] & 2) != 0) ? 1 : 0);
+				}
+				data[j] = (byte)value;
+			}
+			return data;
+		}
+
 		private byte[] I2cRead()
 		{
 			byte[] data = new byte[chip.Size];
@@ -760,44 +801,39 @@ namespace DashForgeProgrammer
 			for (int offset = 0; offset < chip.Size; offset += block)
 			{
 				int length = Math.Min(block, chip.Size - offset);
-				I2cStart();
-				I2cWriteByte(I2cControl(offset, read: false));
-				I2cAddress(offset);
-				I2cLines(scl: false, sda: true);
-				I2cLines(scl: true, sda: true);
-				I2cLines(scl: true, sda: false);
-				I2cLines(scl: false, sda: false);
-				I2cWriteByte(I2cControl(offset, read: true));
-				for (int i = 0; i < length; i++)
-				{
-					for (int bit = 0; bit < 8; bit++)
-					{
-						I2cReadBit();
-					}
-					I2cWriteBit(i == length - 1);
-				}
-				I2cStop();
-				byte[] pins = gpio.Take();
-				int headerAcks = 2 + I2cAddressBytes();
-				for (int h = 0; h < headerAcks; h++)
-				{
-					if (!Acked(pins[h]))
-					{
-						throw new ProgrammerException("No response from the EEPROM. Check wiring, power, the SDA/SCL pull-up resistors and the A0-A2 pins.");
-					}
-				}
-				for (int j = 0; j < length; j++)
-				{
-					int value = 0;
-					for (int k = 0; k < 8; k++)
-					{
-						value = (value << 1) | (((pins[headerAcks + j * 8 + k] & 2) != 0) ? 1 : 0);
-					}
-					data[offset + j] = (byte)value;
-				}
+				Array.Copy(I2cReadBlock(offset, length), 0, data, offset, length);
 				Tick("Reading " + chip.Name, offset + length, chip.Size);
 			}
 			return data;
+		}
+
+		// ---- used by automatic detection ----
+		public bool I2cPresent()
+		{
+			try
+			{
+				I2cStart();
+				I2cWriteByte(I2cControl(0, read: false));
+				I2cStop();
+				byte[] pins = gpio.Take();
+				return Acked(pins[0]);
+			}
+			finally
+			{
+				Release();
+			}
+		}
+
+		public byte[] I2cReadAt(int offset, int length)
+		{
+			try
+			{
+				return I2cReadBlock(offset, length);
+			}
+			finally
+			{
+				Release();
+			}
 		}
 
 		private void I2cWrite(byte[] data, byte[] current)
@@ -1001,6 +1037,149 @@ namespace DashForgeProgrammer
 				}
 				Tick("Writing " + chip.Name, offset + page, chip.Size);
 			}
+		}
+	}
+	internal sealed class AutoResult
+	{
+		public ChipInfo Chip;
+
+		public bool X16 = true;
+
+		public byte[] Data;
+
+		public string Note = "";
+	}
+
+	// "Press Read and get the BIN": identifies the chip on the adapter and reads it.
+	internal static class AutoReader
+	{
+		private static bool Uniform(byte[] data)
+		{
+			byte first = data[0];
+			foreach (byte b in data)
+			{
+				if (b != first)
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+
+		private static bool SameBytes(byte[] a, byte[] b)
+		{
+			if (a.Length != b.Length)
+			{
+				return false;
+			}
+			for (int i = 0; i < a.Length; i++)
+			{
+				if (a[i] != b[i])
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+
+		private static string DefaultFamily(string vehicle)
+		{
+			return (vehicle == "isuzu" || vehicle == "toyota" || vehicle == "kia" || vehicle == "hyundai" || vehicle == "mazda" || vehicle == "gm") ? "Microwire" : "I2C";
+		}
+
+		// Isuzu D-MAX dumps repeat the same 16-bit mileage word 50 times at the start of the file.
+		private static bool IsuzuLike(byte[] d)
+		{
+			if (d.Length < 100)
+			{
+				return false;
+			}
+			int equal = 0;
+			for (int i = 1; i < 50; i++)
+			{
+				if (d[i * 2] == d[0] && d[i * 2 + 1] == d[1])
+				{
+					equal++;
+				}
+			}
+			return equal >= 40 && !(d[0] == 255 && d[1] == 255);
+		}
+
+		private static bool Plausible(byte[] d, string vehicle)
+		{
+			if (Uniform(d))
+			{
+				return false;
+			}
+			if (vehicle == "isuzu")
+			{
+				return IsuzuLike(d);
+			}
+			return true;
+		}
+
+		public static AutoResult Read(IFtdiPort port, string vehicle, ProgramOptions baseOptions, Action<string, int> progress, Func<bool> cancelled)
+		{
+			progress("Looking for an I²C EEPROM…", 2);
+			ChipInfo probeChip = Chips.Find("24C512");
+			EepromProgrammer probe = new EepromProgrammer(port, probeChip, baseOptions, null, cancelled);
+			if (probe.I2cPresent())
+			{
+				byte[] first = probe.I2cReadAt(0, 32);
+				int[] sizes = new int[4] { 4096, 8192, 16384, 32768 };
+				int size = 0;
+				string note;
+				if (Uniform(first))
+				{
+					size = (vehicle == "ford") ? 8192 : 8192;
+					note = "I²C EEPROM found but it looks blank, so its size cannot be detected. Assumed 24C64 (8 KB) — choose the chip manually if it is another size.";
+				}
+				else
+				{
+					size = 65536;
+					foreach (int candidate in sizes)
+					{
+						byte[] again = probe.I2cReadAt(candidate, 32);
+						if (SameBytes(first, again))
+						{
+							size = candidate;
+							break;
+						}
+					}
+					note = "Detected an I²C EEPROM of " + (size / 1024) + " KB.";
+				}
+				string name = (size == 4096) ? "24C32" : ((size == 8192) ? "24C64" : ((size == 16384) ? "24C128" : ((size == 32768) ? "24C256" : "24C512")));
+				ChipInfo chip = Chips.Find(name);
+				byte[] data = new EepromProgrammer(port, chip, baseOptions, progress, cancelled).Read();
+				return new AutoResult { Chip = chip, Data = data, Note = note + " (" + name + ")" };
+			}
+			if (DefaultFamily(vehicle) == "Microwire")
+			{
+				ChipInfo chip2 = Chips.Find("93C66");
+				foreach (bool x16 in new bool[2] { true, false })
+				{
+					progress("Trying " + chip2.Name + (x16 ? " x16" : " x8") + "…", 10);
+					ProgramOptions options = new ProgramOptions
+					{
+						X16 = x16,
+						SwapBytes = baseOptions.SwapBytes,
+						Repeat = baseOptions.Repeat,
+						DeviceAddress = baseOptions.DeviceAddress
+					};
+					byte[] data2 = new EepromProgrammer(port, chip2, options, progress, cancelled).Read();
+					if (Plausible(data2, vehicle))
+					{
+						return new AutoResult
+						{
+							Chip = chip2,
+							X16 = x16,
+							Data = data2,
+							Note = "No I²C chip answered. Read a " + chip2.Name + " (Microwire, " + (x16 ? "x16" : "x8") + ") — if the data looks wrong, choose the chip and organization manually."
+						};
+					}
+				}
+			}
+			throw new ProgrammerException("Could not identify a chip automatically. Check the wiring and power, or choose the chip manually in the Programmer tab.");
 		}
 	}
 }
