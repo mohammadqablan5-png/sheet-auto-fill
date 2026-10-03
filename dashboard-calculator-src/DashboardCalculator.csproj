@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>DASHVORA</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <OutputType>WinExe</OutputType>
+    <UseWindowsForms>True</UseWindowsForms>
+    <TargetFramework>net48</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <LangVersion>11.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <RootNamespace />
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="index.html;editor.html" />
+    <EmbeddedResource Include="index.html" LogicalName="index.html" />
+    <EmbeddedResource Include="app.ico" LogicalName="app.ico" />
+    <EmbeddedResource Include="ford.ico" LogicalName="ford.ico" />
+    <EmbeddedResource Include="dashboard.ico" LogicalName="dashboard.ico" />
+    <EmbeddedResource Include="saved.ico" LogicalName="saved.ico" />
+    <EmbeddedResource Include="isuzu.ico" LogicalName="isuzu.ico" />
+    <EmbeddedResource Include="toyota.ico" LogicalName="toyota.ico" />
+    <EmbeddedResource Include="kia.ico" LogicalName="kia.ico" />
+    <EmbeddedResource Include="hyundai.ico" LogicalName="hyundai.ico" />
+    <EmbeddedResource Include="mazda.ico" LogicalName="mazda.ico" />
+    <EmbeddedResource Include="gm.ico" LogicalName="gm.ico" />
+    <EmbeddedResource Include="editor.html" LogicalName="editor.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2151.40" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+  <!-- Embed WebView2 DLLs so the exe is a single portable file (Program.cs extracts them at startup). -->
+  <Target Name="EmbedWebView2" BeforeTargets="AssignTargetPaths" AfterTargets="ResolvePackageAssets">
+    <PropertyGroup>
+      <WV2Root>$(NuGetPackageRoot)microsoft.web.webview2/1.0.2151.40/</WV2Root>
+    </PropertyGroup>
+    <ItemGroup>
+      <EmbeddedResource Include="$(WV2Root)lib/net45/Microsoft.Web.WebView2.Core.dll" LogicalName="Microsoft.Web.WebView2.Core.dll" />
+      <EmbeddedResource Include="$(WV2Root)lib/net45/Microsoft.Web.WebView2.WinForms.dll" LogicalName="Microsoft.Web.WebView2.WinForms.dll" />
+      <EmbeddedResource Include="$(WV2Root)runtimes/win-x64/native/WebView2Loader.dll" LogicalName="WebView2Loader.dll" />
+    </ItemGroup>
+  </Target>
+</Project>
