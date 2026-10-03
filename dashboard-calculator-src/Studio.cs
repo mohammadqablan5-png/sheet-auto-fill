@@ -26,6 +26,38 @@ internal class Studio : Form
 
 	private Dictionary<string, string> auditPrices = new Dictionary<string, string>();
 
+	private bool closeConfirmed;
+
+	private System.Windows.Forms.Timer closeTimer;
+
+	// Shows a message inside the app (toast) instead of a Windows message box.
+	private void Notify(string level, string title, string text)
+	{
+		try
+		{
+			Send(new
+			{
+				type = "notice",
+				level = level,
+				title = title,
+				text = text
+			});
+		}
+		catch (Exception)
+		{
+			MessageBox.Show(text, title);
+		}
+	}
+
+	private void StopCloseTimer()
+	{
+		if (closeTimer != null)
+		{
+			closeTimer.Stop();
+		}
+	}
+
+
 	private Dictionary<string, string> auditCurrencies = new Dictionary<string, string>();
 
 	private Dictionary<string, string> savedFiles;
@@ -581,6 +613,18 @@ internal class Studio : Form
 				}
 				return;
 			}
+			if (action == "holdClose" || action == "cancelClose")
+			{
+				StopCloseTimer();
+				return;
+			}
+			if (action == "confirmClose")
+			{
+				StopCloseTimer();
+				closeConfirmed = true;
+				Close();
+				return;
+			}
 			string root = SaveRoot();
 			if (action == "listSaved")
 			{
@@ -683,11 +727,24 @@ internal class Studio : Form
 		{
 			val = (FormClosingEventHandler)delegate(object s, FormClosingEventArgs e)
 			{
-				//IL_0016: Unknown result type (might be due to invalid IL or missing references)
-				//IL_001c: Invalid comparison between Unknown and I4
-				if (!test && (int)MessageBox.Show("Close DashForge? Save your modified files before closing.", "DashForge", (MessageBoxButtons)4, (MessageBoxIcon)32) != 6)
+				// The page decides: no unsaved work closes at once, otherwise it asks inside the app.
+				if (!test && !closeConfirmed && web.CoreWebView2 != null)
 				{
 					((CancelEventArgs)(object)e).Cancel = true;
+					Send(new { type = "requestClose" });
+					if (closeTimer == null)
+					{
+						closeTimer = new System.Windows.Forms.Timer();
+						closeTimer.Interval = 4000;
+						closeTimer.Tick += delegate
+						{
+							closeTimer.Stop();
+							closeConfirmed = true;
+							Close();
+						};
+					}
+					closeTimer.Stop();
+					closeTimer.Start();
 				}
 			};
 		}
@@ -720,7 +777,7 @@ internal class Studio : Form
 					if (match == null)
 					{
 						e.Cancel = true;
-						MessageBox.Show("Vehicle profile is missing. Reopen the file in its vehicle editor.", "Save Dump");
+						Notify("error", "Can't save", "This file has no vehicle profile. Reopen it from its vehicle in the sidebar.");
 						return;
 					}
 					string vehicle = match[1];
@@ -761,10 +818,16 @@ internal class Studio : Form
 									try
 									{
 										RecordOperation(vehicle, outputPath, auditKey, auditPrices.TryGetValue(auditKey, out var priceForSave) ? priceForSave : "", auditCurrencies.TryGetValue(auditKey, out var currencyForSave) ? currencyForSave : "SAR");
+										Send(new
+										{
+											type = "saved",
+											vehicle = vehicle,
+											name = Path.GetFileName(outputPath)
+										});
 									}
 									catch (Exception ex3)
 									{
-										MessageBox.Show("BIN saved, but operation history could not be updated: " + ex3.Message, "Operation History");
+										Notify("warn", "Saved", "The dump was saved, but its entry could not be added to the history. " + ex3.Message);
 									}
 								}
 							};
@@ -782,7 +845,7 @@ internal class Studio : Form
 				catch (Exception ex2)
 				{
 					e.Cancel = true;
-					MessageBox.Show("Could not prepare the save folder.\n" + ex2.Message, "Save Dump", (MessageBoxButtons)0, (MessageBoxIcon)16);
+					Notify("error", "Can't save", "The save folder is not available. " + ex2.Message);
 				}
 			};
 			if (test)

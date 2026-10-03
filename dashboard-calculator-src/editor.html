@@ -199,21 +199,23 @@ const profile=new Proxy({},{get:(_,k)=>['vehicle','title','logoWidth'].includes(
 
 /* ---------------------------------------------------------------- state */
 const state={original:null,data:null,ctx:null,info:null,name:'',page:0,anchor:null,selected:null,changes:[],requestedKm:null,undo:[],redo:[],hit:null};
+let dirty=false;
+window.hasUnsavedChanges=()=>dirty;
 const editLog=[];
 const message=(text,error=false)=>{$('messageArea').textContent=text;$('messageArea').classList.toggle('error',error)};
 function logEdit(kind,entries,details){editLog.push({time:new Date().toISOString(),operation:kind,details:details||{},changedBytes:entries.length,changes:entries.map(e=>({offset:'0x'+hex(e.i,6),old:hex(e.o),new:hex(e.n)}))})}
 function diffEntries(a,b){const out=[];for(let i=0;i<a.length;i++)if(a[i]!==b[i])out.push({i,o:a[i],n:b[i]});return out}
 function writeEntries(entries,dir){for(const e of entries)state.data[e.i]=dir>0?e.n:e.o}
 function commit(kind,entries,details,km){
- if(entries.length){state.undo.push({kind,entries,prevKm:state.requestedKm,km});if(state.undo.length>MAX_UNDO)state.undo.shift();state.redo.length=0;logEdit(kind,entries,details)}
+ if(entries.length){dirty=true;state.undo.push({kind,entries,prevKm:state.requestedKm,km});if(state.undo.length>MAX_UNDO)state.undo.shift();state.redo.length=0;logEdit(kind,entries,details)}
  state.requestedKm=km===undefined?null:km;refresh();
 }
 function setBytes(start,values,kind){
  const entries=[];values.forEach((v,k)=>{const i=start+k;if(i>=0&&i<state.data.length&&state.data[i]!==v)entries.push({i,o:state.data[i],n:v})});
  writeEntries(entries,1);commit(kind,entries,{offset:'0x'+hex(start,6),length:values.length});
 }
-function undo(){const s=state.undo.pop();if(!s)return;writeEntries(s.entries,-1);state.redo.push(s);logEdit('UNDO',s.entries.map(e=>({i:e.i,o:e.n,n:e.o})),{of:s.kind});state.requestedKm=s.prevKm;refresh();message('Undone: '+labelOf(s.kind)+' ('+s.entries.length+' byte'+(s.entries.length===1?'':'s')+').')}
-function redo(){const s=state.redo.pop();if(!s)return;writeEntries(s.entries,1);state.undo.push(s);logEdit('REDO',s.entries,{of:s.kind});state.requestedKm=s.km===undefined?null:s.km;refresh();message('Redone: '+labelOf(s.kind)+'.')}
+function undo(){const s=state.undo.pop();if(!s)return;dirty=true;writeEntries(s.entries,-1);state.redo.push(s);logEdit('UNDO',s.entries.map(e=>({i:e.i,o:e.n,n:e.o})),{of:s.kind});state.requestedKm=s.prevKm;refresh();message('Undone: '+labelOf(s.kind)+' ('+s.entries.length+' byte'+(s.entries.length===1?'':'s')+').')}
+function redo(){const s=state.redo.pop();if(!s)return;dirty=true;writeEntries(s.entries,1);state.undo.push(s);logEdit('REDO',s.entries,{of:s.kind});state.requestedKm=s.km===undefined?null:s.km;refresh();message('Redone: '+labelOf(s.kind)+'.')}
 const labelOf=k=>({HEX_EDIT:'byte edit',PASTE:'paste',MILEAGE:'mileage change',RESTORE:'restore original'}[k]||k);
 
 /* ------------------------------------------------------------- refresh */
@@ -359,7 +361,7 @@ async function openFile(file){
  try{
   const data=new Uint8Array(await file.arrayBuffer());if(t!==ticket)return;
   state.original=data.slice();state.data=data.slice();state.name=file.name;state.ctx=profile.detect(data);
-  state.page=0;state.selected=null;state.anchor=null;state.hit=null;state.requestedKm=null;state.undo=[];state.redo=[];pending='';
+  state.page=0;state.selected=null;state.anchor=null;state.hit=null;state.requestedKm=null;state.undo=[];state.redo=[];pending='';dirty=false;
   editLog.length=0;editLog.push({time:new Date().toISOString(),operation:'OPEN',details:{file:file.name,size:data.length},changedBytes:0,changes:[]});
   $('newKm').value='';refresh();
   if(state.info.currentKm!==null&&state.info.currentKm!==undefined)$('newKm').value=state.info.currentKm;
@@ -398,7 +400,7 @@ $('save').onclick=()=>{
  const name=profile.fileName({name:state.name,original:state.original,data:state.data,ctx:state.ctx,info:state.info,requestedKm:state.requestedKm});
  const url=URL.createObjectURL(new Blob([state.data],{type:'application/octet-stream'})),link=document.createElement('a');
  link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
- message('Download requested: '+name.replace(/^DC_[A-Z]+__/,'')+' ('+state.data.length+' bytes).');
+ dirty=false;message('Saving… choose where to keep the file.');
 };
 
 /* ------------------------------------------------------------- audit hook */
