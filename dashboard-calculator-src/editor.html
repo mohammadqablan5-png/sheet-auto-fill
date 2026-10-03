@@ -129,6 +129,16 @@ body.has-file #dropWrap{display:none}
 .adv>summary::-webkit-details-marker{display:none}.adv>summary em{font-style:normal;text-transform:none;letter-spacing:0;color:var(--teal);font-size:13px}
 .adv[open]>summary{border-bottom:1px solid var(--line)}
 .adv .blk{border:0;box-shadow:none;background:none;border-radius:0}
+
+.pg3{grid-template-columns:350px minmax(0,1fr)!important}
+.step .sh,.adv>summary .sh{display:flex;align-items:center;gap:9px;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.step .sh i,.adv .sh i{width:20px;height:20px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-style:normal;font-size:11px;letter-spacing:0}
+.blk.step>.sh{margin-bottom:9px}
+.adv>summary span.sh{text-transform:uppercase}
+.prow{display:flex;align-items:center;gap:14px;padding:10px 14px}.prow .ring{width:76px;height:76px;flex:none}.prow .ring circle{stroke-width:11}
+.prow .rp b{font-size:15px}.prow .pt{display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-width:0}
+.prow #progPhase{text-align:left;font-size:13px;color:var(--ink,#22343a);font-weight:600}
+.adv .opts3{padding-top:4px}
 .opts3{display:flex;flex-direction:column;gap:10px}
 .ops3{display:flex;flex-direction:column;gap:8px;padding:10px}
 .op{display:flex;align-items:center;gap:12px;text-align:left;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;transition:.15s}
@@ -196,11 +206,8 @@ dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger
  <section class="view view-prog">
   <div class="pg3">
    <aside class="col col-left">
-    <div class="blk smartbox">
-     <button class="smart" id="smartBtn" type="button"><span class="si" id="smartIco"></span><span class="st"><b id="smartTitle">Read chip</b><small id="smartSub"></small></span></button>
-     <div class="smartrow"><button class="mini" id="progRead" type="button">Read</button><button class="mini warn" id="progWrite" type="button">Write</button><button class="mini" id="progVerify" type="button">Verify</button></div>
-    </div>
-    <details class="adv" id="adv"><summary><span>Chip &amp; settings</span><em id="advSum">Auto</em></summary>
+    <div class="blk step"><div class="sh"><i>1</i>Adapter</div><div class="devrow"><span class="pill" id="progStatus"><i></i><span id="progStatusText">FT232H not checked</span></span><button class="ghost sm" id="progDetect" type="button">Detect</button></div></div>
+    <details class="adv step" id="adv"><summary><span class="sh"><i>2</i>Chip</span><em id="advSum">Auto</em></summary>
     <div class="blk"><div class="cap2">Chip</div>
      <div class="seg wide" id="famSeg"></div>
      <div id="chipGrid"></div><select id="progChip" hidden></select></div>
@@ -210,21 +217,18 @@ dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger
      <div><div class="cap2">Speed</div><div class="seg wide" id="segSpeed"></div><select id="progSpeed" hidden><option value="fast">Fast</option><option value="normal" selected>Normal</option><option value="slow">Slow</option><option value="veryslow">Slowest</option></select></div>
     </div>
     </details>
+    <div class="blk smartbox step"><div class="sh"><i>3</i>Action</div>
+     <button class="smart" id="smartBtn" type="button"><span class="si" id="smartIco"></span><span class="st"><b id="smartTitle">Read chip</b><small id="smartSub"></small></span></button>
+     <div class="smartrow"><button class="mini" id="progRead" type="button">Read</button><button class="mini warn" id="progWrite" type="button">Write</button><button class="mini" id="progVerify" type="button">Verify</button></div>
+    </div>
+    <div class="blk prow"><div class="ring"><svg viewBox="0 0 120 120"><circle class="rb" cx="60" cy="60" r="52"/><circle class="rf" id="progRing" cx="60" cy="60" r="52" pathLength="100"/></svg><div class="rp"><b id="progPct">0%</b></div></div><div class="pt"><div id="progPhase">Ready</div><button class="op stop slim" id="progCancel" type="button" hidden>Cancel</button></div></div>
+    <div class="blk grow"><div class="cap2">Activity</div><div id="progLog"></div></div>
    </aside>
    <section class="col col-mid">
     <div class="midhead"><div><b id="midChip">—</b><span id="midInfo"></span></div><span class="legend3">FT232H → chip</span></div>
     <div id="progDiagram"></div>
     <div class="tip"><svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01"/><path d="M10.3 3.9 2.4 17.6A2 2 0 0 0 4.1 20.6h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span><b>3.3 V logic.</b> Pin 1 is next to the notch. Power the chip from the adapter, cluster off the car.</span></div>
    </section>
-   <aside class="col col-right">
-    <div class="blk"><div class="devrow"><span class="pill" id="progStatus"><i></i><span id="progStatusText">FT232H not checked</span></span><button class="ghost sm" id="progDetect" type="button">Detect</button></div></div>
-    <div class="blk center">
-     <div class="ring"><svg viewBox="0 0 120 120"><circle class="rb" cx="60" cy="60" r="52"/><circle class="rf" id="progRing" cx="60" cy="60" r="52" pathLength="100"/></svg><div class="rp"><b id="progPct">0%</b></div></div>
-     <div id="progPhase">Ready</div>
-     <button class="op stop slim" id="progCancel" type="button" hidden>Cancel</button>
-    </div>
-    <div class="blk grow"><div class="cap2">Activity</div><div id="progLog"></div></div>
-   </aside>
   </div>
  </section>
  <section class="view view-hex">
