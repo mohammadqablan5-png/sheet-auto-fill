@@ -76,7 +76,7 @@ internal class Studio : Form
 		new string[] { "DC_KIA__", "Kia", "kia", "kia.ico" },
 		new string[] { "DC_HYUNDAI__", "Hyundai", "hyundai", "hyundai.ico" },
 		new string[] { "DC_MAZDA__", "Mazda", "mazda", "mazda.ico" },
-		new string[] { "DC_GMC__", "GMC", "gmc", "gmc.ico" }
+		new string[] { "DC_GM__", "GM", "gm", "gm.ico" }
 	};
 
 	private static string[] VehicleByFolder(string folderName)

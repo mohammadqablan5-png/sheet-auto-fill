@@ -26,7 +26,7 @@
     <EmbeddedResource Include="kia.ico" LogicalName="kia.ico" />
     <EmbeddedResource Include="hyundai.ico" LogicalName="hyundai.ico" />
     <EmbeddedResource Include="mazda.ico" LogicalName="mazda.ico" />
-    <EmbeddedResource Include="gmc.ico" LogicalName="gmc.ico" />
+    <EmbeddedResource Include="gm.ico" LogicalName="gm.ico" />
     <EmbeddedResource Include="editor.html" LogicalName="editor.html" />
   </ItemGroup>
   <ItemGroup>
