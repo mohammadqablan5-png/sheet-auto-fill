@@ -53,7 +53,7 @@ internal static class Program
 			}
 			else
 			{
-				MessageBox.Show(ex.Message, "DashForge", (MessageBoxButtons)0, (MessageBoxIcon)16);
+				MessageBox.Show(ex.Message, "DASHVORA", (MessageBoxButtons)0, (MessageBoxIcon)16);
 			}
 		}
 	}
