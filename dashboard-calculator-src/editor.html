@@ -24,14 +24,6 @@ html,body{height:100%;overflow:hidden!important}.dashboard-container{height:calc
 .shared-controls button{padding:5px 12px}
 .diff-wrap tr:hover td{background:#eef6f3}
 #variant{width:100%;padding:9px 12px;border:1px solid #cfe0d6;border-radius:8px;background:#fff;color:#182c37;margin:4px 0 14px;font:inherit}
-.cur{position:relative;display:flex}
-.cur>button{min-width:74px;height:100%;padding:0 10px;background:#e9f2ef;border:1px solid #cfe0d6;border-left:0;border-radius:0 8px 8px 0;color:#1a6259;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
-.cur>button:hover{background:#dcebe6}
-#curList{position:absolute;right:0;top:calc(100% + 4px);z-index:30;margin:0;padding:4px;list-style:none;width:240px;max-height:260px;overflow:auto;background:#fff;border:1px solid #cfe0d6;border-radius:10px;box-shadow:0 10px 30px #1b2f3d33}
-#curList[hidden]{display:none}
-#curList li{display:grid;grid-template-columns:34px 44px 1fr;align-items:center;gap:6px;padding:7px 8px;border-radius:7px;cursor:pointer;font-size:13px;color:#1b2f3d}
-#curList li:hover,#curList li[aria-selected=true]{background:#e9f2ef}
-#curList li b{color:#1a6259;text-align:center}#curList li strong{font-weight:700}#curList li span{display:block!important;background:none!important;border:0!important;padding:0!important;min-width:0!important;color:#647f89;font-size:12px}
 .hint kbd{font:11px Consolas,monospace;background:#eef2f2;border:1px solid #d5dede;border-radius:4px;padding:0 5px}
 </style>
 </head><body><main class="dashboard-container">
@@ -40,7 +32,6 @@ html,body{height:100%;overflow:hidden!important}.dashboard-container{height:calc
 <label for="variant">Calculator / IC type</label><select id="variant" aria-label="Calculator or IC type"></select>
 <div class="reading"><small>Current Mileage (KM)</small><div id="km">—</div><small id="readState">Open a file to read KM</small></div>
 <label for="newKm">New Mileage (KM)</label><div class="input-group"><input type="number" id="newKm" placeholder="New mileage" min="0" step="1" disabled><span>KM</span></div>
-<label for="price">Price</label><div class="input-group"><input type="number" id="price" placeholder="0.00" min="0" step="0.01"><div class="cur" id="cur"><button type="button" id="curBtn" aria-haspopup="listbox" aria-expanded="false" title="Currency"></button><ul id="curList" role="listbox" hidden></ul></div></div>
 <p id="targetInfo" class="hint" aria-live="polite"></p><div class="buttons"><button id="apply" class="primary" disabled>Apply Mileage</button><button id="save" class="success" disabled>Save Dump As…</button><button id="reset" disabled>Restore Original Dump</button></div>
 <div id="messageArea" role="status" aria-live="polite">Open a raw memory file (up to 16 MiB).</div><p id="writeState" class="hint"></p><div id="fileInfo" class="file-info"></div>
 </section><section><div class="toolbar"><button id="location">KM Location</button><label for="find">Find</label><input id="find" placeholder='HEX: 1F 3A   text: "ML3T"' aria-label="Find HEX bytes or text"><button id="findPrev" title="Previous match (Shift+Enter)">‹</button><button id="findNext" title="Next match (Enter)">›</button></div>
@@ -408,20 +399,10 @@ const originalAnchorClick=HTMLAnchorElement.prototype.click;
 HTMLAnchorElement.prototype.click=function(){
  if(this.download&&this.download.endsWith('.bin')&&parent!==window){
   const entries=editLog.filter(e=>e.operation==='OPEN'||e.changedBytes>0);
-  parent.postMessage({action:'auditSave',name:this.download,entries:entries,price:($('price')?.value||''),currency:currentCurrency()},location.origin);
+  parent.postMessage({action:'auditSave',name:this.download,entries:entries},location.origin);
  }
  return originalAnchorClick.call(this);
 };
-
-/* ---------------------------------------------------------- currency */
-const CURRENCIES=[['SAR','<i class="sar" role="img" aria-label="SAR"></i>','Saudi Riyal'],['AED','د.إ','UAE Dirham'],['KWD','د.ك','Kuwaiti Dinar'],['QAR','ر.ق','Qatari Riyal'],['BHD','د.ب','Bahraini Dinar'],['OMR','ر.ع','Omani Rial'],['JOD','د.أ','Jordanian Dinar'],['EGP','E£','Egyptian Pound'],['IQD','ع.د','Iraqi Dinar'],['USD','$','US Dollar'],['EUR','€','Euro'],['GBP','£','Pound Sterling'],['TRY','₺','Turkish Lira']];
-let currency=(()=>{try{const c=localStorage.getItem('currency');return CURRENCIES.some(x=>x[0]===c)?c:'SAR'}catch{return'SAR'}})();
-const currentCurrency=()=>currency;
-function paintCurrency(){const c=CURRENCIES.find(x=>x[0]===currency);$('curBtn').innerHTML=c[1]+' <span>'+c[0]+'</span>';$('curBtn').title=c[2];for(const li of $('curList').children)li.setAttribute('aria-selected',String(li.dataset.code===currency))}
-(()=>{const list=$('curList');for(const [code,sym,name] of CURRENCIES){const li=document.createElement('li');li.setAttribute('role','option');li.dataset.code=code;li.innerHTML='<b>'+sym+'</b><strong>'+code+'</strong><span>'+name+'</span>';li.onclick=()=>{currency=code;try{localStorage.setItem('currency',code)}catch{}list.hidden=true;$('curBtn').setAttribute('aria-expanded','false');paintCurrency()};list.append(li)}
- $('curBtn').onclick=e=>{e.stopPropagation();list.hidden=!list.hidden;$('curBtn').setAttribute('aria-expanded',String(!list.hidden))};
- document.addEventListener('click',()=>{list.hidden=true;$('curBtn').setAttribute('aria-expanded','false')});
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!list.hidden){list.hidden=true}});paintCurrency()})();
 
 /* ----------------------------------------------------------------- init */
 (()=>{const sel=$('variant');for(const v of Variants[PROFILE_KEY]){const o=document.createElement('option');o.value=v.id;o.textContent=v.label;o.disabled=!!v.pending;if(v===variant)o.selected=true;sel.append(o)}
