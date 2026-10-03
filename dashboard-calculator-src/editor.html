@@ -177,7 +177,7 @@ body.has-file #dropWrap{display:none}
 .tb:hover:not(:disabled){background:#fff;border-color:var(--teal);box-shadow:0 4px 14px #23877922}
 .tb.warn svg{stroke:var(--danger)}.tb.warn:hover:not(:disabled){border-color:var(--danger);box-shadow:0 4px 14px #b3363f22}
 .tb.stop{color:var(--danger)}.tb.stop svg{stroke:var(--danger)}.tb:disabled{opacity:.4;cursor:not-allowed}.tb[hidden]{display:none}
-.pf-body{display:grid;grid-template-columns:292px minmax(0,1fr);gap:10px;flex:1;min-height:0}
+.pf-body{display:grid;grid-template-columns:280px minmax(0,640px);justify-content:center;gap:10px;flex:1;min-height:0}
 .pf-side{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:9px;overflow:auto;min-height:0}
 .pf-h{display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-top:2px}.pf-h b{color:var(--teal);letter-spacing:0;text-transform:none;font-size:13px}
 .pf-side #chipGrid{margin-top:0}.pf-side .cap2{margin-bottom:5px}
@@ -187,11 +187,11 @@ body.has-file #dropWrap{display:none}
 .pf-tabs{display:flex;align-items:center;gap:4px;padding:8px 12px;border-bottom:1px solid #ffffff14}
 .pf-tabs button{border:0;background:transparent;color:#8fb0ab;font-weight:700;font-size:12.5px;padding:6px 14px;border-radius:8px;cursor:pointer}.pf-tabs button.on{background:#ffffff1c;color:#fff}
 .pf-tabs .grow{flex:1}#midInfo{font-size:11.5px;color:#8fb0ab}
-.pf-hex{display:flex;flex-direction:column;flex:1;min-height:0;position:relative;font:12.5px/20px Consolas,"Courier New",monospace}
-.pf-hex .hh{display:flex;gap:0;padding:4px 14px;color:#5f8a85;border-bottom:1px solid #ffffff10;white-space:pre}
+.pf-hex{display:flex;flex-direction:column;flex:1;min-height:0;position:relative;font:11.5px/18px Consolas,"Courier New",monospace}
+.pf-hex .hh{display:flex;gap:0;padding:3px 14px;color:#5f8a85;border-bottom:1px solid #ffffff10;white-space:pre}
 .pf-hex .hs{flex:1;overflow:auto;position:relative}
 #pfSpacer{position:relative}#pfRows{position:absolute;left:0;right:0}
-.pf-hex .r{white-space:pre;padding:0 14px;height:20px}.pf-hex .r .o{color:#5f8a85}.pf-hex .r .z{color:#4a6a66}.pf-hex .r .a{color:#7fb7ae}
+.pf-hex .r{white-space:pre;padding:0 14px;height:18px}.pf-hex .r .o{color:#5f8a85}.pf-hex .r .z{color:#4a6a66}.pf-hex .r .a{color:#7fb7ae}
 .pf-hex .he{position:absolute;inset:34px 0 0;display:grid;place-items:center;color:#8fb0ab;font:14px system-ui,sans-serif;pointer-events:none}.pf-hex.has .he{display:none}
 .pf-wire{display:none;flex:1;min-height:0;padding:12px 18px;background:#fff;color:var(--text);flex-direction:column}
 .pf-main[data-tab=wire] .pf-hex{display:none}.pf-main[data-tab=wire] .pf-wire{display:flex}
@@ -202,6 +202,9 @@ body.has-file #dropWrap{display:none}
 #progRing{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--glow));border-radius:99px;transition:width .25s}
 .pf-prog b{font-size:18px}.pf-prog #progPhase{color:var(--muted);font-size:13px;align-self:center}
 .pf-log{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px 12px;display:flex;overflow:hidden}
+.pf-main{align-self:start;max-height:100%}.pf-main[data-tab=wire]{align-self:stretch}
+.pf-hex .hs{flex:none;max-height:calc(100vh - 400px)}.pf-hex.has .hs{min-height:60px}.pf-hex:not(.has){min-height:150px}
+.pf-foot{width:930px;max-width:100%;margin:0 auto}
 @media(max-width:1000px){.pf-body{grid-template-columns:1fr}.pf-foot{grid-template-columns:1fr;height:auto}}
 .opts3{display:flex;flex-direction:column;gap:10px}
 .ops3{display:flex;flex-direction:column;gap:8px;padding:10px}
@@ -787,11 +790,11 @@ $('openBtn').onclick=()=>$('file').click();
  // find the adapter automatically when the Programmer tab opens
 })();
 
-(function(){const main=$('pfMain'),sc=$('pfScroll'),rows=$('pfRows'),sp=$('pfSpacer'),RH=20;let key='';
+(function(){const main=$('pfMain'),sc=$('pfScroll'),rows=$('pfRows'),sp=$('pfSpacer'),RH=18;let key='';
  for(const b of main.querySelectorAll('.pf-tabs button'))b.onclick=()=>{main.dataset.tab=b.dataset.t;for(const x of main.querySelectorAll('.pf-tabs button'))x.classList.toggle('on',x===b);if(b.dataset.t==='buf')draw()};
  $('pfHead').innerHTML='<span class="o">Offset  </span>'+Array.from({length:16},(_,i)=>i.toString(16).toUpperCase().padStart(2,'0')).join(' ')+'   ASCII';
  function draw(){const d=state.data;$('pfHex').classList.toggle('has',!!d);if(!d){rows.innerHTML='';sp.style.height='0';return}
-  const n=Math.ceil(d.length/16);sp.style.height=n*RH+'px';const top=Math.max(0,Math.floor(sc.scrollTop/RH)-2),bot=Math.min(n,top+Math.ceil(sc.clientHeight/RH)+5);let h='';
+  const n=Math.ceil(d.length/16);sp.style.height=n*RH+'px';const top=Math.max(0,Math.floor(sc.scrollTop/RH)-2),bot=Math.min(n,top+Math.ceil(Math.max(sc.clientHeight,window.innerHeight)/RH)+5);let h='';
   for(let r=top;r<bot;r++){let hx='',as='';for(let i=0;i<16;i++){const v=d[r*16+i];if(v===undefined){hx+='   ';as+=' ';continue}const t=v.toString(16).toUpperCase().padStart(2,'0');hx+=(v===0?'<span class="z">'+t+'</span>':t)+' ';as+=v>31&&v<127?String.fromCharCode(v).replace('&','&amp;').replace('<','&lt;'):'·'}
    h+='<div class="r"><span class="o">'+(r*16).toString(16).toUpperCase().padStart(6,'0')+'  </span>'+hx+' <span class="a">'+as+'</span></div>'}
   rows.style.top=top*RH+'px';rows.innerHTML=h}
