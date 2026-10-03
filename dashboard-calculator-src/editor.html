@@ -138,7 +138,32 @@ body.has-file #dropWrap{display:none}
 .prow{display:flex;align-items:center;gap:14px;padding:10px 14px}.prow .ring{width:76px;height:76px;flex:none}.prow .ring circle{stroke-width:11}
 .prow .rp b{font-size:15px}.prow .pt{display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-width:0}
 .prow #progPhase{text-align:left;font-size:13px;color:var(--ink,#22343a);font-weight:600}
-.adv .opts3{padding-top:4px}
+/* ---- Programmer workbench ---- */
+.wb{display:grid;grid-template-columns:minmax(0,1fr) 470px;gap:16px;height:100%;min-height:440px}
+.wb-main{display:flex;flex-direction:column;align-items:center;gap:12px;min-height:0;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:0 6px 24px #1b2f3d0d}
+.wb-wire{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:14px 16px;box-shadow:0 6px 24px #1b2f3d0d;min-height:0}
+.wb-top{display:flex;gap:10px;width:100%;position:relative;z-index:5}
+.wb-card{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1;background:#f3f7f6;border:1px solid var(--line);border-radius:14px;padding:8px 12px;min-width:0}
+.wb-chip{display:block;position:relative;padding:0}
+.wb-chip>summary{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;list-style:none;height:100%}
+.wb-chip>summary::-webkit-details-marker{display:none}
+.wb-chip .k{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.wb-chip b{flex:1;color:var(--teal);font-size:14px}
+.wb-chip svg{width:16px;height:16px;fill:none;stroke:var(--muted);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:.2s}
+.wb-chip[open] svg{transform:rotate(180deg)}
+.wb-pop{position:absolute;top:calc(100% + 8px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:0 18px 50px #1b2f3d33;display:flex;flex-direction:column;gap:10px;max-height:560px;overflow:auto}
+.wb-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}.wb-opts>div:last-child{grid-column:1/-1}
+.wb-dial{position:relative;width:250px;height:250px;margin-top:6px;flex:none}
+.wb-ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.wb-ring circle{fill:none;stroke-width:4.5}.wb-ring .rb{stroke:#e3ecea}.wb-ring .rf{stroke:var(--teal);stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset .25s}
+.wb-dial .smart{position:absolute;inset:20px;width:auto;border-radius:50%;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:6px;padding:14px}
+.wb-dial .smart .si{width:52px;height:52px;border-radius:50%}.wb-dial .smart .si svg{width:28px;height:28px}
+.wb-dial .smart b{font-size:19px;line-height:1.15}.wb-dial .smart small{max-width:150px;line-height:1.3}
+.wb-phase{display:flex;align-items:baseline;gap:10px;min-height:26px}.wb-phase b{font-size:20px}.wb-phase span{color:var(--muted);font-size:13.5px}
+.wb-row{display:flex;gap:8px}.wb-row .mini{min-width:92px;padding:8px 14px}.mini.stop{color:var(--danger);border-color:#e3b3b7}.mini[hidden]{display:none}
+.wb-log{width:100%;flex:1;min-height:60px;background:#f3f7f6;border-radius:14px;padding:10px 12px;display:flex;overflow:hidden}
+.wb-wire #progDiagram{flex:1}
+@media(max-width:1050px){.wb{grid-template-columns:1fr;height:auto}}
 .opts3{display:flex;flex-direction:column;gap:10px}
 .ops3{display:flex;flex-direction:column;gap:8px;padding:10px}
 .op{display:flex;align-items:center;gap:12px;text-align:left;padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;transition:.15s}
@@ -204,31 +229,34 @@ dialog#writeConfirm button.go{background:var(--danger);border-color:var(--danger
   <div class="facts"><div id="fileInfo">—</div><div id="writeState"></div></div>
  </section>
  <section class="view view-prog">
-  <div class="pg3">
-   <aside class="col col-left">
-    <div class="blk step"><div class="sh"><i>1</i>Adapter</div><div class="devrow"><span class="pill" id="progStatus"><i></i><span id="progStatusText">FT232H not checked</span></span><button class="ghost sm" id="progDetect" type="button">Detect</button></div></div>
-    <details class="adv step" id="adv"><summary><span class="sh"><i>2</i>Chip</span><em id="advSum">Auto</em></summary>
-    <div class="blk"><div class="cap2">Chip</div>
-     <div class="seg wide" id="famSeg"></div>
-     <div id="chipGrid"></div><select id="progChip" hidden></select></div>
-    <div class="blk opts3">
-     <div id="orgBox"><div class="cap2">Organization</div><div class="seg wide" id="segOrg"></div><select id="progOrg" hidden><option value="16">x16 (ORG to VCC)</option><option value="8">x8 (ORG to GND)</option></select></div>
-     <div id="swapBox"><div class="cap2">Bytes in each word</div><div class="seg wide" id="segSwap"></div><select id="progSwap" hidden><option value="0">High byte first</option><option value="1">Low byte first</option></select></div>
-     <div><div class="cap2">Speed</div><div class="seg wide" id="segSpeed"></div><select id="progSpeed" hidden><option value="fast">Fast</option><option value="normal" selected>Normal</option><option value="slow">Slow</option><option value="veryslow">Slowest</option></select></div>
+  <div class="wb">
+   <div class="wb-main">
+    <div class="wb-top">
+     <div class="wb-card"><span class="pill" id="progStatus"><i></i><span id="progStatusText">FT232H not checked</span></span><button class="ghost sm" id="progDetect" type="button">Detect</button></div>
+     <details class="wb-card wb-chip" id="adv"><summary><span class="k">Chip</span><b id="advSum">Auto</b><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></summary>
+      <div class="wb-pop">
+       <div class="seg wide" id="famSeg"></div>
+       <div id="chipGrid"></div><select id="progChip" hidden></select>
+       <div class="wb-opts">
+        <div id="orgBox"><div class="cap2">Organization</div><div class="seg wide" id="segOrg"></div><select id="progOrg" hidden><option value="16">x16 (ORG to VCC)</option><option value="8">x8 (ORG to GND)</option></select></div>
+        <div id="swapBox"><div class="cap2">Bytes in each word</div><div class="seg wide" id="segSwap"></div><select id="progSwap" hidden><option value="0">High byte first</option><option value="1">Low byte first</option></select></div>
+        <div><div class="cap2">Speed</div><div class="seg wide" id="segSpeed"></div><select id="progSpeed" hidden><option value="fast">Fast</option><option value="normal" selected>Normal</option><option value="slow">Slow</option><option value="veryslow">Slowest</option></select></div>
+       </div>
+      </div></details>
     </div>
-    </details>
-    <div class="blk smartbox step"><div class="sh"><i>3</i>Action</div>
-     <button class="smart" id="smartBtn" type="button"><span class="si" id="smartIco"></span><span class="st"><b id="smartTitle">Read chip</b><small id="smartSub"></small></span></button>
-     <div class="smartrow"><button class="mini" id="progRead" type="button">Read</button><button class="mini warn" id="progWrite" type="button">Write</button><button class="mini" id="progVerify" type="button">Verify</button></div>
+    <div class="wb-dial">
+     <svg class="wb-ring" viewBox="0 0 120 120"><circle class="rb" cx="60" cy="60" r="56"/><circle class="rf" id="progRing" cx="60" cy="60" r="56" pathLength="100"/></svg>
+     <button class="smart" id="smartBtn" type="button"><span class="si" id="smartIco"></span><b id="smartTitle">Read chip</b><small id="smartSub"></small></button>
     </div>
-    <div class="blk prow"><div class="ring"><svg viewBox="0 0 120 120"><circle class="rb" cx="60" cy="60" r="52"/><circle class="rf" id="progRing" cx="60" cy="60" r="52" pathLength="100"/></svg><div class="rp"><b id="progPct">0%</b></div></div><div class="pt"><div id="progPhase">Ready</div><button class="op stop slim" id="progCancel" type="button" hidden>Cancel</button></div></div>
-    <div class="blk grow"><div class="cap2">Activity</div><div id="progLog"></div></div>
-   </aside>
-   <section class="col col-mid">
+    <div class="wb-phase"><b id="progPct">0%</b><span id="progPhase">Ready</span></div>
+    <div class="wb-row"><button class="mini" id="progRead" type="button">Read</button><button class="mini warn" id="progWrite" type="button">Write</button><button class="mini" id="progVerify" type="button">Verify</button><button class="mini stop" id="progCancel" type="button" hidden>Cancel</button></div>
+    <div class="wb-log"><div id="progLog"></div></div>
+   </div>
+   <aside class="wb-wire">
     <div class="midhead"><div><b id="midChip">—</b><span id="midInfo"></span></div><span class="legend3">FT232H → chip</span></div>
     <div id="progDiagram"></div>
     <div class="tip"><svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01"/><path d="M10.3 3.9 2.4 17.6A2 2 0 0 0 4.1 20.6h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span><b>3.3 V logic.</b> Pin 1 is next to the notch. Power the chip from the adapter, cluster off the car.</span></div>
-   </section>
+   </aside>
   </div>
  </section>
  <section class="view view-hex">
